@@ -1,0 +1,16 @@
+{
+	"name": "jorp",
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"Packages": {
+				"$path": "Packages",
+
+				"jorp": {
+					"$path": "src"
+				}
+			}
+		}
+	}
+}

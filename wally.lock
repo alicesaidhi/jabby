@@ -5,9 +5,14 @@ registry = "test"
 [[package]]
 name = "alicesaidhi/jorp"
 version = "0.1.0"
-dependencies = [["vide", "centau/vide@0.2.0"]]
+dependencies = [["jecs", "ukendio/jecs@0.3.0-rc.0"], ["vide", "centau/vide@0.2.0"]]
 
 [[package]]
 name = "centau/vide"
 version = "0.2.0"
+dependencies = []
+
+[[package]]
+name = "ukendio/jecs"
+version = "0.3.0-rc.0"
 dependencies = []
