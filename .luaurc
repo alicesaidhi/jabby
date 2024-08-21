@@ -1,6 +1,4 @@
 {
 	"languageMode": "strict",
-	"lints": {
-		"LocalShadow": false
-	}
+	"lints": {"LocalShadow": false}
 }

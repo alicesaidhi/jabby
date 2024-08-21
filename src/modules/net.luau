@@ -5,35 +5,25 @@
 
 ]]
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local gt = require(ReplicatedStorage.Packages.t)
+local signal = require(script.Parent.signal)
 local vm_id = require(script.Parent.vm_id)
 local traffic_check = require(script.Parent.traffic_check)
+local types = require(script.Parent.types)
 
-type namespace = "client" | "server"
-export type connector = {
-	namespace: namespace,
-	to: number?,
-	from: number?,
-	player: Player?,
-}
+local local_namespace: "client" | "server" = if RunService:IsClient() then "client" else "server"
 
-export type NetEvent<T...> = {
-
-	type: "event",
-
-	fire: (any, connector: connector, T...) -> (),
-	connect: (any, callback: (connector: connector, T...) -> ()) -> RBXScriptConnection,
-}
-
-export type NetCallback<T..., U...> = {
-
-	type: "callback",
-
-	invoke: (any, connector: connector, T...) -> U...,
-	set_callback: (any, callback: (connector: connector, T...) -> U...) -> (),
-}
+local tincoming_connector = gt.build(gt.table({
+	namespace = gt.union(gt.literal("server"), gt.literal("client")),
+	player = gt.optional(gt.Instance()),
+	from_vm = gt.number({integer = true}),
+	to_vm = gt.number({integer = true})
+}))
 
 local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent & { actor: BindableEvent }
 	if RunService:IsServer() then
@@ -53,18 +43,24 @@ local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent
 	end
 end
 
-local function get_remote_function(name: string): RemoteFunction & {
+local function get_remote_function(name: string): RemoteEvent & {
+	receive: RemoteEvent,
 	result: BindableEvent,
 	actor: BindableEvent,
 }
 	if RunService:IsServer() then
-		return script:FindFirstChild(name) :: RemoteFunction & {
+		return script:FindFirstChild(name) :: RemoteEvent & {
+			receive: RemoteEvent,
 			result: BindableEvent,
 			actor: BindableEvent,
 		} or (function()
-			local remote = Instance.new("RemoteFunction")
+			local remote = Instance.new("RemoteEvent")
 			remote.Name = name
 			remote.Parent = script
+
+			local receive = Instance.new("RemoteEvent")
+			receive.Name = "receive"
+			receive.Parent = remote
 
 			local bindable_event = Instance.new("BindableEvent")
 			bindable_event.Name = "result"
@@ -74,222 +70,191 @@ local function get_remote_function(name: string): RemoteFunction & {
 			fire_actor.Name = "actor"
 			fire_actor.Parent = remote
 			return remote
-		end)() :: RemoteFunction & {
+		end)() :: RemoteEvent & {
+			receive: RemoteEvent,
 			result: BindableEvent,
 			actor: BindableEvent,
 		}
 	else
-		return script:WaitForChild(name) :: RemoteFunction & {
+		return script:WaitForChild(name) :: RemoteEvent & {
+			receive: RemoteEvent,
 			result: BindableEvent,
 			actor: BindableEvent,
 		}
 	end
 end
 
-local function create_event<T...>(name: string, unreliable: boolean?, do_not_block_traffic: boolean?): NetEvent<T...>
+local function get_incoming_connector(to_vm: number?): types.IncomingConnector
+	return table.freeze {
+		namespace = local_namespace,
+		player = Players.LocalPlayer,
+		from_vm = vm_id,
+		to_vm = to_vm
+	} :: any
+end
+
+local function create_event<T...>(name: string, unreliable: boolean?, do_not_block_traffic: boolean?)
 	local remote = get_remote_event(name, unreliable)
+	local on_event_fire, fire = signal()
+
 	local event = {
 		type = "event",
-	} :: NetEvent<T...>
 
-	local connections = {}
-
-	local function local_fire(...)
-		local t = { ... }
-		for _, callback in connections :: any do
-			-- we have to run this one frame later
-			RunService.Heartbeat:Once(function()
-				callback(unpack(t))
-			end)
-		end
-	end
-
-	function event:fire(connector: connector, ...)
-		local server_to_server = RunService:IsServer() and connector.namespace == "server"
-		local client_to_client = RunService:IsClient() and connector.namespace == "client"
-
-		if client_to_client or server_to_server then
-			connector = table.clone(connector)
-			connector.player = connector.player or Players.LocalPlayer
-			connector.from = vm_id
-
-			if connector.to == vm_id then
-				local_fire(connector, ...)
-				return
-			end
-
-			remote.actor:Fire(connector, ...)
-		else
-			if RunService:IsServer() then
-				assert(connector.player, "no player specified")
-				local target = connector.player
-
-				connector = table.clone(connector)
-
-				connector.from = vm_id
-				connector.player = nil
-				remote:FireClient(target, connector, ...)
-			else
-				connector = table.clone(connector)
-				connector.from = vm_id
-				remote:FireServer(connector, ...)
-			end
-		end
-	end
-
-	function event:connect(callback: (connector: connector, ...any) -> ())
-		local function on_fire(connector: connector, ...)
+		fire = function(_, connector: types.OutgoingConnector, ...: T...)
+			--- if the namespace is within this vm, we can fire it straight to 
 			if
-				connector.to ~= vm_id and connector.to ~= nil
-				or RunService:IsServer() and connector.namespace ~= "server"
+				connector.namespace == local_namespace
+				and connector.to_vm == vm_id
 			then
-				return
+				local incoming = get_incoming_connector(connector.to_vm)
+				fire(incoming, ...)
+			--- if the namespace is within this realm, but in a separate actor
+			--- we have to fire the actor
+			elseif
+				connector.namespace == local_namespace
+				and connector.to_vm ~= vm_id
+			then
+				local incoming = get_incoming_connector(connector.to_vm)
+				remote.actor:Fire(incoming, ...)
+			--- we need to fire a event to a client
+			elseif connector.namespace == "client" then
+				local incoming = get_incoming_connector(connector.to_vm)
+				remote:FireClient(connector.player, incoming, ...)
+			--- we need to fire a event to the server
+			elseif connector.namespace == "server" then
+				local incoming = get_incoming_connector(connector.to_vm)	
+				remote:FireServer(incoming, ...)
 			end
-			assert(
-				do_not_block_traffic == true or traffic_check.check(Players.LocalPlayer),
-				`{Players.LocalPlayer} tried to fire gorp server`
-			)
-			callback(connector, ...)
+
+		end,
+
+		connect = function(callback: (types.IncomingConnector, T...) -> ())
+			on_event_fire:connect(callback)
 		end
-
-		local connection = remote.actor.Event:Connect(on_fire)
-
-		local t = {
-			Disconnect = function()
-				connections[connection] = nil
-				connection:Disconnect()
-			end,
-		}
-
-		connections[connection] = on_fire
-
-		return t :: any
-	end
+	}
 
 	if RunService:IsServer() then
-		-- block all traffic from unverified players
-		remote.OnServerEvent:Connect(function(player: Player, connector: connector, ...)
-			assert(
-				do_not_block_traffic == true or traffic_check.check(player),
-				`{player} tried to fire gorp server`
-			)
-			assert(connector.namespace == "server")
+		remote.OnServerEvent:Connect(function(player, incoming, ...)
+			if incoming.to_vm ~= vm_id or incoming.to_vm == nil then return end
+			if do_not_block_traffic == false or not traffic_check.check(player) then return end
+			if tincoming_connector(incoming) == false then return end
+			local incoming: types.IncomingConnector = incoming
+			if incoming.namespace ~= "client" then return end
+			incoming.player = player
 
-			connector.player = player
-
-			if connector.to == vm_id then
-				local_fire(connector, ...)
-			else
-				remote.actor:Fire(connector, ...)
-			end
+			fire(incoming, ...)
 		end)
 	else
-		remote.OnClientEvent:Connect(function(connector: connector, ...)
-			if connector.to == vm_id then
-				local_fire(connector, ...)
-			else
-				remote.actor:Fire(connector, ...)
-			end
+		remote.OnClientEvent:Connect(function(incoming, ...)
+			if incoming.to_vm ~= vm_id or incoming.to_vm == nil then return end
+			if tincoming_connector(incoming) == false then return end
+			local incoming: types.IncomingConnector = incoming
+			if incoming.namespace ~= "server" then return end
+
+			fire(incoming, ...)
 		end)
 	end
 
-	return event
-end
-
-local function create_callback<T..., U...>(name: string, do_not_block_traffic: boolean?): NetCallback<T..., U...>
-	local remote = get_remote_function(name)
-	local callback = {
-		type = "callback",
-	} :: NetCallback<T..., U...>
-
-	local id = 0
-	local current_callback = function(connector: connector, ...: T...): U...
-		error("did not specify callback")
-	end
-
-	function callback:invoke(connector: connector, ...: T...): U...
-		assert(connector.to, "this function requires a target to send to")
-
-		local server_to_server = RunService:IsServer() and connector.namespace == "server"
-		local client_to_client = RunService:IsClient() and connector.namespace == "client"
-
-		assert(
-			do_not_block_traffic == true or traffic_check.check(Players.LocalPlayer),
-			`{Players.LocalPlayer} tried to fire gorp server`
-		)
-		assert(connector.to, "there must be a target connector")
-
-		connector = table.clone(connector)
-		if client_to_client or server_to_server then
-			connector.from = connector.from or vm_id
-			connector.player = connector.player or Players.LocalPlayer
-
-			if connector.to == vm_id then return current_callback(connector, ...) end
-
-			id += 1
-			local stored = id
-
-			local t
-			local connection = remote.result.Event:Connect(function(from: number, to: number, id: number, ...)
-				if from ~= connector.to then return end
-				if to ~= vm_id then return end
-				if id ~= stored then return end
-
-				t = { ... }
-			end)
-			remote.actor:Fire(connector, vm_id, stored, ...)
-
-			-- coroutine.yield breaks stuff
-			while t == nil do
-				task.wait()
-			end
-
-			connection:Disconnect()
-
-			return unpack(t)
-		else
-			if RunService:IsServer() then
-				error("unsecure")
-			else
-				connector.from = vm_id
-				local results = { remote:InvokeServer(connector, ...) }
-				return unpack(results)
-			end
-		end
-	end
-
-	function callback:set_callback(callback: (connector: connector, T...) -> U...)
-		current_callback = callback :: any
-	end
-
-	if RunService:IsServer() then
-		remote.OnServerInvoke = function(player, connector, ...)
-			assert(
-				do_not_block_traffic == true or traffic_check.check(player),
-				`{player} tried to invoke gorp server`
-			)
-
-			connector.player = player
-
-			local results = { callback:invoke(connector, ...) }
-			return unpack(results)
-		end
-		-- not specifying OnClientInvoke for security reasons
-	end
-
-	remote.actor.Event:Connect(function(connector: connector, origin: number, id: number, ...)
-		if connector.to ~= vm_id then return end
-
-		local results = { current_callback(connector, ...) }
-		connector.from = vm_id
-		remote.result:Fire(vm_id, origin, id, unpack(results))
+	remote.actor.Event:Connect(function(incoming: types.IncomingConnector, ...)
+		if incoming.to_vm ~= vm_id or incoming.to_vm == nil then return end
+		fire(incoming, ...)
 	end)
 
-	return callback
+	return (event :: any) :: types.NetEvent<T...>
+end
+
+local function create_callback<T..., U...>(name: string, do_not_block_traffic: boolean?): types.NetCallback<T..., U...>
+	local remote = get_remote_function(name)
+	local callback = function(...) return error("no callback set") end
+	local class = {
+		type = "callback",
+
+		invoke = function(connector: types.OutgoingConnector, ...: T...): U...
+			assert(connector.to_vm, "requires a target vm to invoke")
+
+			local incoming_connector = get_incoming_connector(connector.to_vm)
+
+			if
+				incoming_connector.namespace == local_namespace
+				and incoming_connector.to_vm == vm_id
+			then
+				--- invoke same vm
+				return callback(incoming_connector, ...)
+			elseif
+				incoming_connector.namespace == local_namespace
+				and incoming_connector.to_vm ~= vm_id
+			then
+				--- invoke another vm
+				local guid = HttpService:GenerateGUID(false)
+				remote.actor:Fire(incoming_connector, guid, ...)
+
+				--- make a connection
+				local tuple
+
+				while true do
+					tuple = {remote.result.Event:Wait()}
+					if tuple[1] == guid then break end
+				end
+
+				return unpack(tuple, 2)
+			elseif incoming_connector.namespace == "server" then
+				--- invoke another vm
+				local guid = HttpService:GenerateGUID(false)
+				remote:FireServer(incoming_connector, guid, ...)
+
+				--- make a connection
+				local tuple
+
+				while true do
+					tuple = {remote.receive.OnClientEvent:Wait() :: any}
+					if tuple[1] == guid then break end
+				end
+
+				return unpack(tuple, 2)
+			elseif incoming_connector.namespace == "client" then
+				error("dont invoke the client")
+				-- --- invoke another vm
+				-- local guid = HttpService:GenerateGUID(false)
+				-- remote:FireClient(incoming_connector.player, incoming_connector, guid, ...)
+
+				-- --- make a connection
+				-- local tuple
+
+				-- while true do
+				-- 	tuple = {remote.receive.OnServerEvent:Wait() :: any}
+				-- 	if tuple[2] == guid then break end
+				-- end
+
+				-- return unpack(tuple, 2)
+			end
+
+
+		end
+	}
+
+	remote.actor.Event:Connect(function(guid, incoming_connector: types.IncomingConnector, ...)
+		if typeof(guid) ~= "string" then return end
+		if tincoming_connector(incoming_connector) == false then return end
+
+		local tuple = {callback(incoming_connector, ...)}
+		remote.result:Fire(guid, unpack(tuple))
+	end)
+
+	if RunService:IsServer() then
+		remote.OnServerEvent:Connect(function(player, guid, incoming_connector: types.IncomingConnector, ...)
+			if typeof(guid) ~= "string" then return end
+			if tincoming_connector(incoming_connector) == false then return end
+			if do_not_block_traffic == false or not traffic_check.check(player) then return end
+			
+			local tuple = {callback(incoming_connector, ...)}
+			remote.receive:FireClient(player, guid, unpack(tuple))
+		end)
+	end
+
+	return class :: any
 end
 
 return {
-
 	create_callback = create_callback,
 	create_event = create_event,
 }
