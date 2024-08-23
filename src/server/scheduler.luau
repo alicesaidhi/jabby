@@ -14,12 +14,16 @@ type SystemFrame = {
 
 local MAX_BUFFER_SIZE = 50
 
+local n = 0
+local schedulers = {}
+
 local function create_scheduler(name: string)
 
 	local count = 1
 
 	local scheduler = {
-		scheduler_name = name,
+		class_name = "Scheduler",
+		name = name,
 
 		--- contains a map of valid system ids
 		valid_system_ids = {} :: {[SystemId]: true},
@@ -37,11 +41,21 @@ local function create_scheduler(name: string)
 		assert(scheduler.valid_system_ids[id], `attempt to use unknown system with id #{id}`)
 	end
 
-	function scheduler:register_system()
+	function scheduler:register_system(settings: types.SystemSettingData?)
 		local id = count; count += 1
 		scheduler.valid_system_ids[id] = true
-		scheduler.system_data[id] = {}
+		scheduler.system_data[id] = {
+			name = "UNNAMED",
+			phase = nil,
+			layout_order = 0,
+			paused = false
+		}
 		scheduler.system_frames[id] = {}
+		
+		if settings then
+			scheduler:set_system_data(id, settings)
+		end
+
 		return id
 	end
 
@@ -83,12 +97,15 @@ local function create_scheduler(name: string)
 		assert("todo")
 	end
 
-	function scheduler:run_system<T...>(id: SystemId, system: (T...) -> (), ...: T...)
+	function scheduler:run<T...>(id: SystemId, system: (T...) -> (), ...: T...)
 		ASSERT_SYSTEM_VALID(id)
 		scheduler:mark_system_frame_start(id)
 		system(...)
 		scheduler:mark_system_frame_end(id)
 	end
+
+	schedulers[n + 1] = scheduler
+	n = n + 1
 
 	return scheduler
 
@@ -96,6 +113,7 @@ end
 
 return {
 
-	create = create_scheduler
+	create = create_scheduler,
+	schedulers = schedulers
 
 }

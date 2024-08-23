@@ -23,6 +23,7 @@ export type SignalInternal<T... = ...unknown> = Signal<T...> & {
 }
 
 function signal.connect<T...>(self: Signal<T...>, callback: (T...) -> ())
+	assert(type(callback) == "function")
 	self.callbacks[callback] = true
 
 	return {

@@ -1,22 +1,13 @@
 type namespace = "client" | "server"
 
 export type IncomingConnector = {
-	namespace: "server",
-	from_vm: number,
-	to_vm: number
-} | {
-	namespace: "client",
-	player: Player,
+	namespace: Player | "server",
 	from_vm: number,
 	to_vm: number
 }
 
 export type OutgoingConnector = {
-	namespace: "client",
-	player: Player, -- todo: support receiving registries from other players
-	to_vm: number? -- not specifying a vm makes it received by all
-} | {
-	namespace: "server",
+	namespace: Player | "server",
 	to_vm: number? -- not specifying a vm makes it received by all
 }
 
@@ -36,39 +27,49 @@ export type NetCallback<T..., U...> = {
 	set_callback: (any, callback: (connector: IncomingConnector, T...) -> U...) -> (),
 }
 
---todo: maybe we need to rethink the connectors where the Namespace is type Player | "server"?
-export type ClientServerInfo = {
-	namespace: "client" | "server",
-	player: Player,
-	vm_id: number,
-}
-
-
 export type SystemId = number
 
 export type SystemTag = "processing" | "finished" | "paused"
 export type SystemSettingData = {
 	name: string?,
-	sort_key: string?,
-	layout_order: number?
+	phase: string?,
+	layout_order: number?,
+	paused: boolean?
+}
+export type SystemData = {
+	name: string,
+	phase: string?,
+	layout_order: number,
+	paused: boolean
 }
 
 type SystemLabel = {}
 export type Scheduler = {
+	class_name: "Scheduler",
+	name: string,
 
-	register_system: (Scheduler) -> SystemId,
+	valid_system_ids: {[SystemId]: true},
+	system_data: {[SystemId]: SystemData},
+	system_frames: {[SystemId]: {}},
+
+	register_system: (Scheduler, settings: SystemSettingData?) -> SystemId,
 	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> SystemId,
 	remove_system: (Scheduler, system: SystemId) -> (),
-
-	--todo: implement a tagging system to allow systems to be tagged with extra
-	--		data. this is necessary in order to support pausing systems
 
 	mark_system_frame_start: (Scheduler, system: SystemId) -> (),
 	mark_system_frame_end: (Scheduler, system: SystemId, s: number?) -> (),
 	append_extra_frame_data: (Scheduler, system: SystemId, label: SystemLabel) -> (),
 	--- this should call mark_system_frame_start and mark_system_frame_end for you
-	run_system: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),
+	run: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),
 
+}
+
+export type Application<T> = {
+	class_name: "App",
+	name: string,
+	icon: string?,
+
+	mount: (props: T, destroy: () -> ()) -> Instance
 }
 
 return nil

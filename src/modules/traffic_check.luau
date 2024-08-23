@@ -16,7 +16,7 @@ traffic_check.can_use_jorp = function(player: Player)
 	local is_studio = game:GetService("RunService"):IsStudio()
 	local is_owner = game.CreatorType == Enum.CreatorType.User and game.CreatorId == player.UserId
 
-	return is_owner or is_studio
+	return true --is_owner or is_studio
 end
 
 --- Runs a callback defined by the developer to determine if a player is allowed

@@ -5,6 +5,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-vide = "centau/vide@0.2.0"
+pebble = "alicesaidhi/pebble@0.1.0-rc.1"
+vide = "aloroid/vide-with-types@0.2.4"
 jecs = "ukendio/jecs@0.3.0-rc.0"
 t = "corecii/greentea@0.4.7"

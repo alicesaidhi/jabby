@@ -5,11 +5,16 @@ registry = "test"
 [[package]]
 name = "alicesaidhi/jorp"
 version = "0.1.0"
-dependencies = [["jecs", "ukendio/jecs@0.3.0-rc.0"], ["t", "corecii/greentea@0.4.7"], ["vide", "centau/vide@0.2.0"]]
+dependencies = [["jecs", "ukendio/jecs@0.3.0-rc.0"], ["pebble", "alicesaidhi/pebble@0.1.0-rc.1"], ["t", "corecii/greentea@0.4.7"], ["vide", "aloroid/vide-with-types@0.2.4"]]
 
 [[package]]
-name = "centau/vide"
-version = "0.2.0"
+name = "alicesaidhi/pebble"
+version = "0.1.0-rc.1"
+dependencies = [["vide", "aloroid/vide-with-types@0.2.4"]]
+
+[[package]]
+name = "aloroid/vide-with-types"
+version = "0.2.4"
 dependencies = []
 
 [[package]]

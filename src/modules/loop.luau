@@ -1,3 +1,4 @@
+local scheduler = require(script.Parent.Parent.server.scheduler)
 type Array<T> = { T }
 
 export type System = (number) -> ...(number) -> ()
@@ -9,34 +10,16 @@ type SystemGroup = {
     offset: number,
     dt: number,
     [number]: {
+        id: number,
         name: string,
         type: number,
         fn: (...any) -> ...any
     }
 }
 
-local function run_sys(name: string, fn: (...unknown) -> (), ...: unknown)
-    local thread = coroutine.create(function(...)
-        local ok, err: string? = xpcall(fn, function(err: string)
-            local trace = debug.traceback(nil, 2)
-            return `ERROR:\n{err}\n\nTRACE:\n{trace}`
-        end, ...)
-
-        return ok, err
-    end)
-
-    local _, ok, result = coroutine.resume(thread, ...)
-
-    if not ok then
-        warn(`system "{name}" errored\n\n{result}`)
-    end
-
-    if coroutine.status(thread) == "suspended" then
-        warn(`system "{name}" yielded`)
-    end
-end
-
-local function loop_create(...: ModuleScript | () -> () | GroupInfo): (number) -> ()
+local function loop_create(name: string, data: any, ...: ModuleScript | () -> () | GroupInfo): (number) -> ()
+    local jorp_scheduler = scheduler.create(name)
+    
     local groups = {} :: Array<SystemGroup>
 
     local current_group: SystemGroup?
@@ -61,6 +44,7 @@ local function loop_create(...: ModuleScript | () -> () | GroupInfo): (number) -
                 assert(current_group)
 
                 table.insert(current_group, {
+                    id = jorp_scheduler:register_system(),
                     name = "UNNAMED",
                     type = 0,
                     fn = v
@@ -69,9 +53,10 @@ local function loop_create(...: ModuleScript | () -> () | GroupInfo): (number) -
                 assert(current_group)
 
                 local fn = (require :: any)(v) :: System
-                local fn2 = fn(0)
+                local fn2 = fn(data, 0)
 
                 table.insert(current_group, {
+                    id = jorp_scheduler:register_system({name = `{v.Parent.Name}/{v.Name}`}),
                     name = v.Name,
                     type = fn2 and 1 or 0,
                     fn = fn2 or fn
@@ -102,9 +87,9 @@ local function loop_create(...: ModuleScript | () -> () | GroupInfo): (number) -
                     debug.profilebegin(system.name)
 
                     if system.type == 0 then
-                        run_sys(system.name, system.fn, group.dt)
+                        jorp_scheduler:run(system.id, system.fn, data, group.dt)
                     else
-                        run_sys(system.name, system.fn, group.dt)
+                        jorp_scheduler:run(system.id, system.fn, data, group.dt)
                     end
 
                     debug.profileend()
