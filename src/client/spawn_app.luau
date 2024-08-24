@@ -6,7 +6,9 @@ local types = require(script.Parent.Parent.modules.types)
 return function<T>(app: types.Application<T>, props: T)
 
 	vide.root(function(destroy)
-		app.mount(props, destroy).Parent = Players.LocalPlayer.PlayerGui
+		local application = app.mount(props, destroy)
+		vide.cleanup(application)
+		application.Parent = Players.LocalPlayer.PlayerGui
 		return destroy
 	end)
 

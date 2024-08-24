@@ -3,7 +3,7 @@ local types = require(script.Parent.types)
 
 local function reverse(connector: types.IncomingConnector): types.OutgoingConnector
 	return {
-		namespace = connector.namespace,
+		host = connector.host,
 		to_vm = connector.from_vm,
 	}
 end

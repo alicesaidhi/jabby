@@ -16,17 +16,17 @@ local vm_id = require(script.Parent.vm_id)
 local traffic_check = require(script.Parent.traffic_check)
 local types = require(script.Parent.types)
 
-local local_namespace: "server" | Player
+local local_host: "server" | Player
 local MANAGER_VM = 0
 
 if RunService:IsServer() then
-	local_namespace = "server"
+	local_host = "server"
 else
-	local_namespace = Players.LocalPlayer
+	local_host = Players.LocalPlayer
 end
 
 local tincoming_connector = gt.build(gt.table({
-	namespace = gt.union(gt.literal("server"), gt.Instance()),
+	host = gt.union(gt.literal("server"), gt.Instance()),
 	from_vm = gt.number({integer = true}),
 	to_vm = gt.optional(gt.number({integer = true}))
 }))
@@ -103,54 +103,54 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		type = "event",
 
 		fire = function(_, connector: types.OutgoingConnector, ...: T...)
-			--- if the namespace is within this vm, we can fire it straight to 
+			--- if the host is within this vm, we can fire it straight to 
 			if
-				connector.namespace == local_namespace
+				connector.host == local_host
 				and connector.to_vm == vm_id
 			then
 
 				local incoming = {
-					namespace = local_namespace,
+					host = local_host,
 					from_vm = vm_id,
 					to_vm = connector.to_vm
 				}
 
 				fire(incoming, ...)
-			--- if the namespace is the same, but in a separate actor
+			--- if the host is the same, but in a separate actor
 			--- we have to fire the actor
 			elseif
-				connector.namespace == local_namespace
+				connector.host == local_host
 				and connector.to_vm ~= vm_id
 			then
 				local incoming = {
-					namespace = local_namespace,
+					host = local_host,
 					from_vm = vm_id,
 					to_vm = connector.to_vm
 				}
 
 				remote.actor:Fire(incoming, ...)
 			--- we need to fire the server
-			elseif connector.namespace == "server" then
+			elseif connector.host == "server" then
 				local incoming = {
-					namespace = "server",
+					host = "server",
 					from_vm = vm_id,
 					to_vm = connector.to_vm
 				}
 
 				remote:FireServer(incoming, ...)
 			--- we need to fire the client
-			elseif local_namespace == "server" then
+			elseif local_host == "server" then
 				local incoming = {
-					namespace = "server",
+					host = "server",
 					from_vm = vm_id,
 					to_vm = connector.to_vm
 				}
 
-				remote:FireClient(connector.namespace, incoming, ...)
+				remote:FireClient(connector.host, incoming, ...)
 			--- we need to tell the server to redirect this to the client
 			else
 				local incoming = {
-					namespace = connector.namespace,
+					host = connector.host,
 					from_vm = vm_id,
 					to_vm = connector.to_vm
 				}
@@ -173,12 +173,12 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 			--- check if its a proper connector
 			if not tincoming_connector(target) then return end
 	
-			if target.namespace == "server" and (target.to_vm == vm_id or target.to_vm == nil) then
-				target.namespace = player
+			if target.host == "server" and (target.to_vm == vm_id or target.to_vm == nil) then
+				target.host = player
 				fire(target, ...)
-			elseif target.namespace ~= "server" and vm_id == MANAGER_VM then
-				local to = target.namespace
-				target.namespace = player
+			elseif target.host ~= "server" and vm_id == MANAGER_VM then
+				local to = target.host
+				target.host = player
 				remote:FireClient(
 					to,
 					target,
@@ -213,13 +213,13 @@ end
 -- 			assert(connector.to_vm, "requires a target vm to invoke")
 
 -- 			if
--- 				incoming_connector.namespace == local_namespace
+-- 				incoming_connector.host == local_host
 -- 				and incoming_connector.to_vm == vm_id
 -- 			then
 -- 				--- invoke same vm
 -- 				return callback(incoming_connector, ...)
 -- 			elseif
--- 				incoming_connector.namespace == local_namespace
+-- 				incoming_connector.host == local_host
 -- 				and incoming_connector.to_vm ~= vm_id
 -- 			then
 -- 				--- invoke another vm
@@ -235,7 +235,7 @@ end
 -- 				end
 
 -- 				return unpack(tuple, 2)
--- 			elseif incoming_connector.namespace == "server" then
+-- 			elseif incoming_connector.host == "server" then
 -- 				--- invoke another vm
 -- 				local guid = HttpService:GenerateGUID(false)
 -- 				remote:FireServer(incoming_connector, guid, ...)
@@ -249,7 +249,7 @@ end
 -- 				end
 
 -- 				return unpack(tuple, 2)
--- 			elseif incoming_connector.namespace == "client" then
+-- 			elseif incoming_connector.host == "client" then
 -- 				error("dont invoke the client")
 -- 				-- --- invoke another vm
 -- 				-- local guid = HttpService:GenerateGUID(false)

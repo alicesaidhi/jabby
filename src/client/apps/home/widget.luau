@@ -1,5 +1,7 @@
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
+local spawn_app = require(script.Parent.Parent.Parent.spawn_app)
+local overview_scheduler = require(script.Parent.Parent.overview_scheduler)
 
 local create = vide.create
 local indexes = vide.indexes
@@ -9,7 +11,7 @@ type props = {
 
 	servers: () -> {
 		{
-			namespace: "server" | "client",
+			host: "server" | Player,
 			vm: number,
 
 			schedulers: () -> {
@@ -32,10 +34,21 @@ return function(props: props)
 		min_size = Vector2.new(230, 200),
 		bind_to_close = props.destroy,
 
-		create "Frame" {
+		create "ScrollingFrame" {
 			Size = UDim2.fromScale(1, 1),
+			CanvasSize = UDim2.new(),
+
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 
 			BackgroundTransparency = 1,
+
+			ScrollBarThickness = 6,
+			HorizontalScrollBarInset = Enum.ScrollBarInset.Always,
+
+			pebble.padding {
+				x = UDim.new(0, 1),
+				right = UDim.new(0, 8)
+			},
 
 			create "UIListLayout" {
 				FillDirection = Enum.FillDirection.Horizontal,
@@ -49,14 +62,14 @@ return function(props: props)
 				return pebble.pane{
 					name = "",
 					size = UDim2.fromOffset(200, 0),
-					automaticsize = Enum.AutomaticSize.XY,
+					automaticsize = Enum.AutomaticSize.Y,
 	
 					create "UIListLayout" {
 						Padding = UDim.new(0, 8)
 					},
 	
 					pebble.typography {
-						text = `namespace: {value.namespace}\nvm id: {value.vm}`
+						text = `host: {value.host}\tvm id: {value.vm}`
 					},
 	
 					values(value.worlds, function(world)
@@ -68,7 +81,15 @@ return function(props: props)
 					values(value.schedulers, function(scheduler)
 						return pebble.button {
 							size = UDim2.new(1, 0, 0, 30),
-							text = `Scheduler {scheduler.name}`
+							text = `Scheduler {scheduler.name}`,
+
+							activated = function()
+								spawn_app(overview_scheduler, {
+									host = value.host,
+									vm = value.vm,
+									id = scheduler.id
+								})
+							end
 						}
 					end) :: any
 	

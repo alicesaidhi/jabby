@@ -1,7 +1,7 @@
 local scheduler = require(script.Parent.Parent.server.scheduler)
 type Array<T> = { T }
 
-export type System = (number) -> ...(number) -> ()
+export type System = (any, number) -> ...(any, number) -> ()
 
 type GroupInfo = { i: number?, o: number? }
 
@@ -17,7 +17,7 @@ type SystemGroup = {
     }
 }
 
-local function loop_create(name: string, data: any, ...: ModuleScript | () -> () | GroupInfo): (number) -> ()
+local function loop_create(name: string, data: any, ...: ModuleScript | () -> () | GroupInfo)
     local jorp_scheduler = scheduler.create(name)
     
     local groups = {} :: Array<SystemGroup>
@@ -101,7 +101,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
 
         debug.resetmemorycategory()
         debug.profileend()
-    end
+    end, jorp_scheduler
 end
 
 return loop_create

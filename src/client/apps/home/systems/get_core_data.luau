@@ -9,11 +9,11 @@ return function(data)
 
 	for _, player in Players:GetPlayers() do
 		remotes.ping:fire({
-			namespace = player,
+			host = player,
 		})
 	end
 	remotes.ping:fire({
-		namespace = "server"
+		host = "server"
 	})
 
 	local servers_responding = queue(remotes.new_server_registered)
@@ -47,15 +47,15 @@ return function(data)
 		for connector, packet in server_update:iter() do
 			local outgoing = reverse_connector(connector)
 
-			map_to_idx[outgoing.namespace] = map_to_idx[outgoing.namespace] or {}
-			local idx = map_to_idx[outgoing.namespace][outgoing.to_vm]
+			map_to_idx[outgoing.host] = map_to_idx[outgoing.host] or {}
+			local idx = map_to_idx[outgoing.host][outgoing.to_vm]
 
 			if not idx then
 				print("new server")
 				idx = n + 1; n += 1
-				map_to_idx[outgoing.namespace][outgoing.to_vm] = idx
+				map_to_idx[outgoing.host][outgoing.to_vm] = idx
 				servers()[idx] = {
-					namespace = outgoing.namespace,
+					host = outgoing.host,
 					vm = outgoing.to_vm,
 
 					schedulers = vide.source {},

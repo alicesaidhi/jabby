@@ -13,7 +13,7 @@ return function()
 	for _, player in Players:GetPlayers() do
 		if traffic_check.player_is_allowed(player) then
 			remotes.new_server_registered:fire({
-				namespace = "client",
+				host = "client",
 				player = player
 			})
 		end

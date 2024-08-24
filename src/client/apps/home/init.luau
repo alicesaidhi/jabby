@@ -7,11 +7,11 @@ local widget = require(script.widget)
 local cleanup = vide.cleanup
 
 local home = {
-	class_name = "app",
+	class_name = "app" :: "app",
 	name = "Home"
 }
 
-function home.mount(destroy: () -> ())
+function home.mount(_, destroy: () -> ())
 
 	local servers = vide.source {} :: any
 	local app_loop = loop (

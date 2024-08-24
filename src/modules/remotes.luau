@@ -45,6 +45,13 @@ return {
 		types.NetEvent<number>,
 
 	--[=[
+	Requests the server to stop replicating a scheduler
+	]=]
+	disconnect_scheduler =
+		net.create_event("disconnect_replicate_scheduler") ::
+		types.NetEvent<number>,
+
+	--[=[
 	Updates any static data about systems (like new systems)
 
 	systemid: number
@@ -52,16 +59,28 @@ return {
 	]=]
 	scheduler_system_static_update =
 		net.create_event("scheduler_system_update_static") ::
-		types.NetEvent<number, types.SystemSettingData>,
+		types.NetEvent<number, number, types.SystemData?>,
 
 	--[=[
 	Appends a frame to a system
 	
 	systemid: number
+	frame_count: number
 	time_took: number
 	]=]
 	scheduler_system_update =
 		net.create_event("append_frame_system", true) ::
-		types.NetEvent<number, number>
+		types.NetEvent<number, number, number, number>,
+
+	--[=[
+	Pauses a system
+	
+	scheduler: number
+	systemid: number
+	paused: boolean
+	]=]
+	scheduler_system_pause =
+		net.create_event("scheduler_pause") ::
+		types.NetEvent<number, number, boolean>,
 
 }

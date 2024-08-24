@@ -1,13 +1,13 @@
-type namespace = "client" | "server"
+type host = "client" | "server"
 
 export type IncomingConnector = {
-	namespace: Player | "server",
+	host: Player | "server",
 	from_vm: number,
 	to_vm: number
 }
 
 export type OutgoingConnector = {
-	namespace: Player | "server",
+	host: Player | "server",
 	to_vm: number? -- not specifying a vm makes it received by all
 }
 
@@ -43,14 +43,22 @@ export type SystemData = {
 	paused: boolean
 }
 
-type SystemLabel = {}
+export type SystemLabel = {}
+
+export type SystemFrame = {
+	i: number,
+	s: number
+}
+
 export type Scheduler = {
 	class_name: "Scheduler",
 	name: string,
 
 	valid_system_ids: {[SystemId]: true},
 	system_data: {[SystemId]: SystemData},
-	system_frames: {[SystemId]: {}},
+	system_data_updated: {[SystemId]: true},
+	system_frames: {[SystemId]: SystemFrame},
+	system_frames_updated: {[SystemId]: {[SystemFrame]: true}},
 
 	register_system: (Scheduler, settings: SystemSettingData?) -> SystemId,
 	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> SystemId,
@@ -58,16 +66,15 @@ export type Scheduler = {
 
 	mark_system_frame_start: (Scheduler, system: SystemId) -> (),
 	mark_system_frame_end: (Scheduler, system: SystemId, s: number?) -> (),
-	append_extra_frame_data: (Scheduler, system: SystemId, label: SystemLabel) -> (),
+	-- append_extra_frame_data: (Scheduler, system: SystemId, label: SystemLabel) -> (),
 	--- this should call mark_system_frame_start and mark_system_frame_end for you
 	run: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),
 
 }
 
 export type Application<T> = {
-	class_name: "App",
+	class_name: "app",
 	name: string,
-	icon: string?,
 
 	mount: (props: T, destroy: () -> ()) -> Instance
 }

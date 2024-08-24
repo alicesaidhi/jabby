@@ -1,10 +1,7 @@
-local vide = require(script.Parent.Parent.Parent.Parent.vide)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
 local public = require(script.Parent.Parent.public)
-
-
 
 return function()
 
