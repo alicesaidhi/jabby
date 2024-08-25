@@ -10,7 +10,7 @@ local scheduler = require(script.scheduler)
 
 do
 	for _, player in Players:GetPlayers() do
-		if not traffic_check.player_is_allowed(player) then return end
+		if not traffic_check.player_is_allowed(player) then continue end
 		remotes.new_server_registered:fire({
 			host = player,
 		}) 

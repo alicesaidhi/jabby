@@ -12,3 +12,23 @@ It's still in the early stages of development and is very experimental.
 > jorp requires vide with the recursive queue fix patch (git commit [fbe2f01](https://github.com/centau/vide/commit/fbe2f01bb99e7f7744d5039f36c494044f044883))
 
 While jorp is currently only compatible with jecs, the intent is to be able to use this as a alternative debugger for Matter and ECR.
+
+## How to get it working
+
+jorp can be used with actors and is able to be used to inspect other players.
+`table.insert` schedulers / worlds to `jorp.public` and set `jorp.public.updated` to true. There will probably be a better api for this later.
+
+When inserting a jecs world to the public table, make sure it's stored like so:
+```lua
+jorp.public[1] = {
+	 -- identifier jorp needs to know its a world
+	class_name: "World",
+	-- the name of how it will be displayed
+	name: string,
+	-- your actual world
+	world: jecs.World,
+	-- a entity that is used to store the name of any components you want to be
+	-- able to query.
+	debug: jecs.Entity
+}
+```
