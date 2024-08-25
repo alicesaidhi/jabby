@@ -1,3 +1,6 @@
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
 
@@ -23,10 +26,20 @@ type props = {
 	current_query: () -> string,
 	total_entities: () -> number,
 
+	enable_pick: vide.Source<boolean>,
+	entity_hovering_over: () -> string,
+	hovering_over: () -> number,
+
 	columns: () -> {{any}},
 
 	destroy: () -> ()
 }
+
+local mouse_location = source(Vector2.zero)
+
+RunService.PreRender:Connect(function()
+	mouse_location(UserInputService:GetMouseLocation())
+end)
 
 return function(props: props)
 
@@ -68,24 +81,132 @@ return function(props: props)
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 
+			create "ScreenGui" {
+				Name = "Mouse Hover",
+				IgnoreGuiInset = true,
+	
+				create "Highlight" {
+					DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
+					OutlineColor = Color3.new(1, 1, 1),
+					FillColor = pebble.theme.acc[0],
+					FillTransparency = 0.5,
+	
+					Adornee = props.hovering_over
+				},
+
+				create "Frame" {
+					Position = function()
+						return UDim2.fromOffset(
+							mouse_location().X + 24,
+							mouse_location().Y + 24
+						)
+					end,
+					Size = UDim2.fromOffset(200, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
+
+					BackgroundColor3 = pebble.theme.bg[0],
+					BackgroundTransparency = 0.5,
+
+					Visible = function()
+						return props.entity_hovering_over() and #props.entity_hovering_over() > 0 or false
+					end,
+
+					pebble.padding {},
+
+					create "UICorner" {
+						CornerRadius = UDim.new(0, 8)
+					},
+
+					create "UIStroke" {
+						Color = pebble.theme.bg[-10],
+						Thickness = 2,
+						Transparency = 0.8
+					},
+
+					pebble.typography {
+						automaticsize = Enum.AutomaticSize.XY,
+	
+						text = function()
+							return props.entity_hovering_over() or ""
+						end,
+						xalignment = Enum.TextXAlignment.Left,
+						wrapped = true
+					}
+				}
+
+				
+	
+			},
+
 			create "UIListLayout" {
 				VerticalFlex = Enum.UIFlexAlignment.SpaceAround,
 				Padding = UDim.new(0, 8)
 			},
 
-			pebble.textfield {
-				size = UDim2.new(1, 0, 0, 30),
-				placeholder = "Query",
+			create "Frame" {
+				Name = "Query + Pick",
+				Size = UDim2.new(1, 0, 0, 30),
 
-				code = true,
+				BackgroundTransparency = 1,
+				
+				create "UIListLayout" {
+					FillDirection = Enum.FillDirection.Horizontal,
+					HorizontalFlex = Enum.UIFlexAlignment.SpaceAround,
+					VerticalFlex = Enum.UIFlexAlignment.SpaceAround,
+					Padding = UDim.new(0, 8)
+				},
 
-				oninput = function(text)
-					props.validate_query(text)
-				end,
+				create "Frame" {
 
-				enter = function(text)
-					props.update_system_query(text)
-				end
+					Name = "Query",
+
+					Size = UDim2.fromScale(0, 1),
+					BackgroundTransparency = 1,
+
+					create "UIFlexItem" {
+						FlexMode = Enum.UIFlexMode.Fill
+					},
+
+					pebble.textfield {
+						size = UDim2.new(1, 0, 0, 30),
+						placeholder = "Query",
+		
+						code = true,
+		
+						oninput = function(text)
+							props.validate_query(text)
+						end,
+		
+						enter = function(text)
+							props.update_system_query(text)
+						end
+					},
+
+				},
+
+				pebble.button {
+					size = UDim2.fromOffset(30, 30),
+	
+					text = "",
+
+					accent = props.enable_pick,
+
+					activated = function()
+						props.enable_pick(not props.enable_pick())
+					end,
+					
+					create "ImageLabel" {
+						Size = UDim2.fromOffset(24, 24),
+						Position = UDim2.fromScale(0.5, 0.5),
+						AnchorPoint = Vector2.new(0.5, 0.5),
+	
+						BackgroundTransparency = 1,
+	
+						Image = "rbxassetid://10734898355"
+					},
+	
+				},
+
 			},
 
 			create "Frame" {

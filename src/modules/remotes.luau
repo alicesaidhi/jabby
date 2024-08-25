@@ -31,6 +31,21 @@ return {
 		}>,
 
 	--[=[
+	The client will use this to send the mouse pointer to the server
+	]=]
+	send_mouse_pointer =
+		net.create_event("send_mouse_pointer")
+		:: types.NetEvent<number, Vector3, Vector3>,
+
+	--[[
+	
+	
+	]]
+	send_mouse_entity = 
+		net.create_event("send_mouse_entity", true)
+		:: types.NetEvent<number, Part?, string?>,
+
+	--[=[
 	Requests the server to validate a query
 	world: number
 	query: string

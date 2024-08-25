@@ -77,7 +77,8 @@ export type World = {
 	class_name: "World",
 	name: string,
 	debug: jecs.Entity<string>,
-	world: jecs.World
+	world: jecs.World,
+	entities: {[any]: number}
 }
 
 export type Application<T> = {

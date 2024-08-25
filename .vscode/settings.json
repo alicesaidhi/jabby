@@ -1,4 +1,14 @@
 {
 	"luau-lsp.sourcemap.rojoProjectFile": "test.project.json",
-	"luau-lsp.completion.imports.requireStyle": "alwaysRelative"
+	"luau-lsp.completion.imports.requireStyle": "alwaysRelative",
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true,
+
+		"Packages": true
+	}
 }

@@ -342,13 +342,44 @@ return function()
 						-- if we for example determine a value is a string, or table, we cap it at MAX_CHARACTERS
 						-- or we tostring a couple keys of the table until we reach MAX_CHARACTERS.
 						-- we wanna be able to replicate every single. value
+
+						local MAX_CHARS = 750
+						local str
+
+						if typeof(new_value) == "string" then
+							str = `"{string.sub(new_value, 1, MAX_CHARS-2)}"`
+						elseif typeof(new_value) == "table" then
+							local temp_n = 0
+							local temp_b = {}
+
+							for key, value in new_value do
+								if #temp_b > 0 then
+									table.insert(temp_b, "; ")
+								end
+								
+								local str_of_v = if type(value) == "string" then `"{value}"` else tostring(value)
+								local str = `{key}: {str_of_v}`
+
+								if temp_n + #str + 2 > MAX_CHARS then
+									table.insert(temp_b, "...")
+									break
+								else
+									table.insert(temp_b, str)
+								end
+							end
+
+							str = `\{{table.concat(temp_b)}\}`
+						else
+							str = string.sub(tostring(new_value), 1, MAX_CHARS-2)
+						end
+
 						remotes.update_query_result:fire(
 							query_data.outgoing,
 							query_id,
 							query_data.frame,
 							column,
 							row,
-							if new_value == VOID then "nil" else new_value
+							str
 						)
 					end
 				end

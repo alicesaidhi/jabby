@@ -20,6 +20,10 @@ type props = {
 
 function overview_query.mount(props: props, destroy: () -> ())
 
+	local enable_pick = source(false)
+	local entity_hovering_over = source()
+	local hovering_over = source()
+
 	local validate_query = source("")
 	local ok = source(false)
 	local msg = source("")
@@ -38,6 +42,10 @@ function overview_query.mount(props: props, destroy: () -> ())
 			vm = props.vm,
 			id = props.id,
 
+			enable_pick = enable_pick,
+			entity_hovering_over = entity_hovering_over,
+			hovering_over = hovering_over,
+
 			columns = columns,
 			query = query,
 
@@ -53,7 +61,9 @@ function overview_query.mount(props: props, destroy: () -> ())
 
 		{i = 1},
 		script.systems.validate_query,
-		script.systems.obtain_query_data
+		script.systems.obtain_query_data,
+		script.systems.send_workspace_entity,
+		script.systems.highlight_workspace_entity
 	)
 
 	cleanup(
@@ -69,13 +79,16 @@ function overview_query.mount(props: props, destroy: () -> ())
 
 		update_system_query = query,
 		current_query = query,
-		total_entities = source(0),
 		total_rows_per_page = source(25),
 		set_rows_per_page = source(25),
 
 		from = from,
 		upto = upto,
 		total_entities = total_entities,
+
+		enable_pick = enable_pick,
+		entity_hovering_over = entity_hovering_over,
+		hovering_over = hovering_over,
 
 		ok = ok,
 		msg = msg,
