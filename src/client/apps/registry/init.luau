@@ -28,6 +28,7 @@ function overview_query.mount(props: props, destroy: () -> ())
 	local columns = source({})
 	local from = source(1)
 	local upto = source(25)
+	local total_entities = source(0)
 
 	-- check if the query and columns are properly
 	local app_loop = loop (
@@ -39,6 +40,8 @@ function overview_query.mount(props: props, destroy: () -> ())
 
 			columns = columns,
 			query = query,
+
+			total_entities = total_entities,
 
 			from = from,
 			upto = upto,
@@ -69,6 +72,10 @@ function overview_query.mount(props: props, destroy: () -> ())
 		total_entities = source(0),
 		total_rows_per_page = source(25),
 		set_rows_per_page = source(25),
+
+		from = from,
+		upto = upto,
+		total_entities = total_entities,
 
 		ok = ok,
 		msg = msg,

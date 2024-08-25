@@ -29,10 +29,18 @@ local function color(n: number)
 	return Color3.fromHSV(0.15 * (n-1), 1, 1)
 end
 
+local sort_by_options = {
+	"Name",
+	"Id",
+	"Frame Time"
+}
+
 return function(props: props)
 
 	local selected = source(0)
 	local systems_query = source("")
+	
+	local sort_by = source(2)
 
 	return pebble.widget {
 		title = "Scheduler",
@@ -50,6 +58,7 @@ return function(props: props)
 			BackgroundTransparency = 1,
 
 			create "UIListLayout" {
+				VerticalAlignment = Enum.VerticalAlignment.Bottom,
 				FillDirection = Enum.FillDirection.Vertical,
 				VerticalFlex = Enum.UIFlexAlignment.SpaceBetween,
 				Padding = UDim.new(0, 8)
@@ -122,6 +131,17 @@ return function(props: props)
 
 			},
 
+			pebble.select {
+				size = UDim2.new(1, 0, 0, 30),
+
+				options = sort_by_options,
+				selected = sort_by,
+				update_selected = function(new)
+					print(new)
+					sort_by(new)
+				end
+			},
+
 			pebble.textfield {
 				size = UDim2.new(1, 0, 0, 36),
 
@@ -145,7 +165,11 @@ return function(props: props)
 
 				create "UIListLayout" {
 					FillDirection = Enum.FillDirection.Vertical,
-					Padding = UDim.new(0, 8)
+					Padding = UDim.new(0, 8),
+
+					SortOrder = function()
+						return if sort_by() == 1 then Enum.SortOrder.Name else Enum.SortOrder.LayoutOrder
+					end
 				},
 				
 				pebble.padding {
@@ -156,10 +180,22 @@ return function(props: props)
 				indexes(props.system_ids, function(_, id)
 					local gui_state = source(Enum.GuiState.Idle)
 					return create "ImageButton" {
-						Name = id,
+						Name = function()
+							return props.system_data()[id].name
+						end,
 						Size = UDim2.new(1, 0, 0, 32),
 	
-						LayoutOrder = id,
+						LayoutOrder = function()
+							
+							local sum = 0
+							local frames = props.system_frames()[id]
+
+							for _, frame in frames do
+								sum += frame.s
+							end
+
+							return if sort_by() == 3 then 1e9 - (sum / #frames) * 1e8 else id
+						end,
 	
 						BackgroundColor3 = function()
 							return if gui_state() == Enum.GuiState.Press then

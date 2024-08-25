@@ -93,6 +93,17 @@ return {
 		:: types.NetEvent<(number, number, number, number, any)>,
 
 	--[=[
+	Counts the total number of entities
+
+	query id: number
+	count: number
+	]=]
+
+	count_total_entities =
+		net.create_event("count_total_entities", true)
+		:: types.NetEvent<number, number>,
+
+	--[=[
 	Requests a server to initiate replication of a scheduler
 	]=]
 	request_scheduler =

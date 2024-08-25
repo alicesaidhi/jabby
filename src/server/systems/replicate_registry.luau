@@ -117,14 +117,6 @@ return function()
 		for incoming, query_id in disconnect_query:iter() do
 			processing_queries[query_id] = nil
 		end
-
-		for incoming, query_id, from, to in advance_query_page:iter() do
-			local query = processing_queries[query_id]
-
-			query.from = from
-			query.upto = to
-		end
-		
 		
 		for incoming, world_id, query_id, query in request_query:iter() do
 			local world: types.World = public[world_id]
@@ -226,6 +218,14 @@ return function()
 			end
 		end
 
+		for incoming, query_id, from, to in advance_query_page:iter() do
+			local query = processing_queries[query_id]
+			if not query then continue end
+
+			query.from = from
+			query.upto = to
+		end
+
 		for query_id, query_data in processing_queries do
 			debug.profilebegin("process query")
 			local world_data = query_data.world
@@ -300,6 +300,12 @@ return function()
 			for id in query:iter() do
 				total_entities += 1
 			end
+
+			remotes.count_total_entities:fire(
+				query_data.outgoing,
+				query_id,
+				total_entities
+			)
 
 			-- at = total_entities
 

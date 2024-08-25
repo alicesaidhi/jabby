@@ -2,7 +2,7 @@ local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
 
 local create = vide.create
-local batch = vide.batch
+local effect = vide.effect
 local source = vide.source
 
 type SystemId = number
@@ -16,11 +16,12 @@ type props = {
 	ok: () -> boolean,
 	msg: () -> string,
 
+	from: vide.Source<number>,
+	upto: vide.Source<number>,
+
 	update_system_query: (query: string) -> (),
 	current_query: () -> string,
 	total_entities: () -> number,
-	total_rows_per_page: () -> number,
-	set_rows_per_page: (number) -> (),
 
 	columns: () -> {{any}},
 
@@ -28,6 +29,31 @@ type props = {
 }
 
 return function(props: props)
+
+	local page_input = source("1")
+	local rows_input = source("25")
+
+	local page = source(1)
+	local rows = source(20)
+
+	effect(function()
+		page_input(tostring(page()))
+	end)
+
+	effect(function()
+		rows_input(tostring(rows()))
+	end)
+
+	effect(function()
+		local page = page()
+		local rows_per_page = rows()
+
+		local from = (page - 1) * rows_per_page + 1
+		local upto = from + rows_per_page - 1
+
+		props.from(from)
+		props.upto(upto)
+	end)
 
 	return pebble.widget {
 		title = "Querying",
@@ -77,91 +103,82 @@ return function(props: props)
 
 			},
 
-			-- create "Frame" {
+			create "Frame" {
 				
-			-- 	Size = UDim2.new(1, 0, 0, 38),
+				Size = UDim2.new(1, 0, 0, 32),
 
-			-- 	BackgroundColor3 = pebble.theme.bg[2],
-			-- 	AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundColor3 = pebble.theme.bg[2],
+				AutomaticSize = Enum.AutomaticSize.Y,
 
-			-- 	create "UICorner" {
-			-- 		CornerRadius = UDim.new(0, 8)
-			-- 	},
+				create "UICorner" {
+					CornerRadius = UDim.new(0, 8)
+				},
 
-			-- 	create "UIListLayout" {
-			-- 		FillDirection = Enum.FillDirection.Horizontal,
-			-- 		Padding = UDim.new(0, 8),
-			-- 		HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
-			-- 		VerticalAlignment = Enum.VerticalAlignment.Center	
-			-- 	},
+				create "UIListLayout" {
+					FillDirection = Enum.FillDirection.Horizontal,
+					Padding = UDim.new(0, 8),
+					HorizontalFlex = Enum.UIFlexAlignment.SpaceAround,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					Wraps = true
+				},
 
-			-- 	create "Frame" {
-			-- 		AutomaticSize = Enum.AutomaticSize.XY,
+				pebble.typography {
+					text = "Page:"
+				},
 
-			-- 		BackgroundTransparency = 1,
+				pebble.textfield {
+					size = UDim2.fromOffset(40, 26),
+					placeholder = "1",
+					
+					text = function()
+						return page_input()
+					end,
 
-			-- 		create "UIListLayout" {
-			-- 			FillDirection = Enum.FillDirection.Horizontal,
-			-- 			Padding = UDim.new(0, 8),
-			-- 			VerticalAlignment = Enum.VerticalAlignment.Center	
-			-- 		},
+					oninput = page_input,
 
-			-- 		pebble.typography {
-			-- 			text = "Rows per page:"
-			-- 		},
-	
-			-- 		pebble.textfield {
-			-- 			size = UDim2.fromOffset(50, 30),
-			-- 			text = function()
-			-- 				return tostring(rows_per_page_text())
-			-- 			end,
+					enter = function(text)
+						local n = tonumber(text)
 
-			-- 			oninput = function(text)
-			-- 				local old = rows_per_page_text()
-			-- 				local n = tonumber(text)
-			-- 				if n == nil then
-			-- 					-- force set it without actually updating the value
-			-- 					batch(function()
-			-- 						rows_per_page_text(-1)
-			-- 						rows_per_page_text(old)
-			-- 					end)
-			-- 				else
-			-- 					rows_per_page_text(n)
-			-- 				end
-			-- 			end
-			-- 		},
+						if n == nil then
+							page_input(tostring(page()))
+						else
+							page(n)
+						end
+					end
+				},
 
-			-- 	},
+				pebble.typography {
+					text = function()
+						return `/ {math.ceil(props.total_entities() / rows())}`
+					end
+				},
 
-			-- 	create "Frame" {
-			-- 		AutomaticSize = Enum.AutomaticSize.XY,
+				pebble.typography {
+					text = "Rows:"
+				},
 
-			-- 		BackgroundTransparency = 1,
+				pebble.textfield {
+					size = UDim2.fromOffset(40, 26),
+					placeholder = "Rows",
 
-			-- 		create "UIListLayout" {
-			-- 			FillDirection = Enum.FillDirection.Horizontal,
-			-- 			Padding = UDim.new(0, 8),
-			-- 			VerticalAlignment = Enum.VerticalAlignment.Center	
-			-- 		},
+					text = function()
+						return rows_input()
+					end,
 
-			-- 		pebble.typography {
-			-- 			text = "Page"
-			-- 		},
+					oninput = rows_input,
 
-			-- 		pebble.textfield {
-			-- 			size = UDim2.fromOffset(50, 30),
-			-- 			text = function()
-			-- 				return tostring(page_text())
-			-- 			end
-			-- 		},
+					enter = function(text)
+						local n = tonumber(text)
 
-			-- 		pebble.typography {
-			-- 			text = "/ 25"
-			-- 		}
+						if n == nil then
+							rows_input(tostring(rows()))
+						else
+							rows(n)
+						end
+					end
+				},
 
-			-- 	}
-
-			-- },
+			},
 
 			pebble.background {
 				size = UDim2.fromScale(1, 0),
@@ -198,6 +215,56 @@ return function(props: props)
 	
 					on_click = function() end,
 					on_click2 = function() end,
+
+					below = {
+
+						pebble.padding {
+							x = UDim.new(0, 4),
+							y = UDim.new(0, 2)
+						},
+
+						create "UIListLayout" {
+							FillDirection = Enum.FillDirection.Horizontal,
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+							Padding = UDim.new(0, 8)
+						},
+
+						pebble.button {
+							size = UDim2.fromOffset(70, 26),
+							text = "Previous",
+
+							activated = function()
+								page(page() - 1)
+							end,
+
+							disabled = function()
+								return page() == 1 or props.ok() == false
+							end
+						} :: Instance,
+
+						pebble.button {
+							size = UDim2.fromOffset(70, 26),
+							text = "Next",
+
+							activated = function()
+								page(page() + 1)
+							end,
+
+							disabled = function()
+								local max_pages = math.max(1, math.ceil(props.total_entities() / rows()))
+								return page() == max_pages or props.ok() == false
+							end
+						} :: Instance,
+						
+						pebble.typography {
+							position = UDim2.new(0, 4, 0.5, 0),
+							anchorpoint = Vector2.new(0, 0.5),
+
+							text = function()
+								return `total entities: {props.total_entities()}\tfrom: {props.from()}\tuntil: {props.upto()}`
+							end,
+						} :: Instance,
+					}
 				}
 
 			}

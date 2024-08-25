@@ -14,6 +14,8 @@ type Context = {
 	columns: vide.Source<{ { any } }>,
 	query: () -> string,
 
+	total_entities: (number) -> (),
+
 	from: () -> number,
 	upto: () -> number,
 
@@ -43,6 +45,7 @@ return function(context: Context)
 	local current_query_id = -1
 	local query_last_frame = 0
 	local update_query_result = queue(remotes.update_query_result)
+	local count_updated = queue(remotes.count_total_entities)
 
 	local columns = context.columns
 	local outgoing = {
@@ -61,7 +64,18 @@ return function(context: Context)
 			remotes.disconnect_query:fire(outgoing, current_query_id)
 			current_query_id = generate_random_query_id()
 			remotes.request_query:fire(outgoing, context.id, current_query_id, context.query())
+			remotes.advance_query_page:fire(outgoing, current_query_id, context.from(), context.upto())
 			query_changed = false
+		end
+
+		if page_changed then
+			remotes.advance_query_page:fire(outgoing, current_query_id, context.from(), context.upto())
+			query_changed = false
+		end
+
+		for incoming, query, value in count_updated:iter() do
+			if query ~= current_query_id then continue end
+			context.total_entities(value)
 		end
 
 		batch(function()
