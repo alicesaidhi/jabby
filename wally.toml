@@ -1,6 +1,6 @@
 [package]
 name = "alicesaidhi/jorp"
-version = "0.1.0-indev.1"
+version = "0.1.0-indev.2"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
