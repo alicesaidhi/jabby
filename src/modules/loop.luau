@@ -56,7 +56,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
                 local fn2 = fn(data, 0)
 
                 table.insert(current_group, {
-                    id = jorp_scheduler:register_system({name = `{v.Parent.Name}/{v.Name}`}),
+                    id = jorp_scheduler:register_system({name = `{v.Name}`}),
                     name = v.Name,
                     type = fn2 and 1 or 0,
                     fn = fn2 or fn

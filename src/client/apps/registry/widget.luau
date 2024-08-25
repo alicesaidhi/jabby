@@ -191,9 +191,7 @@ return function(props: props)
 				create "UIFlexItem" {
 					FlexMode = Enum.UIFlexMode.Fill
 				},
-
-				pebble.shadow {},
-
+				
 				pebble.tablesheet {
 					size = UDim2.fromScale(1, 1),
 

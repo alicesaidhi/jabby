@@ -8,6 +8,7 @@ local create = vide.create
 local indexes = vide.indexes
 local changed = vide.changed
 local source = vide.source
+local derive = vide.derive
 
 type SystemId = number
 
@@ -41,6 +42,20 @@ return function(props: props)
 	local systems_query = source("")
 	
 	local sort_by = source(2)
+
+	local max_frametime = derive(function()
+		local max = 0
+		for _, frames in props.system_frames() do
+			local sum = 0
+
+			for _, frame in frames do
+				sum += frame.s
+			end
+
+			max = math.max(max, sum / #frames)
+		end
+		return max
+	end)
 
 	return pebble.widget {
 		title = "Scheduler",
@@ -179,6 +194,18 @@ return function(props: props)
 
 				indexes(props.system_ids, function(_, id)
 					local gui_state = source(Enum.GuiState.Idle)
+
+					local function frame_time()
+						local sum = 0
+						local frames = props.system_frames()[id]
+
+						for _, frame in frames do
+							sum += frame.s
+						end
+
+						return sum / #frames
+					end
+
 					return create "ImageButton" {
 						Name = function()
 							return props.system_data()[id].name
@@ -186,15 +213,7 @@ return function(props: props)
 						Size = UDim2.new(1, 0, 0, 32),
 	
 						LayoutOrder = function()
-							
-							local sum = 0
-							local frames = props.system_frames()[id]
-
-							for _, frame in frames do
-								sum += frame.s
-							end
-
-							return if sort_by() == 3 then 1e9 - (sum / #frames) * 1e8 else id
+							return if sort_by() == 3 then 1e9 - frame_time() * 1e8 else id
 						end,
 	
 						BackgroundColor3 = function()
@@ -215,6 +234,20 @@ return function(props: props)
 						MouseButton2Click = function()
 							props.pause_system(id)
 						end,
+
+						-- create a frame that ignores all rules!
+						create "Folder" {
+							create "Frame" {
+								Position = UDim2.new(0, 0, 1, 4),
+								AnchorPoint = Vector2.new(0, 1),
+								Size = function()
+									return UDim2.new(frame_time() / max_frametime(), 0, 0, 1)
+								end,
+
+								BackgroundColor3 = pebble.theme.fg_on_bg_high[0]
+
+							}
+						},
 	
 						create "UIStroke" {
 							Color = pebble.theme.bg[-3]
