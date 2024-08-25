@@ -12,6 +12,8 @@ return {
 	vm_id = vm_id,
 
 	public = public,
-	scheduler = scheduler
+	scheduler = scheduler,
+
+	
 
 }

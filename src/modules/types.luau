@@ -1,3 +1,4 @@
+local jecs = require(script.Parent.Parent.Parent.jecs)
 type host = "client" | "server"
 
 export type IncomingConnector = {
@@ -70,6 +71,13 @@ export type Scheduler = {
 	--- this should call mark_system_frame_start and mark_system_frame_end for you
 	run: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),
 
+}
+
+export type World = {
+	class_name: "World",
+	name: string,
+	debug: jecs.Entity<string>,
+	world: jecs.World
 }
 
 export type Application<T> = {

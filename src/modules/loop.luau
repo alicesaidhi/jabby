@@ -89,7 +89,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
                     if system.type == 0 then
                         jorp_scheduler:run(system.id, system.fn, data, group.dt)
                     else
-                        jorp_scheduler:run(system.id, system.fn, data, group.dt)
+                        jorp_scheduler:run(system.id, system.fn, group.dt)
                     end
 
                     debug.profileend()

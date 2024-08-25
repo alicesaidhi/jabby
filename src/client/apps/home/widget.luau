@@ -2,6 +2,7 @@ local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
 local spawn_app = require(script.Parent.Parent.Parent.spawn_app)
 local overview_scheduler = require(script.Parent.Parent.overview_scheduler)
+local registry = require(script.Parent.Parent.registry)
 
 local create = vide.create
 local indexes = vide.indexes
@@ -69,19 +70,29 @@ return function(props: props)
 					},
 	
 					pebble.typography {
-						text = `host: {value.host}\tvm id: {value.vm}`
+						text = `host: {value.host}\tvm id: {value.vm}`,
+						wrapped = true
 					},
 	
 					values(value.worlds, function(world)
 						return pebble.button {
-							text = `World {world.name}`
+							size = UDim2.new(1, 0, 0, 30),
+							text = `World: {world.name}`,
+
+							activated = function()
+								spawn_app(registry, {
+									host = value.host,
+									vm = value.vm,
+									id = world.id
+								})
+							end
 						}
 					end) :: any,
 
 					values(value.schedulers, function(scheduler)
 						return pebble.button {
 							size = UDim2.new(1, 0, 0, 30),
-							text = `Scheduler {scheduler.name}`,
+							text = `Scheduler: {scheduler.name}`,
 
 							activated = function()
 								spawn_app(overview_scheduler, {

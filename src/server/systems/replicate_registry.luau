@@ -1,0 +1,360 @@
+local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
+local queue = require(script.Parent.Parent.Parent.modules.queue)
+local remotes = require(script.Parent.Parent.Parent.modules.remotes)
+local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
+local types = require(script.Parent.Parent.Parent.modules.types)
+local public = require(script.Parent.Parent.public)
+local query_parser = require(script.Parent.Parent.query_parser)
+
+type Connection = {
+
+	outgoing: types.OutgoingConnector,
+	query_id: number,
+	frame: number,
+
+	world: types.World,
+
+	include: {jecs.Entity<any>},
+	exclude: {jecs.Entity<any>},
+	with: {jecs.Entity<any>},
+
+	new_columns: {{any}},
+	old_columns: {{any}},	
+	
+	from: number,
+	upto: number
+
+}
+
+local function clear_columns(columns: {{any}})
+	for _, column in columns do
+		local name = column[1]
+		table.clear(column)
+		column[1] = name
+		assert(column[1] == name)
+	end
+	return columns
+end
+
+return function()
+
+	local processing_queries: {[number]: Connection} = {}
+
+	local validate_query = queue(remotes.validate_query)
+	local request_query = queue(remotes.request_query)
+	local disconnect_query = queue(remotes.disconnect_query)
+	local advance_query_page = queue(remotes.advance_query_page)
+
+	local function check_if_query_valid(world: types.World, query: string): (boolean, string)
+		local map_components = {}
+		local ok, result = pcall(query_parser, query)
+		local msg = nil
+
+		if not ok then
+			return ok, result :: any
+		end
+
+		for id, name in world.world:query(world.debug):iter() do
+			map_components[name] = id
+		end
+
+		local total_to_query = 0
+
+		for _, ctype in result do
+			if not ok then break end
+
+			if ctype.query and not ctype.exclude then
+				total_to_query += 1
+			end
+
+			if ctype.type == "Component" then
+				if not map_components[ctype.name] then
+					ok, msg = false, `unknown component called {ctype.name}`
+					break
+				end
+			elseif ctype.type == "Relationship" then
+				if not map_components[ctype.left.name] and ctype.left.type ~= "Wildcard" then
+					ok, msg = false, `unknown component called {ctype.left.name}`
+					break
+				elseif not map_components[ctype.right.name] and ctype.right.type ~= "Wildcard" then
+					ok, msg = false, `unknown component called {ctype.right.name}`
+					break
+				end
+			end
+		end
+
+		if total_to_query > 26 then
+			warn("attempting to observe too many values")
+			return false, "attempting to observe too many entities"
+		end
+
+		return ok, msg
+	end
+
+	--fixme: contains is missing from types
+	local function check_if_still_valid(world: any, entities: {any})
+		for _, id in entities do
+			if not world:contains(id) then return false end
+		end
+		return true
+	end
+
+	return function()
+
+		for incoming, world_id, query in validate_query:iter() do
+			local world: types.World = public[world_id]
+			local outgoing = reverse_connector(incoming)
+
+			if not world or world.class_name ~= "World" then
+				remotes.validate_result:fire(outgoing, world_id, query, false, "world does not exist")
+				continue
+			end
+
+			local ok, message = check_if_query_valid(world, query)
+			remotes.validate_result:fire(outgoing, world_id, query, ok, message)
+		end
+
+		for incoming, query_id in disconnect_query:iter() do
+			processing_queries[query_id] = nil
+		end
+
+		for incoming, query_id, from, to in advance_query_page:iter() do
+			local query = processing_queries[query_id]
+
+			query.from = from
+			query.upto = to
+		end
+		
+		
+		for incoming, world_id, query_id, query in request_query:iter() do
+			local world: types.World = public[world_id]
+			local outgoing = reverse_connector(incoming)
+
+			if not world or world.class_name ~= "World" then continue end
+
+			local ok = check_if_query_valid(world, query)
+			
+			if not ok then continue end
+
+			local result = query_parser(query)
+			local include = {}
+			local exclude = {}
+			local with = {}
+
+			local new_columns = {}
+			local old_columns = {}
+
+			table.insert(new_columns, {})
+			table.insert(old_columns, {})
+
+			local map_components = {}
+			local map_entity: {[any]: any} = {}
+			for id, name in world.world:query(world.debug):iter() do
+				map_components[name] = id
+			end
+
+			for _, ctype in result do
+				if ctype.type == "Component" then
+					local entity = map_components[ctype.name]
+					map_entity[ctype] = entity
+				elseif ctype.type == "Relationship" then
+					local left, right = jecs.Wildcard, jecs.Wildcard
+
+					if ctype.left.type == "Component" then
+						left = map_components[ctype.left.name]
+					end
+
+					if ctype.right.type == "Component" then
+						right = map_components[ctype.right.name]
+					end
+
+					local pair = jecs.pair(left, right)
+					map_entity[ctype] = pair
+				end
+			end
+
+			for _, ctype in result do
+				local entity = map_entity[ctype]
+				if ctype.exclude then
+					table.insert(exclude, entity)
+				elseif ctype.query then
+					-- local name = if ctype.type == "Component" then ctype.name else `({ctype.left.name}, {ctype.right.name})`
+					table.insert(include, entity)
+					table.insert(new_columns, {})
+					table.insert(old_columns, {})
+				else
+					table.insert(with, entity)
+				end
+			end
+
+			if processing_queries[query_id] then
+				local connection = processing_queries[query_id]
+
+				connection.outgoing = outgoing
+				connection.query_id = query_id
+				connection.world = world
+
+				connection.include = include
+				connection.exclude = exclude
+				connection.with = with
+
+				connection.new_columns = new_columns
+				connection.old_columns = old_columns
+				connection.from = 1
+				connection.upto = 25
+			else
+				local connection: Connection = {
+
+					outgoing = outgoing,
+					query_id = query_id,
+					frame = 0,
+	
+					world = world,
+	
+					include = include,
+					exclude = exclude,
+					with = with,
+	
+					new_columns = new_columns,
+					old_columns = old_columns,
+	
+					from = 1,
+					upto = 25
+				}
+	
+				processing_queries[query_id] = connection
+			end
+		end
+
+		for query_id, query_data in processing_queries do
+			debug.profilebegin("process query")
+			local world_data = query_data.world
+			local world = world_data.world
+			local debug_trait = world_data.debug
+
+			if
+				not (check_if_still_valid(world, query_data.include)
+				and check_if_still_valid(world, query_data.exclude)
+				and check_if_still_valid(world, query_data.with))
+			then
+				-- query is no longer valid!
+				--todo: query is invalid, notify the client about this
+				debug.profileend()
+				continue
+			end
+
+			local query = world:query(unpack(query_data.include))
+
+			if #query_data.exclude > 0 then
+				query = query:without(unpack(query_data.exclude))
+			end
+
+			if #query_data.with > 0 then
+				query = query:with(unpack(query_data.with))
+			end
+
+			local at = 1
+			local from = query_data.from
+			local upto = query_data.upto
+			
+			local new_columns = query_data.new_columns
+			local old_columns = query_data.old_columns
+			local VOID = newproxy() -- VOID is used if the component exists, but has no value (nil)
+			-- set the names of each column
+			--todo: fix type
+			local function get_name(entity: any)
+				if jecs.IS_PAIR(entity) then
+					local left = jecs.pair_first(world, entity)
+					local right = jecs.pair_second(world, entity)
+					return `({left}, {right})`
+				elseif entity == jecs.Wildcard :: any then
+					return "*"
+				elseif world:has(entity, debug_trait) then
+					return world:get(entity, debug_trait)
+				else
+					return `&{entity}`
+				end
+			end
+
+			-- set column names
+			for index, column in new_columns do
+				local e = query_data.include[index - 1]
+
+				if e then
+					column[1] = get_name(e)
+				else
+					column[1] = "id"
+				end
+			end
+
+			local function process_column(index: number, ...)
+				for i, column in new_columns do
+					local value = select(i, ...)
+					column[index] = if value == nil then VOID else value
+				end
+			end
+
+			-- process the data into columns
+			local total_entities = 0
+
+			for id in query:iter() do
+				total_entities += 1
+			end
+
+			-- at = total_entities
+
+			for id, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z in query:iter() do
+				if at >= from and at <= upto then
+					at += 1
+					local index_into = at - from + 1
+					process_column(index_into, id, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z)
+				elseif at <= from then
+					at += 1
+					continue
+				else
+					at += 1
+				end
+			end
+
+			-- this is the maximum amount of characters we should replicate per value.
+			-- some values can be replicated as-is, like numbers, strings
+			-- other values need to be coerced into a string.
+			-- we also want to leave enough room for extra metadata to fit into
+			-- a value if it does need to be coerced into another type, like
+			-- the original type of the value.
+			local MAX_CHARACTERS = 700
+
+			-- diff the columns and replicate any new values
+			for column = 1, math.max(#new_columns, #old_columns) do
+				for row = 1, 25 do
+					local new_value = new_columns[column][row]
+					local old_value = old_columns[column][row]
+
+					if new_value ~= old_value then
+						-- todo: improve replication of the new value
+						-- ideally, we would figure out if the value is a certain type and needs special replication
+						-- if we for example determine a value is a string, or table, we cap it at MAX_CHARACTERS
+						-- or we tostring a couple keys of the table until we reach MAX_CHARACTERS.
+						-- we wanna be able to replicate every single. value
+						remotes.update_query_result:fire(
+							query_data.outgoing,
+							query_id,
+							query_data.frame,
+							column,
+							row,
+							if new_value == VOID then "nil" else new_value
+						)
+					end
+				end
+			end
+
+			query_data.new_columns = clear_columns(old_columns)
+			query_data.old_columns = new_columns
+			query_data.frame += 1
+			debug.profileend()
+		end
+
+
+	end
+
+end

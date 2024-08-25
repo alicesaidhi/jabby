@@ -31,11 +31,66 @@ return {
 		}>,
 
 	--[=[
-	Requests a server to initiate replication of a registry.
+	Requests the server to validate a query
+	world: number
+	query: string
+	]=]
+	validate_query =
+		net.create_event("validate_query")
+		:: types.NetEvent<number, string>,
+
+	--[=[
+	Result of the validation
+	world: number query: string, ok: boolean, message: string?
+	]=]
+	validate_result =
+		net.create_event("validate_result")
+		:: types.NetEvent<number, string, boolean, string?>,
+
+	--[=[
+	Requests a server to initiate replication of a query.
+	
+	world: number
+	id: number
+	query_id: number
+	query: string
 	]=]
 	request_query =
-		net.create_event("initiate_replicate_registry")
+		net.create_event("replicate_query")
+		:: types.NetEvent<number, number, string>,
+
+	--[=[
+	Disconnects query
+
+	query_id: number
+	]=]
+	disconnect_query =
+		net.create_event("disconnect_query")
 		:: types.NetEvent<number>,
+	
+	--[=[
+	Changes the offsets to query for
+
+	query_id: number
+	from: number
+	to: number
+	]=]
+	advance_query_page =
+		net.create_event("advance_query_page")
+		:: types.NetEvent<number, number, number>,
+
+	--[=[
+	Updates a single result
+	
+	query_id: number
+	frame: number
+	column: number
+	row: number
+	value: any
+	]=]
+	update_query_result =
+		net.create_event("update_query_result")
+		:: types.NetEvent<(number, number, number, number, any)>,
 
 	--[=[
 	Requests a server to initiate replication of a scheduler

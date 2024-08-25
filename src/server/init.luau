@@ -27,7 +27,8 @@ local loop, jorp_scheduler = loop (
 
 	systems.ping,
 	systems.replicate_core,
-	systems.replicate_scheduler
+	systems.replicate_scheduler,
+	systems.replicate_registry
 )
 
 table.insert(public, jorp_scheduler)
