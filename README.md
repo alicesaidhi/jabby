@@ -11,7 +11,7 @@ It's still in the early stages of development and is very experimental.
 > [!NOTE]
 > jorp requires vide with the recursive queue fix patch (git commit [fbe2f01](https://github.com/centau/vide/commit/fbe2f01bb99e7f7744d5039f36c494044f044883))
 
-While jorp is currently only compatible with jecs, the intent is to be able to use this as a alternative debugger for Matter and ECR.
+While jorp is currently only compatible with jecs, the intent is to be able to use this as a alternative debugger for Matter and ECR in the future as well.
 
 ## How to get it working
 
@@ -29,6 +29,8 @@ jorp.public[1] = {
 	world: jecs.World,
 	-- a entity that is used to store the name of any components you want to be
 	-- able to query.
-	debug: jecs.Entity
+	debug: jecs.Entity<string>
 }
 ```
+
+You can directly insert a scheduler into jorp.
