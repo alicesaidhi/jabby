@@ -1,0 +1,10 @@
+{
+	"name": "packages",
+	"tree": {
+		"$path": "Packages",
+
+		"jabby": {
+			"$path": "src"
+		}
+	}
+}
