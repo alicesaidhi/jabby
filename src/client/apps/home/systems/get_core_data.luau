@@ -51,7 +51,7 @@ return function(data)
 			local idx = map_to_idx[outgoing.host][outgoing.to_vm]
 
 			if not idx then
-				print("new server")
+				-- print("new server")
 				idx = n + 1; n += 1
 				map_to_idx[outgoing.host][outgoing.to_vm] = idx
 				servers()[idx] = {
@@ -62,8 +62,8 @@ return function(data)
 					worlds = vide.source {}
 				}
 				servers(servers())
-				print("set worlds")
-				print(servers())
+				-- print("set worlds")
+				-- print(servers())
 			end
 
 			local server = servers()[idx]

@@ -24,7 +24,7 @@ export type Position = {
 export type String = {type: "string", s: string, from: Position, to: Position}
 export type Number = {type: "number", s: number, from: Position, to: Position}
 export type Identifier = {type: "identifier", s: string, from: Position, to: Position}
-export type Operator = {type: "operator", s: "#" | "!" | "*", from: Position, to: Position}
+export type Operator = {type: "operator", s: "#" | "!" | "*" | "$", from: Position, to: Position}
 export type Symbol = {type: "symbol", s: "(" | ")" | ";" | ",", from: Position, to: Position}
 export type EOF = {type: "eof", s: "eof", from: Position, to: Position}
 
@@ -112,7 +112,7 @@ local function lex(source: string): Stream
 	end
 	
 	local function is_op_char(char: string)
-		return char == "#" or char == "!" or char == "*"
+		return char == "#" or char == "!" or char == "*" or char == "$"
 	end
 
 	local function is_punc(char: string)
@@ -248,11 +248,19 @@ type Wildcard = {
 	name: "*"
 }
 
+type Value = {
+	type: "Name",
+	name: string
+} | {
+	type: "Entity",
+	entity: number
+}
+
 export type PureComponent = {
 	type: "Component",
 	query: boolean,
 	exclude: boolean,
-	name: string
+	value: Value,
 }
 
 export type Relationship = {
@@ -273,6 +281,7 @@ local function parse(input: string): {PureComponent | Relationship}
 	local should_query = true
 	local should_exclude = false
 	local should_relationship = false
+	local interpret_pointer = false
 	local components: {Component} = {}
 
 	while true do
@@ -280,6 +289,21 @@ local function parse(input: string): {PureComponent | Relationship}
 		-- print2(symbol)
 		if symbol.type == "eof" then
 			break
+		elseif interpret_pointer or symbol.type == "number" then
+			if not interpret_pointer then
+				lexer.croak("expected $")
+			end
+
+			table.insert(components, {
+				type = "Component",
+				query = should_query,
+				exclude = should_exclude,
+				value = {type = "Entity", entity = lexer.next().s :: number}
+			})
+
+			should_query = if should_relationship then should_query else true
+			should_exclude = if should_relationship then should_exclude else false
+			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after identifier") end
 		elseif symbol.type == "operator" then
 			if symbol.s == "#" then
 				if should_relationship then lexer.croak("cannot tag inside relationship") end
@@ -290,6 +314,10 @@ local function parse(input: string): {PureComponent | Relationship}
 				should_exclude = true
 				should_query = false
 				lexer.next()
+			elseif symbol.s == "$" then
+				interpret_pointer = true
+				lexer.next()
+				if lexer.peek().type ~= "number" then lexer.croak("expected number after $") end
 			elseif symbol.s == "*" then
 				if not should_relationship then lexer.croak("cannot use wildcards outside relationship") end
 				table.insert(components, {
@@ -337,7 +365,7 @@ local function parse(input: string): {PureComponent | Relationship}
 				local ctype = table.remove(components)
 				if ctype == nil then
 					lexer.croak("no component provided")
-					return
+					error("")
 				end
 
 				table.insert(result, ctype :: any)
@@ -351,7 +379,7 @@ local function parse(input: string): {PureComponent | Relationship}
 				type = "Component",
 				query = should_query,
 				exclude = should_exclude,
-				name = lexer.next().s :: string
+				value = {type = "Name", name = lexer.next().s :: string}
 			})
 
 			should_query = if should_relationship then should_query else true
@@ -362,13 +390,11 @@ local function parse(input: string): {PureComponent | Relationship}
 				type = "Component",
 				query = should_query,
 				exclude = should_exclude,
-				name = lexer.next().s :: string
+				value = {type = "Name", name = lexer.next().s :: string}
 			})
 			should_query = if should_relationship then should_query else true
 			should_exclude = if should_relationship then should_exclude else false
 			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after string") end
-		else
-			lexer.croak("number")
 		end
 	end
 

@@ -9,6 +9,6 @@
 		"**/.DS_Store": true,
 		"**/Thumbs.db": true,
 
-		"Packages": true
+		"Packages": false
 	}
 }

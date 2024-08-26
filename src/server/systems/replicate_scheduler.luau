@@ -3,6 +3,7 @@ local hash = require(script.Parent.Parent.Parent.modules.hash_connector)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
+local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
@@ -18,6 +19,8 @@ return function()
 	return function()
 
 		for incoming, id in request_scheduler:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+
 			local scheduler = public[id]
 
 			if scheduler.class_name ~= "Scheduler" then continue end
@@ -39,6 +42,8 @@ return function()
 		end
 
 		for incoming, id in disconnect_scheduler:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+
 			if not connected[id] then continue end
 			for idx, connector in connected[id] do
 				if connector.host ~= incoming.host then continue end
@@ -49,6 +54,7 @@ return function()
 		end
 
 		for incoming, id, system, paused in schedule_pause:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
 			local scheduler: types.Scheduler = public[id]
 
 			if not scheduler then return end

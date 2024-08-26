@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 
+local net = require(script.Parent.Parent.Parent.modules.net)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
@@ -11,7 +12,7 @@ return function()
 	local ping = queue(remotes.ping)
 
 	for _, player in Players:GetPlayers() do
-		if traffic_check.player_is_allowed(player) then
+		if traffic_check.communication_is_allowed(net.local_host, player, true) then
 			remotes.new_server_registered:fire({
 				host = "client",
 				player = player
@@ -21,7 +22,6 @@ return function()
 
 	return function()
 		for connector in ping:iter() do
-			print("ping")
 			local outgoing = reverse_connector(connector)
 			remotes.new_server_registered:fire(outgoing)
 		end

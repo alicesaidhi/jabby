@@ -1,11 +1,11 @@
 [package]
-name = "alicesaidhi/jorp"
-version = "0.1.0-indev.2"
+name = "alicesaidhi/jabby"
+version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-pebble = "alicesaidhi/pebble@0.1.0-rc.4"
+pebble = "alicesaidhi/pebble@0.1.0-rc.5"
 vide = "aloroid/vide-with-types@0.2.7"
 jecs = "ukendio/jecs@0.2.9"
 t = "corecii/greentea@0.4.7"

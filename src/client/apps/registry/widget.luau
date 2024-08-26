@@ -3,6 +3,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
+local spawn_app = require(script.Parent.Parent.Parent.spawn_app)
+local entity = require(script.Parent.Parent.entity)
 
 local create = vide.create
 local effect = vide.effect
@@ -133,8 +135,6 @@ return function(props: props)
 						wrapped = true
 					}
 				}
-
-				
 	
 			},
 
@@ -201,6 +201,8 @@ return function(props: props)
 						AnchorPoint = Vector2.new(0.5, 0.5),
 	
 						BackgroundTransparency = 1,
+
+						ImageColor3 = pebble.theme.fg_on_bg_high[3],
 	
 						Image = "rbxassetid://10734898355"
 					},
@@ -319,7 +321,7 @@ return function(props: props)
 					column_sizes = function()
 						local t = {}
 						for i in props.columns() do
-							t[i] = 100
+							t[i] = 200
 						end
 						t[1] = 50
 						return t
@@ -332,7 +334,15 @@ return function(props: props)
 						return column[r] or ""
 					end,
 	
-					on_click = function() end,
+					on_click = function(c, r)
+						if not props.columns()[1][r-1] then return end
+						spawn_app(entity, {
+							host = props.host,
+							vm = props.vm,
+							id = props.id,
+							entity = props.columns()[1][r-1]
+						})
+					end,
 					on_click2 = function() end,
 
 					below = {

@@ -5,9 +5,7 @@
 
 ]]
 
-local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local gt = require(script.Parent.Parent.Parent.t)
@@ -103,7 +101,12 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		type = "event",
 
 		fire = function(_, connector: types.OutgoingConnector, ...: T...)
-			--- if the host is within this vm, we can fire it straight to 
+			--- if the host is within this vm, we can fire it straight to
+			if not traffic_check.check(local_host, connector.host, true) then
+				-- print("cancel fire!", remote.Name)
+				return
+			end
+			
 			if
 				connector.host == local_host
 				and connector.to_vm == vm_id
@@ -167,9 +170,12 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 
 	if RunService:IsServer() then
 		remote.OnServerEvent:Connect(function(player, target: types.IncomingConnector, ...)
-
 			--- check if the player is allowed to send this
-			if do_not_block_traffic ~= true and not traffic_check.check(player) then return end
+			if not do_not_block_traffic and not traffic_check.check(player, target.host) then
+				print("cancel!", remote.Name)
+				return
+			end
+
 			--- check if its a proper connector
 			if not tincoming_connector(target) then return end
 	
@@ -188,8 +194,10 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		end)
 	else
 		remote.OnClientEvent:Connect(function(incoming: types.IncomingConnector, ...)
+			-- print("receive", remote.Name, "from", incoming.host)
 			if tincoming_connector(incoming) == false then return end
 			if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then return end
+			traffic_check._whitelist(local_host, incoming.host)
 
 			fire(incoming, ...)
 		end)
@@ -295,4 +303,5 @@ end
 return {
 	-- create_callback = create_callback,
 	create_event = create_event,
+	local_host = local_host
 }

@@ -63,14 +63,16 @@ return function(context: Context)
 			columns({})
 			remotes.disconnect_query:fire(outgoing, current_query_id)
 			current_query_id = generate_random_query_id()
+			-- print("requesting new query", current_query_id)
 			remotes.request_query:fire(outgoing, context.id, current_query_id, context.query())
 			remotes.advance_query_page:fire(outgoing, current_query_id, context.from(), context.upto())
+			query_last_frame = 0
 			query_changed = false
 		end
 
 		if page_changed then
 			remotes.advance_query_page:fire(outgoing, current_query_id, context.from(), context.upto())
-			query_changed = false
+			page_changed = false
 		end
 
 		for incoming, query, value in count_updated:iter() do
@@ -81,8 +83,8 @@ return function(context: Context)
 		batch(function()
 			for incoming, query, frame, column, row, value in update_query_result:iter() do
 				if query ~= current_query_id then continue end
-				-- if frame < query_last_frame then continue end
-				query_last_frame = frame
+				if frame < query_last_frame - 10 then continue end
+				query_last_frame = math.max(query_last_frame, frame)
 
 				if columns()[column] == nil then
 					columns()[column] = {}

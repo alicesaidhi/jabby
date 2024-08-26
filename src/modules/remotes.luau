@@ -7,18 +7,21 @@ return {
 	Broadcasts to clients that a new server has been registered.
 	Accepts no params.
 	]=]
-	new_server_registered = net.create_event("server_registered") :: types.NetEvent<>,
+	new_server_registered = net.create_event("server_registered", false, true)
+		:: types.NetEvent<>,
 
 	--[=[
 	Pings all servers and make them respond with new_server_registered
 	]=]
-	ping = net.create_event("ping") :: types.NetEvent<>,
+	ping = net.create_event("ping", false, true)
+		:: types.NetEvent<>,
 
 	--[=[
 	Broadcasts to servers that a new client has been registered
 	Accepts no params.
 	]=]
-	bind_to_server_core = net.create_event("client_registered") :: types.NetEvent<>,
+	bind_to_server_core = net.create_event("client_registered")
+		:: types.NetEvent<>,
 
 	--[=[
 	Sends a update to a client about a new server
@@ -43,7 +46,7 @@ return {
 	]]
 	send_mouse_entity = 
 		net.create_event("send_mouse_entity", true)
-		:: types.NetEvent<number, Part?, string?>,
+		:: types.NetEvent<number, Part?, number?, string?>,
 
 	--[=[
 	Requests the server to validate a query
@@ -163,5 +166,88 @@ return {
 	scheduler_system_pause =
 		net.create_event("scheduler_pause") ::
 		types.NetEvent<number, number, boolean>,
+
+	--[[
+	Validates a component
+
+	world: number
+	component: string
+	]]
+	validate_entity_component =
+		net.create_event("validate_entity_component") ::
+		types.NetEvent<number, string>,
+
+	--[[
+	entity component reslt
+	
+	world: number
+	component: string
+	ok: boolean
+	reason: string
+	]]
+	validate_entity_component_result =
+		net.create_event("validate_entity_component_result") ::
+		types.NetEvent<number, string, boolean, string>,
+
+	--[[
+	Inspect a entity's components
+
+	world: number
+	entity: number,
+	inspectid: number
+	]]
+
+	inspect_entity =
+		net.create_event("inspect_entity") ::
+		types.NetEvent<number, number, number>,
+
+	--[[
+	Delete entity
+	
+	inspectid: number
+	]]
+	delete_entity =
+		net.create_event("delete_entity") ::
+		types.NetEvent<number>,
+	
+	--[[
+	Stops inspecting a entity
+
+	inspectid: number
+	]]
+	stop_inspect_entity =
+		net.create_event("stop_inspect_entity") ::
+		types.NetEvent<number>,
+
+	--[[
+	Updates a entity
+	
+	inspectid: number
+	changes: {[component]: string}
+	]]
+	update_entity =
+		net.create_event("update_entity") ::
+		types.NetEvent<number, {[string]: string}>,
+
+	--[[
+	Update the settings when dealing with inspecting
+	
+	inspectid: nuimber,
+	settings: {}
+	]]
+	update_inspect_settings =
+		net.create_event("inspect_entity_settings_update") ::
+		types.NetEvent<number, {paused: boolean}>,
+
+	--[[
+	Inspector update
+	
+	inspectid: number
+	key: string
+	value: string
+	]]
+	inspect_entity_update =
+		net.create_event("inspect_entity_update") ::
+		types.NetEvent<number, string, string?>,
 
 }

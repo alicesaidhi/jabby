@@ -18,7 +18,7 @@ type SystemGroup = {
 }
 
 local function loop_create(name: string, data: any, ...: ModuleScript | () -> () | GroupInfo)
-    local jorp_scheduler = scheduler.create(name)
+    local jabby_scheduler = scheduler.create(name)
     
     local groups = {} :: Array<SystemGroup>
 
@@ -44,7 +44,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
                 assert(current_group)
 
                 table.insert(current_group, {
-                    id = jorp_scheduler:register_system(),
+                    id = jabby_scheduler:register_system(),
                     name = "UNNAMED",
                     type = 0,
                     fn = v
@@ -56,7 +56,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
                 local fn2 = fn(data, 0)
 
                 table.insert(current_group, {
-                    id = jorp_scheduler:register_system({name = `{v.Name}`}),
+                    id = jabby_scheduler:register_system({name = `{v.Name}`}),
                     name = v.Name,
                     type = fn2 and 1 or 0,
                     fn = fn2 or fn
@@ -87,9 +87,9 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
                     debug.profilebegin(system.name)
 
                     if system.type == 0 then
-                        jorp_scheduler:run(system.id, system.fn, data, group.dt)
+                        jabby_scheduler:run(system.id, system.fn, data, group.dt)
                     else
-                        jorp_scheduler:run(system.id, system.fn, group.dt)
+                        jabby_scheduler:run(system.id, system.fn, group.dt)
                     end
 
                     debug.profileend()
@@ -101,7 +101,7 @@ local function loop_create(name: string, data: any, ...: ModuleScript | () -> ()
 
         debug.resetmemorycategory()
         debug.profileend()
-    end, jorp_scheduler
+    end, jabby_scheduler
 end
 
 return loop_create

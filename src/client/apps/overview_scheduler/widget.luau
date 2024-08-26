@@ -168,14 +168,17 @@ return function(props: props)
 			create "ScrollingFrame" {
 				Name = "Systems",
 
-				Size = UDim2.fromScale(1, 1),
+				Size = UDim2.fromScale(1, 0),
 				CanvasSize = UDim2.new(),
 				AutomaticCanvasSize = Enum.AutomaticSize.Y,
 
 				BackgroundTransparency = 1,
 
+				ScrollBarThickness = 6,
+				VerticalScrollBarInset = Enum.ScrollBarInset.Always,
+
 				create "UIFlexItem" {
-					FlexMode = Enum.UIFlexMode.Grow
+					FlexMode = Enum.UIFlexMode.Fill
 				},
 
 				create "UIListLayout" {
@@ -280,7 +283,7 @@ return function(props: props)
 						},
 	
 						pebble.typography {
-							automaticsize = Enum.AutomaticSize.X,
+							automaticsize = Enum.AutomaticSize.None,
 							text = function()
 								return props.system_data()[id].name
 							end,
@@ -292,7 +295,7 @@ return function(props: props)
 							end,
 
 							create "UIFlexItem" {
-								FlexMode = Enum.UIFlexMode.Grow,
+								FlexMode = Enum.UIFlexMode.Fill,
 								GrowRatio = 1,
 								ShrinkRatio = 1
 							}

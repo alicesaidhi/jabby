@@ -2,6 +2,7 @@ local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
+local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
@@ -68,17 +69,46 @@ return function()
 			end
 
 			if ctype.type == "Component" then
-				if not map_components[ctype.name] then
-					ok, msg = false, `unknown component called {ctype.name}`
-					break
+				if ctype.value.type == "Entity" then
+					if world.world:contains(ctype.value.entity) then continue end
+					return false, "entity does not exist"
+				elseif ctype.value.type == "Name" then
+					if map_components[ctype.value.name] then continue end
+					return false, `unknown component called {ctype.name}`
+				else
+					return false, "what"
 				end
 			elseif ctype.type == "Relationship" then
-				if not map_components[ctype.left.name] and ctype.left.type ~= "Wildcard" then
-					ok, msg = false, `unknown component called {ctype.left.name}`
-					break
-				elseif not map_components[ctype.right.name] and ctype.right.type ~= "Wildcard" then
-					ok, msg = false, `unknown component called {ctype.right.name}`
-					break
+				local both_wildcard = ctype.left.type == "Wildcard" and ctype.right.type == "Wildcard"
+				if both_wildcard then
+					return false, `(*, *) is not a valid relationship`
+				end
+
+				local left = ctype.left
+				local right = ctype.right
+
+				if left.type == "Component" then
+					if left.value.type == "Entity" then
+						if world.world:contains(left.value.entity) then continue end
+						return false, "entity does not exist"
+					elseif left.value.type == "Name" then
+						if map_components[left.value.name] then continue end
+						return false, `unknown component called {left.name}`
+					else
+						return false, "what"
+					end
+				end
+
+				if right.type == "Component" then
+					if right.value.type == "Entity" then
+						if world.world:contains(right.value.entity) then continue end
+						return false, "entity does not exist"
+					elseif right.value.type == "Name" then
+						if map_components[right.value.name] then continue end
+						return false, `unknown component called {right.name}`
+					else
+						return false, "what"
+					end
 				end
 			end
 		end
@@ -94,7 +124,13 @@ return function()
 	--fixme: contains is missing from types
 	local function check_if_still_valid(world: any, entities: {any})
 		for _, id in entities do
-			if not world:contains(id) then return false end
+			if jecs.IS_PAIR(id) then
+				if not (world:contains(jecs.pair_first(world, id) and jecs.pair_second(world, id))) then
+					return false
+				end
+			elseif not world:contains(id) then
+				return false
+			end
 		end
 		return true
 	end
@@ -102,6 +138,8 @@ return function()
 	return function()
 
 		for incoming, world_id, query in validate_query:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+
 			local world: types.World = public[world_id]
 			local outgoing = reverse_connector(incoming)
 
@@ -119,6 +157,8 @@ return function()
 		end
 		
 		for incoming, world_id, query_id, query in request_query:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+
 			local world: types.World = public[world_id]
 			local outgoing = reverse_connector(incoming)
 
@@ -145,19 +185,29 @@ return function()
 				map_components[name] = id
 			end
 
+			local function get_entity(ctype: query_parser.PureComponent)
+				local value = ctype.value
+
+				if value.type == "Entity" then
+					return value.entity
+				elseif value.type == "Name" then
+					return map_components[value.name]
+				end
+				error("bad")
+			end
+
 			for _, ctype in result do
 				if ctype.type == "Component" then
-					local entity = map_components[ctype.name]
-					map_entity[ctype] = entity
+					map_entity[ctype] = get_entity(ctype)
 				elseif ctype.type == "Relationship" then
 					local left, right = jecs.Wildcard, jecs.Wildcard
 
 					if ctype.left.type == "Component" then
-						left = map_components[ctype.left.name]
+						left = get_entity(ctype.left)
 					end
 
 					if ctype.right.type == "Component" then
-						right = map_components[ctype.right.name]
+						right = get_entity(ctype.right)
 					end
 
 					local pair = jecs.pair(left, right)
@@ -219,6 +269,7 @@ return function()
 		end
 
 		for incoming, query_id, from, to in advance_query_page:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
 			local query = processing_queries[query_id]
 			if not query then continue end
 
@@ -266,13 +317,13 @@ return function()
 				if jecs.IS_PAIR(entity) then
 					local left = jecs.pair_first(world, entity)
 					local right = jecs.pair_second(world, entity)
-					return `({left}, {right})`
+					return `({get_name(left)}, {get_name(right)})`
 				elseif entity == jecs.Wildcard :: any then
 					return "*"
 				elseif world:has(entity, debug_trait) then
 					return world:get(entity, debug_trait)
 				else
-					return `&{entity}`
+					return `${entity}`
 				end
 			end
 
@@ -322,14 +373,6 @@ return function()
 				end
 			end
 
-			-- this is the maximum amount of characters we should replicate per value.
-			-- some values can be replicated as-is, like numbers, strings
-			-- other values need to be coerced into a string.
-			-- we also want to leave enough room for extra metadata to fit into
-			-- a value if it does need to be coerced into another type, like
-			-- the original type of the value.
-			local MAX_CHARACTERS = 700
-
 			-- diff the columns and replicate any new values
 			for column = 1, math.max(#new_columns, #old_columns) do
 				for row = 1, 25 do
@@ -369,9 +412,13 @@ return function()
 							end
 
 							str = `\{{table.concat(temp_b)}\}`
+						elseif typeof(new_value) == "nil" then
+							str = nil
 						else
 							str = string.sub(tostring(new_value), 1, MAX_CHARS-2)
 						end
+
+						if row == 1 then str = new_value end
 
 						remotes.update_query_result:fire(
 							query_data.outgoing,
@@ -390,7 +437,6 @@ return function()
 			query_data.frame += 1
 			debug.profileend()
 		end
-
 
 	end
 

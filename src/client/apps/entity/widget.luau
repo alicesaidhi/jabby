@@ -1,0 +1,253 @@
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
+local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
+local query_parser = require(script.Parent.Parent.Parent.Parent.server.query_parser)
+local add_component = require(script.Parent.add_component)
+local editor = require(script.Parent.editor)
+
+local create = vide.create
+local indexes = vide.indexes
+local source = vide.source
+local spring = vide.spring
+local show = vide.show
+
+type SystemId = number
+
+type props = {
+	host: Player | "server",
+	vm: number,
+	id: number,
+	entity: number,
+
+	components: () -> {[string]: string},
+	changes: vide.Source<{[string]: string}>,
+	live_updates: vide.Source<boolean>,
+	apply_changes: vide.Source<boolean>,
+
+	destroy: () -> (),
+	delete: () -> ()
+}
+
+local mouse_location = source(Vector2.zero)
+
+RunService.PreRender:Connect(function()
+	mouse_location(UserInputService:GetMouseLocation())
+end)
+
+return function(props: props)
+
+	local live_updates = props.live_updates
+	local changes = props.changes
+
+	local text = source("")
+	local component_edit_text = source("")
+	local adding = source(false)
+	local editing = source(false :: false | string)
+
+	return pebble.widget {
+		title = `Entity #{props.entity}`,
+		subtitle = `host: {props.host} vm: {props.vm} id: {props.id}`,
+
+		min_size = Vector2.new(300, 300),
+
+		bind_to_close = props.destroy,
+
+		create "Frame" {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			
+			create "UIListLayout" {
+				VerticalFlex = Enum.UIFlexAlignment.SpaceEvenly,
+				Padding = UDim.new(0, 8)
+			},
+
+			editor {
+				components = props.components,
+				editing = editing,
+				text = text,
+				changes = changes
+			},
+			
+			add_component {
+				components = props.components,
+				editing = editing,
+				text = text,
+				changes = changes,
+				adding = adding
+			},
+
+			pebble.row {
+
+				justifycontent = Enum.UIFlexAlignment.Fill,
+
+				pebble.button {
+					text = "Live Updates",
+					accent = live_updates,
+					activated = function()
+						live_updates(not live_updates())
+					end,
+					
+				},
+
+				pebble.button {
+					size = UDim2.fromOffset(130, 30),
+					text = function()
+						local total = 0
+
+						for _, change in changes() do
+							total += 1
+						end
+
+						return `Apply {total} Edits`
+					end,
+					disabled = function()
+						return next(changes()) == nil
+					end,
+					activated = function()
+						props.apply_changes(true)
+					end
+				},
+
+				pebble.button {
+					create "UIFlexItem" {
+						ItemLineAlignment = Enum.ItemLineAlignment.End,
+					},
+					size = UDim2.fromOffset(130, 30),
+
+					text = "Cancel changes",
+					disabled = function()
+						return next(changes()) == nil
+					end,
+					activated = function()
+						changes({})
+					end
+				}
+
+			},
+
+			create "ScrollingFrame" {
+
+				Size = UDim2.fromScale(1, 0),
+				CanvasSize = UDim2.new(),
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+
+				BackgroundColor3 = pebble.theme.bg[-1],
+
+				ScrollBarThickness = 6,
+				VerticalScrollBarInset = Enum.ScrollBarInset.Always,
+
+				create "UIFlexItem" {
+					FlexMode = Enum.UIFlexMode.Fill
+				},
+				
+				create "UIListLayout" {
+					SortOrder = Enum.SortOrder.Name
+				},
+
+				indexes(props.components, function(value, key)
+					return pebble.button {
+						name = key,
+						size = UDim2.new(1, 0, 0, 32),
+						automaticsize = Enum.AutomaticSize.Y,
+				
+						text = "",
+				
+						corner = false,
+
+						activated = function()
+							editing(key)
+							local current_value = props.changes()[key]
+
+							if current_value then
+								text(current_value)
+							else
+								text(value())
+							end
+						end,
+				
+						create "UIListLayout" {
+							FillDirection = Enum.FillDirection.Horizontal,
+							HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+							Padding = UDim.new(0, 8)
+						},
+						
+						pebble.padding {
+							y = UDim.new(0, 4)
+						},
+				
+						pebble.typography {
+							size = UDim2.new(0, 100, 0, 18),
+							automaticsize = Enum.AutomaticSize.Y,
+							text = key,
+							code = true,
+							wrapped = true,
+							truncate = Enum.TextTruncate.SplitWord,
+							xalignment = Enum.TextXAlignment.Left,
+						},
+				
+						pebble.typography {
+							size = UDim2.fromOffset(0, 18),
+							automaticsize = Enum.AutomaticSize.Y,
+				
+							yalignment = Enum.TextYAlignment.Top,
+							xalignment = Enum.TextXAlignment.Left,
+							text = value,
+							wrapped = true,
+							code = true,
+				
+							create "UIFlexItem" {
+								FlexMode = Enum.UIFlexMode.Fill
+							},
+
+						},
+
+						show(function()
+							return props.changes()[key] ~= nil
+						end, function()
+							return pebble.typography {
+								text = function()
+									local old = value()
+									local change = props.changes()[key]
+
+									return if old == nil then "(added)" elseif change == "" then "(removed)" else "(changed)"
+								end,
+								disabled = true,
+								textsize = 14,
+							}
+						end)
+					}
+				end),
+
+			},
+
+			pebble.row {
+
+				justifycontent = Enum.UIFlexAlignment.Fill,
+
+				pebble.button {
+					size = UDim2.fromOffset(100, 30),
+					text = "Delete Id",
+
+					activated = props.delete
+				},
+				
+				pebble.button {
+					size = UDim2.fromOffset(200, 30),
+					text = "Add Component",
+
+					activated = function()
+						adding(true)
+					end
+				},
+				
+
+			}
+
+		}
+
+	}
+
+end

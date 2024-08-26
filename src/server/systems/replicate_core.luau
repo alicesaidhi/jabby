@@ -1,6 +1,7 @@
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
+local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local public = require(script.Parent.Parent.public)
 
 return function()
@@ -13,6 +14,9 @@ return function()
 
 		for connector in bind_to_core:iter() do
 			local outgoing = reverse_connector(connector)
+			
+			if not traffic_check.check_no_wl(connector.host) then continue end
+			-- print("help")
 
 			table.insert(connected, outgoing)
 			local schedulers = {}

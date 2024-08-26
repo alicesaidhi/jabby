@@ -1,5 +1,5 @@
 {
-	"name": "jorp",
+	"name": "jabby",
 	"tree": {
 		"$className": "DataModel",
 
@@ -7,7 +7,7 @@
 			"packages": {
 				"$path": "Packages",
 
-				"jorp": {
+				"jabby": {
 					"$path": "src"
 				}
 			}

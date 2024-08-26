@@ -1,6 +1,6 @@
 --[[
 
-anything in here is considered "public" and will be visible to jorp clients
+anything in here is considered "public" and will be visible to jabby clients
 
 ]]
 

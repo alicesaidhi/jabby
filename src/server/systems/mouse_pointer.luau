@@ -1,6 +1,7 @@
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
+local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
@@ -12,6 +13,8 @@ return function()
 	return function()
 
 		for incoming, world_id, pos, dir in send_mouse_pointer:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+			
 			local world_data: types.World = public[world_id]
 			local world = world_data.world
 			local outgoing = reverse_connector(incoming)
@@ -98,6 +101,7 @@ return function()
 				outgoing,
 				world_id,
 				part,
+				entity,
 				str --todo: get all components for entity
 			)
 
