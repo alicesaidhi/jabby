@@ -29,7 +29,9 @@ jabby.public[1] = {
 	world: jecs.World,
 	-- a entity that is used to store the name of any components you want to be
 	-- able to query.
-	debug: jecs.Entity<string>
+	debug: jecs.Entity<string>,
+	-- a hashmap of entities that can be selected by the debugger's pick tool
+	entities: {[Instance]: jecs.Entity<any>}
 }
 ```
 
