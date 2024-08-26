@@ -2,6 +2,7 @@
 name = "alicesaidhi/jabby"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
+exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "todo.md"]
 realm = "shared"
 
 [dependencies]
