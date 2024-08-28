@@ -33,10 +33,25 @@ return function()
 			end
 
 			local part = result.Instance
-			local entity = world_data.entities[part]
+			local entity
 
-			while entity == nil and part.Parent ~= game do
-				part, entity = part.Parent, world_data.entities[part]
+			-- no way to obtain the entity
+			if world_data.get_entity_from_part == nil and world_data.entities == nil then
+				remotes.send_mouse_entity:fire(
+					outgoing,
+					world_id
+				)
+				continue
+			end
+
+			if world_data.get_entity_from_part == nil then
+				entity = world_data.entities[part]
+
+				while entity == nil and part.Parent ~= game do
+					part, entity = part.Parent, world_data.entities[part]
+				end
+			else
+				entity, part = world_data.get_entity_from_part(part)
 			end
 
 			if not entity then 

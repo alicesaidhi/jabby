@@ -78,7 +78,9 @@ export type World = {
 	name: string,
 	debug: jecs.Entity<string>,
 	world: jecs.World,
-	entities: {[any]: number}
+
+	entities: {[Instance]: jecs.Entity<any>}?,
+	get_entity_from_part: ((part: BasePart) -> (jecs.Entity<any>?, Part?))?
 }
 
 export type Application<T> = {

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Add get_entity_from_part to `World` interface.
+
+### Fixed
+- Fix type for `jabby.set_check_function`
 
 ## 0.1.0 - 2024-08-26
 

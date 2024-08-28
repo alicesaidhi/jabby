@@ -6,7 +6,7 @@ local scheduler = require(script.server.scheduler)
 
 return {
 
-	set_check_function = function(callback: (Player) -> ())
+	set_check_function = function(callback: (Player) -> boolean)
 		traffic_check.can_use_jabby = callback 
 	end,
 
