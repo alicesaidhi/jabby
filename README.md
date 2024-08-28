@@ -122,3 +122,11 @@ to leave it running in production. If you want to use jabby outside Studio, you 
 You can overwrite the function using `jabby.set_check_function`; By default, this checks if you are currently running in Roblox Studio, and allows usage of the debugger while in Studio.
 
 It's recommended to overwrite this to a function that allows the developer to use jabby while in-game. Note that this needs to be set on **every actor on both client and server**, otherwise it won't work. You should set this before spawning a jabby widget.
+
+### Spawning a widget
+
+Jabby exposes `get_client`, which should be called in a script without a actor, unless you know what you are doing.
+Running `get_client` on different actors should not be allowed.
+
+To spawn a widget, just run `client.spawn_widget(client.apps.home)`, which will
+create a new application where you can select the world / scheduler to debug.
