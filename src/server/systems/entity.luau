@@ -239,7 +239,7 @@ return function()
 						inspector_data.outgoing,
 						inspect_id,
 						name,
-						if new_value == TAG then "tag" else lon.output(new_value, false)
+						if new_value == TAG then "" else lon.output(new_value, false)
 					)
 				end
 			end

@@ -27,6 +27,8 @@ type Connection = {
 
 }
 
+local NULL = newproxy() -- NULL is displayed if the value exists, buth as no value
+
 local function clear_columns(columns: {{any}})
 	for _, column in columns do
 		local name = column[1]
@@ -310,7 +312,6 @@ return function()
 			
 			local new_columns = query_data.new_columns
 			local old_columns = query_data.old_columns
-			local VOID = newproxy() -- VOID is used if the component exists, but has no value (nil)
 			-- set the names of each column
 			--todo: fix type
 			local function get_name(entity: any)
@@ -341,7 +342,7 @@ return function()
 			local function process_column(index: number, ...)
 				for i, column in new_columns do
 					local value = select(i, ...)
-					column[index] = if value == nil then VOID else value
+					column[index] = if value == nil then NULL else value
 				end
 			end
 
@@ -412,8 +413,10 @@ return function()
 							end
 
 							str = `\{{table.concat(temp_b)}\}`
-						elseif typeof(new_value) == "nil" then
-							str = nil
+						elseif new_value == NULL then
+							str = "" -- important distinction, this is still a valid component
+						elseif new_value == nil then
+							str = nil -- but this isnt
 						else
 							str = string.sub(tostring(new_value), 1, MAX_CHARS-2)
 						end
