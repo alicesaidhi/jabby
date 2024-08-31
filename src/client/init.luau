@@ -13,6 +13,7 @@ return {
 		registry = registry,
 	},
 
-	spawn_app = spawn_app
+	spawn_app = spawn_app.spawn_app,
+	unmount_all = spawn_app.unmount_all
 
 }

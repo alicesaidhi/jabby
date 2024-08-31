@@ -1,7 +1,7 @@
 # Additions
 - [x] Implement a API to mount and unmount applications
 - [ ] Implement a API to quickly enable and disable all jabble UI
-- [ ] Implement a API to unmount all UI
+- [x] Implement a API to unmount all UI
 - [ ] Implement a vDOM for the server to allow systems to define debugging components
 - [ ] Improve the widget system
 
