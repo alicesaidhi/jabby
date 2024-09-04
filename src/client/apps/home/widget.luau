@@ -80,7 +80,7 @@ return function(props: props)
 							text = `World: {world.name}`,
 
 							activated = function()
-								spawn_app(registry, {
+								spawn_app.spawn_app(registry, {
 									host = value.host,
 									vm = value.vm,
 									id = world.id
@@ -95,7 +95,7 @@ return function(props: props)
 							text = `Scheduler: {scheduler.name}`,
 
 							activated = function()
-								spawn_app(overview_scheduler, {
+								spawn_app.spawn_app(overview_scheduler, {
 									host = value.host,
 									vm = value.vm,
 									id = scheduler.id

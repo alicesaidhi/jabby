@@ -336,7 +336,7 @@ return function(props: props)
 	
 					on_click = function(c, r)
 						if not props.columns()[1][r-1] then return end
-						spawn_app(entity, {
+						spawn_app.spawn_app(entity, {
 							host = props.host,
 							vm = props.vm,
 							id = props.id,

@@ -91,7 +91,7 @@ function overview_query.mount(props: props, destroy: () -> ())
 		entity_hovering_over(nil)
 		hovering_over(nil)
 
-		spawn_app(entity_widget, {
+		spawn_app.spawn_app(entity_widget, {
 			host = props.host,
 			vm = props.vm,
 			id = props.id,
