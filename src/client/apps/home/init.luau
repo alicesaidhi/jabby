@@ -11,7 +11,7 @@ local home = {
 	name = "Home"
 }
 
-function home.mount(_, destroy: () -> ())
+function home.mount(_: nil, destroy: () -> ())
 
 	local servers = vide.source {} :: any
 	local app_loop = loop (
