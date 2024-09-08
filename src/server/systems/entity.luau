@@ -42,9 +42,7 @@ local lon_vars = {
 	Vector2 = Vector2,
 	Color3 = Color3,
 	BrickColor = BrickColor,
-
-	OverlapParams = OverlapParams,
-	RaycastParams = RaycastParams,
+	Enum = Enum,
 
 	game = game,
 	workspace = workspace,

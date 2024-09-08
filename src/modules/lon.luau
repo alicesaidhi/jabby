@@ -663,45 +663,6 @@ do
 		local f = string.format("%q", value)
 		prealloc(#f)
 		write_str(f)
-
-		-- write_char(char('"'))
-
-		-- for i = 1, #value do
-		--     local c = string.byte(value, i)
-
-		--     if c == char("\a") then
-		--         write_char(char("\\"))
-		--         write_char(char("a"))
-		--     elseif c == char("\b") then
-		--         write_char(char("\\"))
-		--         write_char(char("b"))
-		--     elseif c == char("\f") then
-		--         write_char(char("\\"))
-		--         write_char(char("f"))
-		--     elseif c == char("\n") then
-		--         write_char(char("\\"))
-		--         write_char(char("n"))
-		--     elseif c == char("\r") then
-		--         write_char(char("\\"))
-		--         write_char(char("r"))
-		--     elseif c == char("\t") then
-		--         write_char(char("\\"))
-		--         write_char(char("t"))
-		--     elseif c == char("\v") then
-		--         write_char(char("\\"))
-		--         write_char(char("v"))
-		--     elseif c == char("\\") then
-		--         write_char(char("\\"))
-		--         write_char(char("\\"))
-		--     elseif c == char('"') then
-		--         write_char(char("\\"))
-		--         write_char(char('"'))
-		--     else
-		--         write_char(c)
-		--     end
-		-- end
-
-		-- write_char(char('"'))
 	end
 
 	local function write_line()
@@ -729,7 +690,6 @@ do
 			cyclic_buffer[value] = true
 			tbs += 1
 			write_char(char("{"))
-
 			for index, value in value do
 				write_line()
 
@@ -761,7 +721,32 @@ do
 			write_str(value.Name)
 			write_char(char(")"))
 		elseif typeof(value) == "CFrame" then
-			error("cframes todo")
+			if value.Rotation == CFrame.new() then
+				write_str("CFrame.new(")
+				display(value.X)
+				write_str(", ")
+				display(value.Y)
+				write_str(", ")
+				display(value.Z)
+				write_char(char(")"))
+			else
+				write_str("CFrame.fromMatrix(")
+				display(value.Position)
+				write_str(",\n")
+				display(value.XVector)
+				write_str(",\n")
+				display(value.YVector)
+				write_str(",\n")
+				display(value.ZVector)
+				write_str(",\n")
+			end
+		elseif typeof(value) == "EnumItem" then
+			write_str(tostring(value))
+		elseif typeof(value) == "Enum" then
+			write_str("Enum.")
+			write_str(tostring(value))
+		elseif typeof(value) == "Enums" then
+			write_str("Enum")
 		elseif typeof(value) == "Color3" then
 			write_str("Color3.fromHex(")
 			display_string(value:ToHex())
@@ -775,9 +760,8 @@ do
 			write_str(tostring(value))
 			write_char(char(")"))
 		elseif typeof(value) == "Instance" then
-			write_str("Instance(")
+			write_str("game.")
 			display_string(value:GetFullName())
-			write_char(char(")"))
 		-- ROBLOX DEVIATION END
 		else
 			error(`unable to encode datatype "{typeof(value)}" into lua object notation`)
