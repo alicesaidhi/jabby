@@ -62,7 +62,8 @@ export type Scheduler = {
 	system_frames_updated: {[SystemId]: {[SystemFrame]: true}},
 
 	register_system: (Scheduler, settings: SystemSettingData?) -> SystemId,
-	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> SystemId,
+	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> (),
+	get_system_data: (Scheduler, system: SystemId) -> SystemSettingData,
 	remove_system: (Scheduler, system: SystemId) -> (),
 
 	mark_system_frame_start: (Scheduler, system: SystemId) -> (),

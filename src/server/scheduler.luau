@@ -72,6 +72,11 @@ local function create_scheduler(name: string)
 		scheduler.system_data_updated[id] = true
 	end
 
+	function scheduler:get_system_data(id: SystemId)
+		ASSERT_SYSTEM_VALID(id)
+		return scheduler.system_data[id]
+	end
+
 	function scheduler:remove_system(id: SystemId)
 		scheduler.valid_system_ids[id] = nil
 		scheduler.system_data[id] = nil
