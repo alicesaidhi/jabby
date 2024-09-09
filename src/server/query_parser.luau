@@ -13,20 +13,18 @@ local escape_chars = {
 	["\'"] = "\'"
 }
 
-local keywords = {}
-
 export type Position = {
 	line: number,
 	pos: number,
 	col: number
 }
 
-export type String = {type: "string", s: string, from: Position, to: Position}
-export type Number = {type: "number", s: number, from: Position, to: Position}
-export type Identifier = {type: "identifier", s: string, from: Position, to: Position}
-export type Operator = {type: "operator", s: "#" | "!" | "*" | "$", from: Position, to: Position}
-export type Symbol = {type: "symbol", s: "(" | ")" | ";" | ",", from: Position, to: Position}
-export type EOF = {type: "eof", s: "eof", from: Position, to: Position}
+export type String = {type: "string", s: string}
+export type Number = {type: "number", s: number}
+export type Identifier = {type: "identifier", s: string}
+export type Operator = {type: "operator", s: "#" | "!" | "*" | "$"}
+export type Symbol = {type: "symbol", s: "(" | ")" | ";" | ","}
+export type EOF = {type: "eof", s: "eof"}
 
 export type Token =
 	String
@@ -198,16 +196,15 @@ local function lex(source: string): Stream
 	
 	local function read_next(): Token
 		skip_whitespace()
-		local from = input.pos()
-		if input.eof() then return {type = "eof", s = "eof", from = from, to = input.pos()} end
+		if input.eof() then return {type = "eof", s = "eof"} end
 
 		local char = input.peek()
 
 		if char == "\"" or char == "'" then return read_string() end
 		if is_digit(char) then return read_number() end
 		if is_start_identifier(char) then return read_identifier() end
-		if is_op_char(char) then return {type = "operator", s = input.next(), from = from, to = input.pos()} end
-		if is_punc(char) then return {type = "symbol", s = input.next(), from = from, to = input.pos()} end
+		if is_op_char(char) then return {type = "operator", s = input.next() :: any} end
+		if is_punc(char) then return {type = "symbol", s = input.next() :: any} end
 
 		input.croak(`cannot lex {char}`)
 		error("fail")
