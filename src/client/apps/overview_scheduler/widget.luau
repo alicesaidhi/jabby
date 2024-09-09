@@ -6,6 +6,7 @@ local stack_bar = require(script.Parent.stack_bar)
 
 local create = vide.create
 local indexes = vide.indexes
+local values = vide.values
 local changed = vide.changed
 local source = vide.source
 local derive = vide.derive
@@ -56,6 +57,144 @@ return function(props: props)
 		end
 		return max
 	end)
+
+	local map_phases_to_systems = derive(function()
+		local phases: {[false | string]: {number}} = {[false] = {}}
+		for id, data in props.system_data() do
+			if phases[data.phase or false] == nil then phases[data.phase or false] = {} end
+			table.insert(phases[data.phase or false], id)
+		end
+		return phases
+	end)
+
+	local function system(id: number)
+		local gui_state = source(Enum.GuiState.Idle)
+
+		local function frame_time()
+			local sum = 0
+			local frames = props.system_frames()[id]
+
+			for _, frame in frames do
+				sum += frame.s
+			end
+
+			return sum / #frames
+		end
+
+		local b = create "ImageButton" {
+			Name = function()
+				return props.system_data()[id].name
+			end,
+			Size = UDim2.new(1, 0, 0, 32),
+
+			LayoutOrder = function()
+				return if sort_by() == 3 then 1e9 - frame_time() * 1e8 else id
+			end,
+
+			BackgroundColor3 = function()
+				return if gui_state() == Enum.GuiState.Press then
+					pebble.theme.bg[-1]()
+				elseif gui_state() == Enum.GuiState.Hover then
+					pebble.theme.bg[6]()
+				else
+					pebble.theme.bg[3]()
+			end,
+
+			Visible = function()
+				return not not string.match(props.system_data()[id].name, systems_query())
+			end,
+
+			changed("GuiState", gui_state),
+
+			MouseButton2Click = function()
+				props.pause_system(id)
+			end,
+
+			-- create a frame that ignores all rules!
+			create "Folder" {
+				create "Frame" {
+					Position = UDim2.new(0, 0, 1, 4),
+					AnchorPoint = Vector2.new(0, 1),
+					Size = function()
+						return UDim2.new(frame_time() / max_frametime(), 0, 0, 1)
+					end,
+
+					BackgroundColor3 = pebble.theme.fg_on_bg_high[0]
+
+				}
+			},
+
+			create "UIStroke" {
+				Color = pebble.theme.bg[-3]
+			},
+
+			create "UICorner" {
+				CornerRadius = UDim.new(0, 4)
+			},
+
+			create "UIListLayout" {
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
+				Padding = UDim.new(0, 8)
+			},
+
+			pebble.padding {
+				x = UDim.new(0, 8)
+			},
+
+			create "Frame" {
+				Size = UDim2.fromOffset(16, 16),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+
+				BackgroundColor3 = color(id),
+
+				create "UICorner" {
+					CornerRadius = UDim.new(1, 0)
+				},
+			},
+
+			pebble.typography {
+				automaticsize = Enum.AutomaticSize.None,
+				text = function()
+					return props.system_data()[id].name
+				end,
+
+				truncate = Enum.TextTruncate.SplitWord,
+				xalignment = Enum.TextXAlignment.Left,
+				disabled = function()
+					return props.system_data()[id].paused
+				end,
+
+				create "UIFlexItem" {
+					FlexMode = Enum.UIFlexMode.Fill,
+					GrowRatio = 1,
+					ShrinkRatio = 1
+				}
+			},
+
+			pebble.typography {
+				automaticsize = Enum.AutomaticSize.XY,
+				text = function()
+					local sum = 0
+					local frames = props.system_frames()[id]
+
+					for _, frame in frames do
+						sum += frame.s
+					end
+
+					return `{convert_units("s", sum / #frames)}`
+				end,
+
+				xalignment = Enum.TextXAlignment.Right,
+
+				disabled = true,
+
+			},
+
+		}
+		return b
+	end
 
 	return pebble.widget {
 		title = "Scheduler",
@@ -142,6 +281,31 @@ return function(props: props)
 						end,
 						selected = selected
 					},
+
+					pebble.row {
+						justifycontent = Enum.UIFlexAlignment.Fill,
+						pebble.button {
+							text = "Pause all",
+
+							activated = function()
+								for system, data in props.system_data() do
+									if data.paused then continue end
+									props.pause_system(system)
+								end
+							end
+						},
+
+						pebble.button {
+							text = "Resume all",
+
+							activated = function()
+								for system, data in props.system_data() do
+									if not data.paused then continue end
+									props.pause_system(system)
+								end
+							end
+						}
+					}
 				},
 
 			},
@@ -176,6 +340,7 @@ return function(props: props)
 
 				ScrollBarThickness = 6,
 				VerticalScrollBarInset = Enum.ScrollBarInset.Always,
+				ScrollBarImageColor3 = pebble.theme.fg_on_bg_low[3],
 
 				create "UIFlexItem" {
 					FlexMode = Enum.UIFlexMode.Fill
@@ -189,139 +354,41 @@ return function(props: props)
 						return if sort_by() == 1 then Enum.SortOrder.Name else Enum.SortOrder.LayoutOrder
 					end
 				},
-				
+
 				pebble.padding {
 					y = UDim.new(0, 1),
 					x = UDim.new(0, 1)
 				},
 
-				indexes(props.system_ids, function(_, id)
-					local gui_state = source(Enum.GuiState.Idle)
+				values(function()
+					return map_phases_to_systems()[false]
+				end, system),
 
-					local function frame_time()
-						local sum = 0
-						local frames = props.system_frames()[id]
+				indexes(map_phases_to_systems, function(systems, phase)
+					if phase == false then return {} end
+					local expanded = source(true)
+					print(systems())
+					return pebble.accordion {
+						expanded = expanded,
+						set_expanded = expanded,
+						text = phase,
+						
+						pebble.container {
+							Size = UDim2.fromScale(1, 0),
 
-						for _, frame in frames do
-							sum += frame.s
-						end
-
-						return sum / #frames
-					end
-
-					return create "ImageButton" {
-						Name = function()
-							return props.system_data()[id].name
-						end,
-						Size = UDim2.new(1, 0, 0, 32),
-	
-						LayoutOrder = function()
-							return if sort_by() == 3 then 1e9 - frame_time() * 1e8 else id
-						end,
-	
-						BackgroundColor3 = function()
-							return if gui_state() == Enum.GuiState.Press then
-								pebble.theme.bg[-1]()
-							elseif gui_state() == Enum.GuiState.Hover then
-								pebble.theme.bg[6]()
-							else
-								pebble.theme.bg[3]()
-						end,
-	
-						Visible = function()
-							return not not string.match(props.system_data()[id].name, systems_query())
-						end,
-
-						changed("GuiState", gui_state),
-
-						MouseButton2Click = function()
-							props.pause_system(id)
-						end,
-
-						-- create a frame that ignores all rules!
-						create "Folder" {
-							create "Frame" {
-								Position = UDim2.new(0, 0, 1, 4),
-								AnchorPoint = Vector2.new(0, 1),
-								Size = function()
-									return UDim2.new(frame_time() / max_frametime(), 0, 0, 1)
-								end,
-
-								BackgroundColor3 = pebble.theme.fg_on_bg_high[0]
-
-							}
-						},
-	
-						create "UIStroke" {
-							Color = pebble.theme.bg[-3]
-						},
-	
-						create "UICorner" {
-							CornerRadius = UDim.new(0, 4)
-						},
-	
-						create "UIListLayout" {
-							FillDirection = Enum.FillDirection.Horizontal,
-							VerticalAlignment = Enum.VerticalAlignment.Center,
-							HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
-							Padding = UDim.new(0, 8)
-						},
-
-						pebble.padding {
-							x = UDim.new(0, 8)
-						},
-
-						create "Frame" {
-							Size = UDim2.fromOffset(16, 16),
-							AnchorPoint = Vector2.new(0.5, 0.5),
-
-							BackgroundColor3 = color(id),
-
-							create "UICorner" {
-								CornerRadius = UDim.new(1, 0)
-							},
-						},
-	
-						pebble.typography {
-							automaticsize = Enum.AutomaticSize.None,
-							text = function()
-								return props.system_data()[id].name
-							end,
-
-							truncate = Enum.TextTruncate.SplitWord,
-							xalignment = Enum.TextXAlignment.Left,
-							disabled = function()
-								return props.system_data()[id].paused
-							end,
-
-							create "UIFlexItem" {
-								FlexMode = Enum.UIFlexMode.Fill,
-								GrowRatio = 1,
-								ShrinkRatio = 1
-							}
-						},
-
-						pebble.typography {
-							automaticsize = Enum.AutomaticSize.XY,
-							text = function()
-								local sum = 0
-								local frames = props.system_frames()[id]
-
-								for _, frame in frames do
-									sum += frame.s
+							create "UIListLayout" {
+								FillDirection = Enum.FillDirection.Vertical,
+								Padding = UDim.new(0, 8),
+			
+								SortOrder = function()
+									return if sort_by() == 1 then Enum.SortOrder.Name else Enum.SortOrder.LayoutOrder
 								end
-
-								return `{convert_units("s", sum / #frames)}`
-							end,
-
-							xalignment = Enum.TextXAlignment.Right,
-
-							disabled = true,
-
-						},
+							},
 	
+							values(systems, system)
+						}
 					}
-				end) :: any
+				end),
 
 			}
 
