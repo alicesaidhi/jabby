@@ -67,7 +67,7 @@ return function()
 			local n = #`id: {entity}`
 			local strings = {`id: {entity}`}
 
-			for id, name in world:query(world_data.debug).iter() do
+			for id, name in world:query(world_data.debug):iter() do
 				if world:has(entity, id) then
 					local v = world:get(entity, id)
 					local str
