@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
+local tooltip = require(script.Parent.Parent.Parent.components.tooltip)
 local spawn_app = require(script.Parent.Parent.Parent.spawn_app)
 local entity = require(script.Parent.Parent.entity)
 
@@ -83,59 +84,29 @@ return function(props: props)
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 
-			create "ScreenGui" {
-				Name = "Mouse Hover",
-				IgnoreGuiInset = true,
-	
-				create "Highlight" {
-					DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
-					OutlineColor = Color3.new(1, 1, 1),
-					FillColor = pebble.theme.acc[0],
-					FillTransparency = 0.5,
-	
-					Adornee = props.hovering_over
-				},
+			tooltip {
+				visible = function()
+					return props.entity_hovering_over() and #props.entity_hovering_over() > 0 or false
+				end,
 
-				create "Frame" {
-					Position = function()
-						return UDim2.fromOffset(
-							mouse_location().X + 24,
-							mouse_location().Y + 24
-						)
+				pebble.typography {
+					automaticsize = Enum.AutomaticSize.XY,
+
+					text = function()
+						return props.entity_hovering_over() or ""
 					end,
-					Size = UDim2.fromOffset(200, 0),
-					AutomaticSize = Enum.AutomaticSize.Y,
-
-					BackgroundColor3 = pebble.theme.bg[0],
-					BackgroundTransparency = 0.5,
-
-					Visible = function()
-						return props.entity_hovering_over() and #props.entity_hovering_over() > 0 or false
-					end,
-
-					pebble.padding {},
-
-					create "UICorner" {
-						CornerRadius = UDim.new(0, 8)
-					},
-
-					create "UIStroke" {
-						Color = pebble.theme.bg[-10],
-						Thickness = 2,
-						Transparency = 0.8
-					},
-
-					pebble.typography {
-						automaticsize = Enum.AutomaticSize.XY,
-	
-						text = function()
-							return props.entity_hovering_over() or ""
-						end,
-						xalignment = Enum.TextXAlignment.Left,
-						wrapped = true
-					}
+					xalignment = Enum.TextXAlignment.Left,
+					wrapped = true
 				}
+			},
+
+			create "Highlight" {
+				DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
+				OutlineColor = Color3.new(1, 1, 1),
+				FillColor = pebble.theme.acc[0],
+				FillTransparency = 0.5,
 	
+				Adornee = props.hovering_over
 			},
 
 			create "UIListLayout" {

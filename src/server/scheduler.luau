@@ -1,4 +1,5 @@
 local types = require(script.Parent.Parent.modules.types)
+local watch = require(script.Parent.watch)
 
 type SystemId = types.SystemId
 type SystemSettingData = types.SystemSettingData
@@ -14,6 +15,8 @@ local MAX_BUFFER_SIZE = 50
 
 local n = 0
 local schedulers = {}
+
+local function unit() end
 
 local function create_scheduler(name: string)
 
@@ -36,9 +39,28 @@ local function create_scheduler(name: string)
 		--- stores the frames that have been updated
 		system_frames_updated = {} :: {[SystemId]: {[SystemFrame]: true}},
 		--- contains the current frame that a system is processing
-		processing_frame = {} :: {[SystemId]: ProcessingFrame}
+		processing_frame = {} :: {[SystemId]: ProcessingFrame},
+		--- contains a list of watches for each system
+		system_watches = {} :: {[SystemId]: {{active: boolean, watch: types.SystemWatch}}}
 
 	}
+
+	local function ENABLE_WATCHES(id: SystemId)
+		local watches = scheduler.system_watches[id]
+		local cleanup = {}
+
+		for i, system_watch in watches do
+			if system_watch.active == false then continue end
+			watch.step_watch(system_watch.watch)
+			cleanup[i] = watch.track_watch(system_watch.watch)
+		end
+
+		return function()
+			for _, stop in cleanup do
+				stop()
+			end
+		end
+	end
 
 	local function ASSERT_SYSTEM_VALID(id: SystemId)
 		assert(scheduler.valid_system_ids[id], `attempt to use unknown system with id #{id}`)
@@ -83,9 +105,10 @@ local function create_scheduler(name: string)
 		scheduler.system_frames[id] = nil
 		scheduler.system_frames_updated[id] = nil
 		scheduler.system_data_updated[id] = true
+		scheduler.system_watches[id] = nil
 	end
 
-	function scheduler:mark_system_frame_start(id: SystemId)
+	function scheduler:_mark_system_frame_start(id: SystemId)
 		ASSERT_SYSTEM_VALID(id)
 
 		scheduler.processing_frame[id] = {
@@ -93,7 +116,7 @@ local function create_scheduler(name: string)
 		}
 	end
 
-	function scheduler:mark_system_frame_end(id: SystemId, s: number?)
+	function scheduler:_mark_system_frame_end(id: SystemId, s: number?)
 		ASSERT_SYSTEM_VALID(id)
 		local now = os.clock()
 		local pending_frame_data = scheduler.processing_frame[id]
@@ -118,7 +141,7 @@ local function create_scheduler(name: string)
 
 	function scheduler:append_extra_frame_data(id: SystemId, label: {})
 		--todo
-		assert("todo")
+		error("todo")
 	end
 
 	function scheduler:run<T...>(id: SystemId, system: (T...) -> (), ...: T...)
@@ -126,10 +149,37 @@ local function create_scheduler(name: string)
 		local system_data = scheduler.system_data[id]
 
 		if system_data.paused then return end
+		
+		local watches = scheduler.system_watches[id]
+		local cleanup_watches = unit
 
-		scheduler:mark_system_frame_start(id)
+		if watches then
+			cleanup_watches = ENABLE_WATCHES(id)
+		end
+
+		scheduler:_mark_system_frame_start(id)
 		system(...)
-		scheduler:mark_system_frame_end(id)
+		scheduler:_mark_system_frame_end(id)
+
+		cleanup_watches()
+	end
+
+	function scheduler:create_watch_for_system(id: SystemId)
+		ASSERT_SYSTEM_VALID(id)
+
+		local new_watch = watch.create_watch()
+		local watch_data
+		scheduler.system_watches[id] = scheduler.system_watches[id] or {} :: never
+
+		local function untrack()
+			local idx = table.find(scheduler.system_watches[id], watch_data)
+			table.remove(scheduler.system_watches[id], idx)
+		end
+
+		watch_data = {active = false, watch = new_watch, untrack = untrack}
+		table.insert(scheduler.system_watches[id], watch_data)
+
+		return watch_data
 	end
 
 	schedulers[n + 1] = scheduler

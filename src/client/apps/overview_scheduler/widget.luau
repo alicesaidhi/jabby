@@ -2,6 +2,8 @@ local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
 local convert_units = require(script.Parent.Parent.Parent.Parent.modules.convert_units)
 local types = require(script.Parent.Parent.Parent.Parent.modules.types)
+local spawn_app = require(script.Parent.Parent.Parent.spawn_app)
+local system_widget = require(script.Parent.Parent.system)
 local stack_bar = require(script.Parent.stack_bar)
 
 local create = vide.create
@@ -105,6 +107,17 @@ return function(props: props)
 			end,
 
 			changed("GuiState", gui_state),
+
+			Activated = function()
+				spawn_app.spawn_app(system_widget, {
+					host = props.host,
+					vm = props.vm,
+
+					scheduler = props.id,
+					system = id,
+					name = props.system_data()[id].name
+				})
+			end,
 
 			MouseButton2Click = function()
 				props.pause_system(id)

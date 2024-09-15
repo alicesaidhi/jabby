@@ -31,6 +31,7 @@ local loop, jabby_scheduler = loop (
 	systems.replicate_core,
 	systems.replicate_scheduler,
 	systems.replicate_registry,
+	systems.replicate_system_watch,
 	systems.mouse_pointer,
 	systems.entity
 )

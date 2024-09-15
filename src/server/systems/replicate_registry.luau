@@ -39,6 +39,15 @@ local function clear_columns(columns: {{any}})
 	return columns
 end
 
+local function reverse_columns(columns: {{any}}, size: number)
+	for _, column in columns do
+		for i = 0, size // 2 - 1 do
+			column[i + 2], column[(size + 1) - i] = column[(size + 1) - i], column[i + 2]
+		end
+	end
+	return columns
+end
+
 return function()
 
 	local processing_queries: {[number]: Connection} = {}
@@ -76,7 +85,7 @@ return function()
 					return false, "entity does not exist"
 				elseif ctype.value.type == "Name" then
 					if map_components[ctype.value.name] then continue end
-					return false, `unknown component called {ctype.name}`
+					return false, `unknown component called {ctype.value.name}`
 				else
 					return false, "what"
 				end
@@ -95,7 +104,7 @@ return function()
 						return false, "entity does not exist"
 					elseif left.value.type == "Name" then
 						if map_components[left.value.name] then continue end
-						return false, `unknown component called {left.name}`
+						return false, `unknown component called {left.value.name}`
 					else
 						return false, "what"
 					end
@@ -107,7 +116,7 @@ return function()
 						return false, "entity does not exist"
 					elseif right.value.type == "Name" then
 						if map_components[right.value.name] then continue end
-						return false, `unknown component called {right.name}`
+						return false, `unknown component called {right.value.name}`
 					else
 						return false, "what"
 					end
@@ -306,7 +315,6 @@ return function()
 				query = query:with(unpack(query_data.with))
 			end
 
-			local at = 1
 			local from = query_data.from
 			local upto = query_data.upto
 			
@@ -339,19 +347,44 @@ return function()
 				end
 			end
 
-			local function process_column(index: number, ...)
-				for i, column in new_columns do
-					local value = select(i, ...)
-					column[index] = if value == nil then NULL else value
+			-- process the data into columns
+			-- we inline the query here, as jecs queries are in reverse to prevent iterator invalidation
+			-- this is usually fine, but it's annoying, as now entities are added to the first page.
+			--todo: pause button
+			local total_entities = 0
+			local archetypes = query:archetypes()
+
+			for _, archetype: jecs.Archetype in archetypes do
+				total_entities += #archetype.entities
+			end
+
+			local at = total_entities
+			local row_entity = 1
+			for _, archetype: jecs.Archetype in archetypes do
+				local records = table.clone(query_data.include)
+
+				for idx, ctype in records do
+					records[idx] = archetype.records[ctype].column
+				end
+
+				for row = #archetype.entities, 1, -1 do
+					local entity = archetype.entities[row]
+
+					at -= 1
+					if at < from or at > upto then continue end
+					for idx, column in records do
+						row_entity += 1
+						local value = archetype.columns[column][row]
+						new_columns[1][row_entity] = entity
+						new_columns[idx + 1][row_entity] = if value == nil then NULL else value
+					end
 				end
 			end
 
-			-- process the data into columns
-			local total_entities = 0
+			local rows = math.min(total_entities - 1, upto - from)
+			reverse_columns(new_columns, rows)
 
-			for id in query:iter() do
-				total_entities += 1
-			end
+			--- reverse the order of each array
 
 			remotes.count_total_entities:fire(
 				query_data.outgoing,
@@ -359,24 +392,9 @@ return function()
 				total_entities
 			)
 
-			-- at = total_entities
-
-			for id, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z in query:iter() do
-				if at >= from and at <= upto then
-					at += 1
-					local index_into = at - from + 1
-					process_column(index_into, id, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z)
-				elseif at <= from then
-					at += 1
-					continue
-				else
-					at += 1
-				end
-			end
-
 			-- diff the columns and replicate any new values
 			for column = 1, math.max(#new_columns, #old_columns) do
-				for row = 1, 25 do
+				for row = 1, math.max(upto - from + 2, #new_columns[column], #old_columns[column]) do
 					local new_value = new_columns[column][row]
 					local old_value = old_columns[column][row]
 

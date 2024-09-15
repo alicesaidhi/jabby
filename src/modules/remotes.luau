@@ -249,5 +249,69 @@ return {
 	inspect_entity_update =
 		net.create_event("inspect_entity_update") ::
 		types.NetEvent<number, string, string?>,
+	
+	--[[
+	Creates a watch on a system
+	
+	scheduler: number,
+	system: number
+	watchid: number
+	]]
+	create_watch =
+		net.create_event("create_watch") ::
+		types.NetEvent<number, number, number>,
+	
+	--[[
+	Removes a watch on a system
 
+	watchid: number
+	]]
+	remove_watch =
+		net.create_event("remove_watch") ::
+		types.NetEvent<number>,
+	
+	--[[
+	Retrieves data about a frame for a watch
+	
+	watchid: number
+	frame: number
+	]]
+	request_watch_data =
+		net.create_event("request_watch_data") ::
+		types.NetEvent<number, number>,
+
+	--[[
+	Updates watch data for a frame
+	
+	watchid: number
+	frame: number
+	changes: types.WatchLoggedChanges
+	]]
+	update_watch_data =
+		net.create_event("update_watch_data") ::
+		types.NetEvent<number, number, types.WatchLoggedChanges?>,
+
+	start_record_watch =
+		net.create_event("start_record_watch") ::
+		types.NetEvent<number>,
+
+	stop_watch =
+		net.create_event("stop_watch") ::
+		types.NetEvent<number>,
+
+	clear_watch =
+		net.create_event("clear_watch") ::
+		types.NetEvent<number>,
+
+	connect_watch =
+		net.create_event("connect_to_watch") ::
+		types.NetEvent<number>,
+	
+	disconnect_watch = 
+		net.create_event("disconnect_watch") ::
+		types.NetEvent<number>,
+
+	update_overview =
+		net.create_event("update_watch_overview", true) ::
+		types.NetEvent<number, number, number>
 }

@@ -44,12 +44,33 @@ export type SystemData = {
 	paused: boolean
 }
 
+type ChangeTypes = "remove" | "clear" | "delete" | "add" | "set" | "entity" | "component"
+export type WatchLoggedChanges = {
+	types: {ChangeTypes},
+	entities: {jecs.Entity<any>},
+	component: {jecs.Entity<any>},
+	values: {string},
+	worlds: {jecs.World}
+}
+
+export type SystemWatch = {
+	--- enables Lua Object Notation.
+	--- incurs a significant performance penalty.
+	enable_lon: boolean,
+	--- the current frame to process
+	frame: number,
+
+	frames: {[number]: WatchLoggedChanges}
+}
+
 export type SystemLabel = {}
 
 export type SystemFrame = {
 	i: number,
 	s: number
 }
+
+type WatchData = {active: boolean, watch: SystemWatch, untrack: () -> ()}
 
 export type Scheduler = {
 	class_name: "Scheduler",
@@ -60,14 +81,16 @@ export type Scheduler = {
 	system_data_updated: {[SystemId]: true},
 	system_frames: {[SystemId]: SystemFrame},
 	system_frames_updated: {[SystemId]: {[SystemFrame]: true}},
+	system_watches: {[SystemId]: {WatchData}},
 
 	register_system: (Scheduler, settings: SystemSettingData?) -> SystemId,
 	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> (),
 	get_system_data: (Scheduler, system: SystemId) -> SystemSettingData,
+	create_watch_for_system: (Scheduler, system: SystemId) -> WatchData,
 	remove_system: (Scheduler, system: SystemId) -> (),
 
-	mark_system_frame_start: (Scheduler, system: SystemId) -> (),
-	mark_system_frame_end: (Scheduler, system: SystemId, s: number?) -> (),
+	-- mark_system_frame_start: (Scheduler, system: SystemId) -> (),
+	-- mark_system_frame_end: (Scheduler, system: SystemId, s: number?) -> (),
 	-- append_extra_frame_data: (Scheduler, system: SystemId, label: SystemLabel) -> (),
 	--- this should call mark_system_frame_start and mark_system_frame_end for you
 	run: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),

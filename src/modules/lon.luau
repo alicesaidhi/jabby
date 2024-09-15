@@ -764,7 +764,11 @@ do
 			display_string(value:GetFullName())
 		-- ROBLOX DEVIATION END
 		else
-			error(`unable to encode datatype "{typeof(value)}" into lua object notation`)
+			write_str(typeof(value))
+			write_char(char("("))
+			write_str(tostring(value))
+			write_char(char(")"))
+			warn(`unable to encode datatype "{typeof(value)}" into lua object notation`)
 		end
 	end
 
