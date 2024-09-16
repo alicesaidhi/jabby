@@ -5,8 +5,6 @@ local loop = require(script.Parent.modules.loop)
 local remotes = require(script.Parent.modules.remotes)
 local traffic_check = require(script.Parent.modules.traffic_check)
 local vm_id = require(script.Parent.modules.vm_id)
-local public = require(script.public)
-
 local function broadcast()
 	for _, player in Players:GetPlayers() do
 		if not traffic_check.can_use_jabby(player) then continue end
@@ -19,7 +17,7 @@ end
 task.delay(0, broadcast)
 
 local systems = script.systems
-local loop, jabby_scheduler = loop (
+local loop = loop (
 	`jabby-host:{
 		if RunService:IsServer() then "server" else "client"
 	}-vm:{vm_id}`,
@@ -34,8 +32,6 @@ local loop, jabby_scheduler = loop (
 	systems.mouse_pointer,
 	systems.entity
 )
-
-table.insert(public, jabby_scheduler)
 
 RunService.PostSimulation:Connect(loop)
 

@@ -10,6 +10,7 @@ local create = vide.create
 local derive = vide.derive
 local source = vide.source
 local values = vide.values
+local show = vide.show
 
 type props = {
 
@@ -61,6 +62,20 @@ return function(props: props)
 		return options
 	end)
 
+	local function objects()
+		return hosts()[selected()] or {} :: never
+	end
+
+	local function is_empty()
+		local no_objects = next(objects()) == nil
+		if no_objects then return "No objects found. Did you forget to set updated?" end
+		for _, object in objects() do
+			if #object.worlds() == 0 then return "No worlds found. Did you forget to set updated?" end
+			if #object.schedulers() == 0 then return "No schedulers found. Did you forget to set updated?" end
+		end
+		return false
+	end
+
 	return pebble.widget {
 		title = "Home",
 		min_size = Vector2.new(230, 200),
@@ -76,7 +91,6 @@ return function(props: props)
 
 			pebble.select {
 				size = UDim2.new(1, 0, 0, 32),
-	
 				options = options :: any,
 				selected = selected :: any,
 				update_selected = selected
@@ -85,11 +99,8 @@ return function(props: props)
 			create "ScrollingFrame" {
 				-- Size = UDim2.fromScale(1, 1),
 				CanvasSize = UDim2.new(),
-	
 				AutomaticCanvasSize = Enum.AutomaticSize.Y,
-	
 				BackgroundTransparency = 1,
-	
 				ScrollBarThickness = 6,
 				HorizontalScrollBarInset = Enum.ScrollBarInset.Always,
 
@@ -108,10 +119,14 @@ return function(props: props)
 					Padding = UDim.new(0, 8),
 					Wraps = true
 				},
-		
-				values(function()
-					return hosts()[selected()] or {}
-				end, function(value, key)
+
+				show(is_empty, function()
+					return pebble.typography {
+						text = is_empty()
+					}
+				end),
+
+				values(objects, function(value, key)
 					
 					return pebble.pane{
 						name = "",
@@ -140,7 +155,7 @@ return function(props: props)
 									})
 								end
 							}
-						end) :: any,
+						end),
 	
 						values(value.schedulers, function(scheduler)
 							return pebble.button {
@@ -155,15 +170,11 @@ return function(props: props)
 									})
 								end
 							}
-						end) :: any
-		
+						end)
 					}
-				end) :: any
-	
+				end) 
 			}
-
 		}
-
 	}
 
 end
