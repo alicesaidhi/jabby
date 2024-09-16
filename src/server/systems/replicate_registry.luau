@@ -27,7 +27,7 @@ type Connection = {
 
 }
 
-local NULL = newproxy() -- NULL is displayed if the value exists, buth as no value
+local NIL = newproxy() -- NULL is displayed if the value exists, buth as no value
 
 local function clear_columns(columns: {{any}})
 	for _, column in columns do
@@ -376,7 +376,7 @@ return function()
 						row_entity += 1
 						local value = archetype.columns[column][row]
 						new_columns[1][row_entity] = entity
-						new_columns[idx + 1][row_entity] = if value == nil then NULL else value
+						new_columns[idx + 1][row_entity] = if value == nil then NIL else value
 					end
 				end
 			end
@@ -431,7 +431,7 @@ return function()
 							end
 
 							str = `\{{table.concat(temp_b)}\}`
-						elseif new_value == NULL then
+						elseif new_value == NIL then
 							str = "" -- important distinction, this is still a valid component
 						elseif new_value == nil then
 							str = nil -- but this isnt

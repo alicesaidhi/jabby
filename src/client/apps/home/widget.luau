@@ -9,7 +9,6 @@ local registry = require(script.Parent.Parent.registry)
 local create = vide.create
 local derive = vide.derive
 local source = vide.source
-local indexes = vide.indexes
 local values = vide.values
 
 type props = {

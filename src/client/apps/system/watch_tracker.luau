@@ -6,7 +6,6 @@ local virtualscroller_horizontal = require(script.Parent.Parent.Parent.component
 
 local create = vide.create
 local source = vide.source
-local changed = vide.changed
 
 type props = {
 	host: "server" | Player,

@@ -1,3 +1,4 @@
+--- Licensed under MIT from centau_ri
 export type Queue<T...> = typeof(setmetatable(
 	{} :: {
 		add: (self: Queue<T...>, T...) -> (),
@@ -103,7 +104,7 @@ local queue_create = function<T...>(signal: ISignal<T...>?): Queue<T...>
 	if signal then
 		local connector = (signal :: any).connect or (signal :: any).Connect
 		assert(connector, "signal has no member `connect()`")
-		connector(signal, function(...: T...)
+		connector(signal, function(...)
 			queue:add(...)
 		end)
 	end

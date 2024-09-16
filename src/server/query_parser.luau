@@ -125,10 +125,6 @@ local function lex(source: string): Stream
 		return str
 	end
 
-	local function skip_comment()
-		read_while(function(char) return char ~= "\n" end)
-	end
-
 	local function skip_whitespace()
 		read_while(is_whitespace)
 	end

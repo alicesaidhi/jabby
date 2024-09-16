@@ -9,7 +9,8 @@ export type IncomingConnector = {
 
 export type OutgoingConnector = {
 	host: Player | "server",
-	to_vm: number? -- not specifying a vm makes it received by all
+	to_vm: number?, -- not specifying a vm makes it received by all
+	from_vm: nil
 }
 
 export type NetEvent<T...> = {

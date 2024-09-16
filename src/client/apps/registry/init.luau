@@ -1,6 +1,5 @@
 local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local vide = require(script.Parent.Parent.Parent.Parent.vide)
 local loop = require(script.Parent.Parent.Parent.modules.loop)

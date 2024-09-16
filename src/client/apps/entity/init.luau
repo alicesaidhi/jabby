@@ -2,7 +2,6 @@ local RunService = game:GetService("RunService")
 
 local vide = require(script.Parent.Parent.Parent.Parent.vide)
 local loop = require(script.Parent.Parent.Parent.modules.loop)
-local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local widget = require(script.widget)
 
 local source = vide.source

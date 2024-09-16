@@ -52,47 +52,6 @@ local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent
 	end
 end
 
-local function get_remote_function(name: string): RemoteEvent & {
-	receive: RemoteEvent,
-	result: BindableEvent,
-	actor: BindableEvent,
-}
-	if RunService:IsServer() then
-		return script:FindFirstChild(name) :: RemoteEvent & {
-			receive: RemoteEvent,
-			result: BindableEvent,
-			actor: BindableEvent,
-		} or (function()
-			local remote = Instance.new("RemoteEvent")
-			remote.Name = name
-			remote.Parent = script
-
-			local receive = Instance.new("RemoteEvent")
-			receive.Name = "receive"
-			receive.Parent = remote
-
-			local bindable_event = Instance.new("BindableEvent")
-			bindable_event.Name = "result"
-			bindable_event.Parent = remote
-
-			local fire_actor = Instance.new("BindableEvent")
-			fire_actor.Name = "actor"
-			fire_actor.Parent = remote
-			return remote
-		end)() :: RemoteEvent & {
-			receive: RemoteEvent,
-			result: BindableEvent,
-			actor: BindableEvent,
-		}
-	else
-		return script:WaitForChild(name) :: RemoteEvent & {
-			receive: RemoteEvent,
-			result: BindableEvent,
-			actor: BindableEvent,
-		}
-	end
-end
-
 local function create_event<T...>(name: string, unreliable: boolean?, do_not_block_traffic: boolean?)
 	local remote = get_remote_event(name, unreliable)
 	local on_event_fire, fire = signal()
@@ -100,7 +59,7 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 	local event = {
 		type = "event",
 
-		fire = function(_, connector: types.OutgoingConnector, ...: T...)
+		fire = function(_, connector: types.OutgoingConnector, ...)
 			--- if the host is within this vm, we can fire it straight to
 			if not traffic_check.check(local_host, connector.host, true) then
 				-- print("cancel fire!", remote.Name)

@@ -2,7 +2,6 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local loop = require(script.Parent.modules.loop)
-local net = require(script.Parent.modules.net)
 local remotes = require(script.Parent.modules.remotes)
 local traffic_check = require(script.Parent.modules.traffic_check)
 local vm_id = require(script.Parent.modules.vm_id)

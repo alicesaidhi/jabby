@@ -1,4 +1,6 @@
 {
 	"languageMode": "nonstrict",
-	"lints": {"LocalShadow": false}
+	"lint": {
+		"LocalShadow": false
+	}
 }

@@ -1,6 +1,5 @@
 local queue = require(script.Parent.Parent.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.Parent.Parent.modules.remotes)
-local types = require(script.Parent.Parent.Parent.Parent.Parent.modules.types)
 
 type Context = {
 	host: Player | "server",

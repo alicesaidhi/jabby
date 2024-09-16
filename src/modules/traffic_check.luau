@@ -19,7 +19,7 @@ local on_fail, fire = signal()
 traffic_check.can_use_jabby = function(player: Player)
 	local is_studio = game:GetService("RunService"):IsStudio()
 
-	return true --is_owner or is_studio
+	return is_studio --is_owner or is_studio
 end
 
 --- Runs a callback defined by the developer to determine if a player is allowed

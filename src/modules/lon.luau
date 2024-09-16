@@ -522,9 +522,9 @@ local function parse(source: string)
 				if stream.eof() then break end
 			end
 		elseif token.type == "string" then
-			set_node {type = "string", value = stream.next().s :: string}
+			set_node {type = "string", value = assert(stream.next()).s :: string}
 		elseif token.type == "number" then
-			set_node {type = "number", value = stream.next().s :: number}
+			set_node {type = "number", value = assert(stream.next()).s :: number}
 		elseif is_keyword("true") then
 			set_node {type = "boolean", value = true}
 			stream.next()
@@ -534,7 +534,7 @@ local function parse(source: string)
 		elseif is_symbol("{") then
 			parse_table()
 		else
-			stream.croak("expected expression, got", token.type, `"{token.s}"`)
+			stream.croak(`expected expression, got {token.type}" "{token.s}"`)
 		end
 
 	end
@@ -690,7 +690,7 @@ do
 			cyclic_buffer[value] = true
 			tbs += 1
 			write_char(char("{"))
-			for index, value in value do
+			for index, value in value :: {[any]: any} do
 				write_line()
 
 				if type(index) == "string" and string.match(index, "^[a-zA-Z_][a-zA-Z0-9_]*$") then

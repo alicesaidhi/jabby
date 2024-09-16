@@ -3,14 +3,12 @@ local UserInputService = game:GetService("UserInputService")
 
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
-local query_parser = require(script.Parent.Parent.Parent.Parent.server.query_parser)
 local add_component = require(script.Parent.add_component)
 local editor = require(script.Parent.editor)
 
 local create = vide.create
 local indexes = vide.indexes
 local source = vide.source
-local spring = vide.spring
 local show = vide.show
 
 type SystemId = number
@@ -42,7 +40,6 @@ return function(props: props)
 	local changes = props.changes
 
 	local text = source("")
-	local component_edit_text = source("")
 	local adding = source(false)
 	local editing = source(false :: false | string)
 

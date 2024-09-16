@@ -7,7 +7,6 @@ local values = vide.values
 local changed = vide.changed
 local effect = vide.effect
 local untrack = vide.untrack
-local batch = vide.batch
 
 type can<T> = T | () -> T
 type props = {

@@ -1,5 +1,3 @@
-local jecs = require(script.Parent.Parent.Parent.jecs)
-local lon = require(script.Parent.Parent.modules.lon)
 local types = require(script.Parent.Parent.modules.types)
 local world_hook = require(script.Parent.world_hook)
 
