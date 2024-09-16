@@ -68,7 +68,6 @@ return function()
 
 		for idx, ctype in to_send.component do
 			local world = data.worlds[idx]
-			print(world:get(ctype, map_worlds_to_name[world]))
 			to_send.component[idx] = world:get(ctype, map_worlds_to_name[world]) or ctype
 		end
 

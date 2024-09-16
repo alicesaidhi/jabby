@@ -62,21 +62,23 @@ return function(context: Context)
 		end
 
 		debug.profilebegin("receive update data")
-		for from, watch, frame, changes in receive_update_data:iter() do
-			if watch ~= watch_id then continue end
-			if frame ~= watching_frame then continue end
-			if changes == nil then
-				context.changes({
-					types = {},
-					entities = {},
-					component = {},
-					values = {},
-					worlds = {}
-				})
-			else
-				context.changes(changes)
+		batch(function()
+			for from, watch, frame, changes in receive_update_data:iter() do
+				if watch ~= watch_id then continue end
+				if frame ~= watching_frame then continue end
+				if changes == nil then
+					context.changes({
+						types = {},
+						entities = {},
+						component = {},
+						values = {},
+						worlds = {}
+					})
+				else
+					context.changes(changes)
+				end
 			end
-		end
+		end)
 		debug.profileend()
 
 		debug.profilebegin("receive overview")
