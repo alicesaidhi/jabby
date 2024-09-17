@@ -122,7 +122,9 @@ return function(props: props)
 
 				show(is_empty, function()
 					return pebble.typography {
-						text = is_empty()
+						text = is_empty(),
+						xalignment = Enum.TextXAlignment,
+						wrapped = true
 					}
 				end),
 
