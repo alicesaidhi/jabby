@@ -546,7 +546,29 @@ local function parse(source: string)
 end
 
 local tuple = {}
-local function compile(node: Node, variables: {[string]: any}): any
+
+local lon_vars = {
+
+	Vector3 = Vector3,
+	CFrame = CFrame,
+	Vector2 = Vector2,
+	Color3 = Color3,
+	BrickColor = BrickColor,
+	Enum = Enum,
+
+	NumberSequence = NumberSequence,
+	NumberSequenceKeypoint = NumberSequenceKeypoint,
+	NumberRange = NumberRange,
+
+	ColorSequence = ColorSequence,
+	ColorSequenceKeypoint = ColorSequenceKeypoint,
+
+	game = game,
+	workspace = workspace,
+
+}
+
+local function compile(node: Node): any
 
 	if node.type == "number" then
 		return node.value
@@ -555,37 +577,35 @@ local function compile(node: Node, variables: {[string]: any}): any
 	elseif node.type == "boolean" then
 		return node.value
 	elseif node.type == "variable" then
-		return variables[node.value]
+		return lon_vars[node.value]
 	elseif node.type == "index" then
-		return compile(node.value, variables)[compile(node.key, variables)]
+		return compile(node.value)[compile(node.key)]
 	elseif node.type == "functioncall" then
 		for i = 1, #node.args do
-			tuple[i] = compile(node.args[i], variables)
+			tuple[i] = compile(node.args[i])
 		end
-		return compile(node.value, variables)(unpack(tuple, 1, #node.args))
+		return compile(node.value)(unpack(tuple, 1, #node.args))
 	elseif node.type == "methodcall" then
 		for i = 1, #node.args do
-			tuple[i] = compile(node.args[i], variables)
+			tuple[i] = compile(node.args[i])
 		end
-		local data = compile(node.value, variables)
+		local data = compile(node.value)
 		return data(data, unpack(tuple, 1, #node.args))
 	elseif node.type == "table" then
 		local t = {}
 		local i = 0
 
 		for _, value in node.value do
-
 			if value.type == "assign" then
-				t[compile(value.key, variables)] = compile(value.value, variables)
+				t[compile(value.key)] = compile(value.value)
 			else
-				t[i + 1] = compile(value, variables); i += 1
+				t[i + 1] = compile(value); i += 1
 			end
-
 		end
 
 		return t
 	elseif node.type == "assign" then
-		error("bad ast, you literally cannot generate this")
+		error("bad ast, you cannot generate this")
 	end
 
 	return nil
@@ -599,6 +619,7 @@ do
 	local pos = 0
 	local tbs = 0
 	local enable_newlines = true
+	local line_length = 0
 
 	local cyclic_buffer = {}
 
@@ -633,6 +654,13 @@ do
 
 		buffer.writestring(buf, pos, str, #str)
 		pos += #str
+		line_length += #str
+	end
+
+	local function write_low_prec_float(n: number)
+		local s = string.format("%.7g", n)
+		write_str(s)
+		line_length += #s
 	end
 
 	local function char(c: string): number
@@ -654,6 +682,7 @@ do
 		end
 
 		buffer.writeu8(buf, pos, char)
+		line_length += 1
 		pos += 1
 	end
 
@@ -714,7 +743,8 @@ do
 			write_char(char("}"))
 		elseif type(value) == "table" and cyclic_buffer[value] then
 			display_string(`*cyclic reference detected at {tbs}*`)
-
+		elseif type(value) == "nil" then
+			write_str("nil")
 		-- ROBLOX DEVIATION START
 		elseif typeof(value) == "BrickColor" then
 			write_str("BrickColor.new(")
@@ -759,6 +789,68 @@ do
 			write_str("Vector2.new(")
 			write_str(tostring(value))
 			write_char(char(")"))
+		elseif typeof(value) == "NumberSequence" then
+			write_str("NumberSequence.new(")
+			if #value.Keypoints == 2 then
+				write_low_prec_float(value.Keypoints[1].Value)
+				write_str(", ")
+				write_low_prec_float(value.Keypoints[2].Value)
+			else
+				display(value.Keypoints)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "NumberSequenceKeypoint" then
+			write_str("NumberSequenceKeypoint.new(")
+			write_low_prec_float(value.Time)
+			write_str(", ")
+			write_low_prec_float(value.Value)
+			if value.Envelope > 0 then
+				write_str(", ")
+				write_low_prec_float(value.Envelope)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "NumberRange" then
+			write_str("NumberRange.new(")
+			write_low_prec_float(value.Min)
+			if value.Min ~= value.Max then
+				write_str(", ")
+				write_low_prec_float(value.Max)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "ColorSequence" then
+			write_str("ColorSequence.new(")
+			if #value.Keypoints == 2 then
+				display(value.Keypoints[1].Value)
+				write_str(", ")
+				display(value.Keypoints[2].Value)
+			else
+				display(value.Keypoints)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "ColorSequenceKeypoint" then
+			write_str("ColorSequenceKeypoint.new(")
+			write_low_prec_float(value.Time)
+			write_str(", ")
+			display(value.Value)
+			write_char(char(")"))
+		elseif typeof(value) == "RaycastResult" then
+			--note: since a RaycastResult can't be created, we convert it into a table
+			display {
+				Instance = value.Instance,
+				Material = value.Material,
+				Normal = value.Normal,
+				Position = value.Position,
+				Distance = value.Distance
+			}
+		elseif typeof(value) == "Region3" then
+			local pos, size = value.CFrame.Position, value.Size
+			local min = pos - size / 2
+			local max = pos + size / 2
+			write_str("Region3.new(")
+			display(min)
+			write_str(", ")
+			display(max)
+			write_char(char(")"))
 		elseif typeof(value) == "Instance" then
 			write_str("game.")
 			display_string(value:GetFullName())
@@ -787,7 +879,10 @@ end
 return {
 
 	parse = parse,
-	compile = compile,
+	compile = function(node: Node, variables: {[string]: any})
+		setmetatable(lon_vars, {__index = variables or nil})
+		return compile(node)
+	end,
 	output = output
 
 }

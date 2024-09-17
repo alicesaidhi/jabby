@@ -33,23 +33,6 @@ end
 
 local TAG = newproxy()
 
-local lon_vars = {
-
-	tag = TAG,
-
-	Vector3 = Vector3,
-	CFrame = CFrame,
-	Vector2 = Vector2,
-	Color3 = Color3,
-	BrickColor = BrickColor,
-	Enum = Enum,
-
-	game = game,
-	workspace = workspace,
-
-}
-
-
 local function get_component(ctype_name: string, map_components: {[string]: string})
 
 	local function get_entity(ctype)
