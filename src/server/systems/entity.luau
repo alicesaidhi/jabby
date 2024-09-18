@@ -31,11 +31,14 @@ local function convert_component(world, debug, entity): string
 	end
 end
 
+--- Indicates a value is a tag
 local TAG = newproxy()
+--- Indicates a value is set to nil; this is not allowed in 0.3.0
+local BAD_VALUE = newproxy()
 
-local function get_component(ctype_name: string, map_components: {[string]: string})
+local function get_component(ctype_name: string, map_components: {[string]: number})
 
-	local function get_entity(ctype)
+	local function get_entity(ctype: query_parser.PureComponent)
 		local value = ctype.value
 
 		if value.type == "Entity" then
@@ -65,7 +68,6 @@ local function get_component(ctype_name: string, map_components: {[string]: stri
 	end
 
 	return entity_to_set
-
 end
 
 return function()
@@ -175,7 +177,7 @@ return function()
 				local ok, data = pcall(
 					lon.compile,
 					result,
-					lon_vars
+					{tag = TAG}
 				)
 
 				if not ok then
@@ -187,6 +189,8 @@ return function()
 				if data == nil then
 					world:remove(entity, entity_to_set)
 				elseif data == TAG then
+					-- tag is handled separately, as its still just "nil"
+					-- the difference is that entities used as tags arent allowed to store data
 					world:set(entity, entity_to_set)
 				else
 					world:set(entity, entity_to_set, data)
@@ -206,44 +210,55 @@ return function()
 
 			local components = get_all_components(world, entity)
 
+			local function is_tag(id: jecs.Entity<any>)
+				return if jecs.IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
+					else not world:has(id, jecs.Component)
+
+			end
+
 			for _, component in components do
 				local name = convert_component(world, inspector_data.world.debug, component)
-				local value = world:get(entity, component)
-				new_values[name] = if value ~= nil then value else TAG
+				local is_tag = is_tag(component)
+
+				if is_tag then
+					new_values[name] = TAG
+				else
+					local value = world:get(entity, component)
+					new_values[name] = if value == nil then BAD_VALUE else value
+				end
 			end
 
 			for name, new_value in new_values do
 				local old_value = old_values[name]
 
-				if old_value ~= new_value then
-					remotes.inspect_entity_update:fire(
-						inspector_data.outgoing,
-						inspect_id,
-						name,
-						if new_value == TAG then "" else lon.output(new_value, false)
-					)
-				end
+				if old_value == new_value then continue end
+				remotes.inspect_entity_update:fire(
+					inspector_data.outgoing,
+					inspect_id,
+					name,
+					if new_value == TAG then "tag"
+					--todo: figure out a better way to say that you are not allowed to store nil in a component
+					elseif new_value == BAD_VALUE then "nil (not allowed)"
+					else lon.output(new_value, false)
+				)
 			end
 
 			for name, value in old_values do
 				local new_value = new_values[name]
 
-				if new_value == nil then
-					remotes.inspect_entity_update:fire(
-						inspector_data.outgoing,
-						inspect_id,
-						name,
-						nil
-					)
-				end
+				if new_value ~= nil then continue end
+				remotes.inspect_entity_update:fire(
+					inspector_data.outgoing,
+					inspect_id,
+					name,
+					nil
+				)
 			end
 			
 			table.clear(old_values)
 
 			inspector_data.new_values = old_values
 			inspector_data.old_values = new_values
-
 		end
-
 	end
 end

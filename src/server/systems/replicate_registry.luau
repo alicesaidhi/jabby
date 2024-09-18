@@ -371,11 +371,11 @@ return function()
 					local entity = archetype.entities[row]
 
 					at -= 1
-					if at < from or at > upto then continue end
+					if at + 1 < from or at + 1 > upto then continue end
+					row_entity += 1
+					new_columns[1][row_entity] = entity
 					for idx, column in records do
-						row_entity += 1
 						local value = archetype.columns[column][row]
-						new_columns[1][row_entity] = entity
 						new_columns[idx + 1][row_entity] = if value == nil then NIL else value
 					end
 				end

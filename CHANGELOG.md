@@ -13,9 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phases will now be shown inside the Scheduler
 - Add support for Enum and CFrame
 - Add change tracker widgets
+- Add separated pane for tags in the entity widget
 
 ### Fixed
 - Fix type for `jabby.set_check_function`
+- Fix parsing for entity pointers
 - Fix tags and nil values appearing as userdata in the query widget
 - Query view should work jecs 0.3.0
 
