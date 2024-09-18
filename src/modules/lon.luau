@@ -563,6 +563,8 @@ local lon_vars = {
 	ColorSequence = ColorSequence,
 	ColorSequenceKeypoint = ColorSequenceKeypoint,
 
+	Region3 = Region3,
+
 	game = game,
 	workspace = workspace,
 
