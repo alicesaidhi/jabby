@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add encoding / decoding into LON for `CFrame`, `Enum`, `NumberSequence`, `NumberSequenceKeypoint`, `NumberRange`, `ColorSequence`, `ColorSequenceKeypoint`, `Region3`
 - Add encoding into LON for `RaycastResult` (converts into table)
 
+### Changes
+- Registry replication is now done through unreliable remotes
+
 ### Fixed
 - Fix type for `jabby.set_check_function`
 - Fix parsing for entity pointers

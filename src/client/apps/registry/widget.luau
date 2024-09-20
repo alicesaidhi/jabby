@@ -10,6 +10,7 @@ local entity = require(script.Parent.Parent.entity)
 local create = vide.create
 local effect = vide.effect
 local source = vide.source
+local show = vide.show
 
 type SystemId = number
 
@@ -21,6 +22,9 @@ type props = {
 	validate_query: (string) -> (),
 	ok: () -> boolean,
 	msg: () -> string,
+
+	paused: vide.Source<boolean>,
+	refresh: (boolean) -> (),
 
 	from: vide.Source<number>,
 	upto: vide.Source<number>,
@@ -71,11 +75,16 @@ return function(props: props)
 		props.upto(upto)
 	end)
 
+	local row_template = {
+		Size = UDim2.new(0, 0, 0, 26),
+		AutomaticSize = Enum.AutomaticSize.X
+	} :: any
+
 	return pebble.widget {
 		title = "Querying",
 		subtitle = `host: {props.host} vm: {props.vm} id: {props.id}`,
 
-		min_size = Vector2.new(200, 300),
+		min_size = Vector2.new(300, 300),
 
 		bind_to_close = props.destroy,
 
@@ -216,63 +225,137 @@ return function(props: props)
 					Wraps = true
 				},
 
-				pebble.typography {
-					text = "Page:"
+				pebble.row {
+					spacing = UDim.new(0, 8),
+					alignitems = Enum.ItemLineAlignment.Center,
+					row_template,
+
+					pebble.typography {
+						text = "Page:"
+					},
+	
+					pebble.textfield {
+						size = UDim2.fromOffset(40, 26),
+						placeholder = "1",
+						
+						text = function()
+							return page_input()
+						end,
+	
+						oninput = page_input,
+	
+						enter = function(text)
+							local n = tonumber(text)
+	
+							if n == nil then
+								page_input(tostring(page()))
+							else
+								page(n)
+							end
+						end
+					},
+
+					pebble.typography {
+						text = function()
+							return `/ {math.ceil(props.total_entities() / rows())}`
+						end
+					},
 				},
 
-				pebble.textfield {
-					size = UDim2.fromOffset(40, 26),
-					placeholder = "1",
+
+				pebble.row {
+					spacing = UDim.new(0, 8),
+					alignitems = Enum.ItemLineAlignment.Center,
+					row_template,
+
+					pebble.typography {
+						text = "Rows:"
+					},
+
+					pebble.textfield {
+						size = UDim2.fromOffset(40, 26),
+						placeholder = "Rows",
+
+						text = function()
+							return rows_input()
+						end,
+
+						oninput = rows_input,
+
+						enter = function(text)
+							local n = tonumber(text)
+
+							if n == nil then
+								rows_input(tostring(rows()))
+							else
+								rows(n)
+							end
+						end
+					},
+				},
+
+				pebble.row {
+					spacing = UDim.new(0, 4),
+					row_template,
 					
-					text = function()
-						return page_input()
-					end,
+					pebble.button {
+						size = UDim2.fromOffset(26, 26),
+						text = "",
 
-					oninput = page_input,
+						accent = function()
+							return not props.paused()
+						end,
 
-					enter = function(text)
-						local n = tonumber(text)
+						activated = function()
+							props.paused(not props.paused())
+						end,
 
-						if n == nil then
-							page_input(tostring(page()))
-						else
-							page(n)
-						end
-					end
-				},
+						{LayoutOrder = 10},
+						
+						create "ImageLabel" {
+							Size = UDim2.fromOffset(24, 24),
+							Position = UDim2.fromScale(0.5, 0.5),
+							AnchorPoint = Vector2.new(0.5, 0.5),
+		
+							BackgroundTransparency = 1,
 
-				pebble.typography {
-					text = function()
-						return `/ {math.ceil(props.total_entities() / rows())}`
-					end
-				},
+							ImageColor3 = pebble.theme.fg_on_bg_high[3],
+		
+							Image = function()
+								return if props.paused() then "rbxassetid://10735024209"
+							else "rbxassetid://10734923214"
+							end
+						},
+		
+					},
 
-				pebble.typography {
-					text = "Rows:"
-				},
-
-				pebble.textfield {
-					size = UDim2.fromOffset(40, 26),
-					placeholder = "Rows",
-
-					text = function()
-						return rows_input()
-					end,
-
-					oninput = rows_input,
-
-					enter = function(text)
-						local n = tonumber(text)
-
-						if n == nil then
-							rows_input(tostring(rows()))
-						else
-							rows(n)
-						end
-					end
-				},
+					show(props.paused, function()
+						return pebble.button {
+							size = UDim2.fromOffset(26, 26),
+							text = "",
+		
+							activated = function()
+								props.refresh(true)
+							end,
+							
+							create "ImageLabel" {
+								Size = UDim2.fromOffset(24, 24),
+								Position = UDim2.fromScale(0.5, 0.5),
+								AnchorPoint = Vector2.new(0.5, 0.5),
+			
+								BackgroundTransparency = 1,
+		
+								ImageColor3 = pebble.theme.fg_on_bg_high[3],
+			
+								Image = "rbxassetid://10734933222"
+							},
+			
+						}
+					end)
+				}
 
 			},
+
 
 			pebble.background {
 				size = UDim2.fromScale(1, 0),

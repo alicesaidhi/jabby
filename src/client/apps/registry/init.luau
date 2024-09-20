@@ -43,6 +43,9 @@ function overview_query.mount(props: props, destroy: () -> ())
 	local upto = source(25)
 	local total_entities = source(0)
 
+	local paused = source(false)
+	local refresh = source(false)
+
 	-- check if the query and columns are properly
 	local app_loop = loop (
 		"app-client-registry",
@@ -58,6 +61,8 @@ function overview_query.mount(props: props, destroy: () -> ())
 
 			columns = columns,
 			query = query,
+			paused = paused,
+			refresh = refresh,
 
 			total_entities = total_entities,
 
@@ -127,6 +132,8 @@ function overview_query.mount(props: props, destroy: () -> ())
 		from = from,
 		upto = upto,
 		total_entities = total_entities,
+		paused = paused,
+		refresh = refresh,
 
 		enable_pick = enable_pick,
 		entity_hovering_over = entity_hovering_over,

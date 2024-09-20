@@ -55,6 +55,8 @@ local function obtain_string(entity: jecs.Entity<any>, world: jecs.World, name: 
 
 	local str = table.concat(strings)
 	if has_more then str = str .. "\n..." end
+
+	return str
 end
 
 return function()

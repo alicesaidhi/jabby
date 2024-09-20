@@ -14,8 +14,7 @@ return function()
 	for _, player in Players:GetPlayers() do
 		if traffic_check.communication_is_allowed(net.local_host, player, true) then
 			remotes.new_server_registered:fire({
-				host = "client",
-				player = player
+				host = player,
 			})
 		end
 	end
