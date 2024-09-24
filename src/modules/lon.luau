@@ -563,6 +563,24 @@ local lon_vars = {
 	ColorSequence = ColorSequence,
 	ColorSequenceKeypoint = ColorSequenceKeypoint,
 
+	Region3 = Region3,
+	Rect = Rect,
+
+	OverlapParams = function(properties)
+		local params = OverlapParams.new()
+		for key, value in properties do
+			(params :: any)[key] = value
+		end
+		return params
+	end,
+	RaycastParams = function(properties)
+		local params = RaycastParams.new()
+		for key, value in properties do
+			(params :: any)[key] = value
+		end
+		return params
+	end,
+
 	game = game,
 	workspace = workspace,
 
@@ -850,6 +868,33 @@ do
 			display(min)
 			write_str(", ")
 			display(max)
+			write_char(char(")"))
+		elseif typeof(value) == "Rect" then
+			write_str("Rect.new(")
+			write_low_prec_float(value.Min.X)
+			write_str(", ")
+			write_low_prec_float(value.Min.Y)
+			write_str(", ")
+			write_low_prec_float(value.Max.X)
+			write_str(", ")
+			write_low_prec_float(value.Max.Y)
+			write_char(char(")"))
+		elseif typeof(value) == "OverlapParams" then
+			write_str("OverlapParams(")
+			display({
+				CollisionGroup = value.CollisionGroup,
+				FilterType = value.FilterType,
+				MaxParts = value.MaxParts,
+				RespectCanCollide = value.RespectCanCollide,
+			})
+			write_char(char(")"))
+		elseif typeof(value) == "RaycastParams" then
+			write_str("RaycastParams(")
+			display({
+				CollisionGroup = value.CollisionGroup,
+				FilterType = value.FilterType,
+				RespectCanCollide = value.RespectCanCollide,
+			})
 			write_char(char(")"))
 		elseif typeof(value) == "Instance" then
 			write_str("game.")
