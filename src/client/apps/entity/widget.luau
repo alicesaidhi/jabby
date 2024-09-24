@@ -19,7 +19,7 @@ type props = {
 	id: number,
 	entity: number,
 
-	components: () -> {[string]: string},
+	components: vide.Source<{[string]: string}>,
 	changes: vide.Source<{[string]: string}>,
 	live_updates: vide.Source<boolean>,
 	apply_changes: vide.Source<boolean>,
@@ -42,6 +42,32 @@ return function(props: props)
 	local text = source("")
 	local adding = source(false)
 	local editing = source(false :: false | string)
+
+	local function components()
+		local components = {}
+
+		for key, value in props.components() do
+			if value == "tag" then continue end
+			components[key] = value
+		end
+
+		return components
+	end
+
+	local function tags()
+		local tags = {}
+
+		for key, value in props.components() do
+			if value ~= "tag" then continue end
+			tags[key] = value
+		end
+
+		return tags
+	end
+	
+	local function is_removed(value: string)
+		return value == "nil"
+	end
 
 	return pebble.widget {
 		title = `Entity #{props.entity}`,
@@ -125,7 +151,6 @@ return function(props: props)
 			},
 
 			create "ScrollingFrame" {
-
 				Size = UDim2.fromScale(1, 0),
 				CanvasSize = UDim2.new(),
 				AutomaticCanvasSize = Enum.AutomaticSize.Y,
@@ -140,83 +165,182 @@ return function(props: props)
 				},
 				
 				create "UIListLayout" {
-					SortOrder = Enum.SortOrder.Name
+					Padding = UDim.new(0, 4)
 				},
 
-				indexes(props.components, function(value, key)
-					return pebble.button {
-						name = key,
-						size = UDim2.new(1, 0, 0, 32),
-						automaticsize = Enum.AutomaticSize.Y,
-				
-						text = "",
-				
-						corner = false,
+				pebble.typography {text = "Components"},
 
-						activated = function()
-							editing(key)
-							local current_value = props.changes()[key]
+				pebble.container {
+					Size = UDim2.fromScale(1, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
 
-							if current_value then
-								text(current_value)
-							else
-								text(value())
-							end
-						end,
-				
-						create "UIListLayout" {
-							FillDirection = Enum.FillDirection.Horizontal,
-							HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
-							VerticalAlignment = Enum.VerticalAlignment.Center,
-							Padding = UDim.new(0, 8)
-						},
-						
-						pebble.padding {
-							y = UDim.new(0, 4)
-						},
-				
-						pebble.typography {
-							size = UDim2.new(0, 100, 0, 18),
+					create "UIListLayout" {
+						SortOrder = Enum.SortOrder.Name,
+					},
+
+					indexes(components, function(value, key)
+						return pebble.button {
+							name = key,
+							size = UDim2.new(1, 0, 0, 32),
 							automaticsize = Enum.AutomaticSize.Y,
-							text = key,
-							code = true,
-							wrapped = true,
-							truncate = Enum.TextTruncate.SplitWord,
-							xalignment = Enum.TextXAlignment.Left,
-						},
-				
-						pebble.typography {
-							size = UDim2.fromOffset(0, 18),
-							automaticsize = Enum.AutomaticSize.Y,
-				
-							yalignment = Enum.TextYAlignment.Top,
-							xalignment = Enum.TextXAlignment.Left,
-							text = value,
-							wrapped = true,
-							code = true,
-				
-							create "UIFlexItem" {
-								FlexMode = Enum.UIFlexMode.Fill
+					
+							text = "",
+					
+							corner = false,
+	
+							activated = function()
+								editing(key)
+								local current_value = props.changes()[key]
+	
+								if current_value then
+									text(current_value)
+								else
+									text(value())
+								end
+							end,
+					
+							create "UIListLayout" {
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
+								VerticalAlignment = Enum.VerticalAlignment.Center,
+								Padding = UDim.new(0, 8)
 							},
+							
+							pebble.padding {
+								y = UDim.new(0, 4)
+							},
+					
+							pebble.typography {
+								size = UDim2.new(0, 100, 0, 18),
+								automaticsize = Enum.AutomaticSize.Y,
+								text = key,
+								code = true,
+								wrapped = true,
+								truncate = Enum.TextTruncate.SplitWord,
+								xalignment = Enum.TextXAlignment.Left,
+							},
+					
+							pebble.typography {
+								size = UDim2.fromOffset(0, 18),
+								automaticsize = Enum.AutomaticSize.Y,
+					
+								yalignment = Enum.TextYAlignment.Top,
+								xalignment = Enum.TextXAlignment.Left,
+								text = value,
+								wrapped = true,
+								code = true,
+					
+								create "UIFlexItem" {
+									FlexMode = Enum.UIFlexMode.Fill
+								},
+	
+							},
+	
+							show(function()
+								return props.changes()[key] ~= nil
+							end, function()
+								return pebble.typography {
+									text = function()
+										local old = value()
+										local change = props.changes()[key]
+	
+										return if old == nil then "(added)"
+											elseif is_removed(change) then "(removed)"
+											else "(changed)"
+									end,
+									disabled = true,
+									textsize = 14,
+								}
+							end)
+						}
+					end),
+				},
 
-						},
+				pebble.typography {text = "Tags"},
 
-						show(function()
-							return props.changes()[key] ~= nil
-						end, function()
-							return pebble.typography {
-								text = function()
-									local old = value()
-									local change = props.changes()[key]
+				pebble.container {
+					Size = UDim2.fromScale(1, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
 
-									return if old == nil then "(added)" elseif change == "" then "(removed)" else "(changed)"
-								end,
-								disabled = true,
-								textsize = 14,
-							}
-						end)
-					}
-				end),
+					create "UIListLayout" {
+						SortOrder = Enum.SortOrder.Name,
+					},
+
+					indexes(tags, function(value, key)
+						local function did_change()
+							return changes()[key] ~= nil
+						end
+
+						return pebble.button {
+							name = key,
+							size = UDim2.new(1, 0, 0, 24),
+					
+							text = "",
+					
+							corner = false,
+	
+							activated = function()
+								if changes()[key] == "tag" then
+									changes()[key] = nil
+									props.components()[key] = nil
+
+									-- notify about the change
+									changes(changes())
+									props.components(props.components())
+								elseif changes()[key] then
+									changes()[key] = nil
+									
+									-- notify about the change
+									changes(changes())
+								else
+									changes()[key] = "nil"
+									
+									-- notify about the change
+									changes(changes())
+								end
+							end,
+					
+							create "UIListLayout" {
+								FillDirection = Enum.FillDirection.Horizontal,
+								HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly,
+								VerticalAlignment = Enum.VerticalAlignment.Center,
+								Padding = UDim.new(0, 8)
+							},
+							
+							pebble.padding {
+								y = UDim.new(0, 4)
+							},
+					
+							pebble.typography {
+								size = UDim2.fromScale(0, 1),
+								text = key,
+								code = true,
+								wrapped = true,
+								truncate = Enum.TextTruncate.SplitWord,
+								xalignment = Enum.TextXAlignment.Left,
+
+								create "UIFlexItem" {
+									FlexMode = Enum.UIFlexMode.Fill
+								}
+							},
+	
+							show(did_change, function()
+								return pebble.typography {
+									text = function()
+										local old = value()
+										local change = changes()[key]
+	
+										return if old == nil then "(added)"
+											elseif is_removed(change) then "(removed)"
+											else "(changed)"
+									end,
+									disabled = true,
+									textsize = 14,
+								}
+							end)
+						}
+					end),
+				}
 
 			},
 

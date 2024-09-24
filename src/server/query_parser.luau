@@ -241,7 +241,7 @@ type Wildcard = {
 	name: "*"
 }
 
-type Value = {
+export type Value = {
 	type: "Name",
 	name: string
 } | {
@@ -285,17 +285,21 @@ local function parse(input: string): {PureComponent | Relationship}
 		elseif interpret_pointer or symbol.type == "number" then
 			if not interpret_pointer then
 				lexer.croak("expected $")
+			elseif symbol.type ~= "number" then
+				lexer.croak("expected number")
+				error("")
 			end
 
 			table.insert(components, {
 				type = "Component",
 				query = should_query,
 				exclude = should_exclude,
-				value = {type = "Entity", entity = lexer.next().s :: number}
+				value = {type = "Entity", entity = tonumber(lexer.next().s) :: number}
 			})
 
 			should_query = if should_relationship then should_query else true
 			should_exclude = if should_relationship then should_exclude else false
+			interpret_pointer = false
 			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after identifier") end
 		elseif symbol.type == "operator" then
 			if symbol.s == "#" then
@@ -310,7 +314,6 @@ local function parse(input: string): {PureComponent | Relationship}
 			elseif symbol.s == "$" then
 				interpret_pointer = true
 				lexer.next()
-				if lexer.peek().type ~= "number" then lexer.croak("expected number after $") end
 			elseif symbol.s == "*" then
 				if not should_relationship then lexer.croak("cannot use wildcards outside relationship") end
 				table.insert(components, {

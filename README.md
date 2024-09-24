@@ -125,8 +125,8 @@ It's recommended to overwrite this to a function that allows the developer to us
 
 ### Spawning a widget
 
-Jabby exposes `get_client`, which should be called in a script without a actor, unless you know what you are doing.
-Running `get_client` on different actors should not be allowed.
+Jabby exposes `obtain_client`, which should be called in a script without a actor, unless you know what you are doing.
+Running `obtain_client` on different actors should not be allowed.
 
-To spawn a widget, just run `client.spawn_widget(client.apps.home)`, which will
+To spawn a widget, just run `client.spawn_app(client.apps.home)`, which will
 create a new application where you can select the world / scheduler to debug.

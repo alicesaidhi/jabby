@@ -14,6 +14,9 @@ type Context = {
 	columns: vide.Source<{ { any } }>,
 	query: () -> string,
 
+	paused: () -> boolean,
+	refresh: vide.Source<boolean>,
+
 	total_entities: (number) -> (),
 
 	from: () -> number,
@@ -57,6 +60,20 @@ return function(context: Context)
 		remotes.disconnect_query:fire(outgoing, current_query_id)
 	end)
 
+	local should_refresh = false
+	effect(function()
+		if context.refresh() ~= true then return end
+		context.refresh(false)
+		should_refresh = true
+	end)
+
+	local paused_state = context.paused()
+	local paused_updated = false
+	effect(function()
+		paused_updated = true
+		paused_state = context.paused()
+	end)
+
 	return function()
 
 		if query_changed then
@@ -68,6 +85,8 @@ return function(context: Context)
 			remotes.advance_query_page:fire(outgoing, current_query_id, context.from(), context.upto())
 			query_last_frame = 0
 			query_changed = false
+
+			remotes.pause_query:fire(outgoing, current_query_id, paused_state)
 		end
 
 		if page_changed then
@@ -78,6 +97,16 @@ return function(context: Context)
 		for incoming, query, value in count_updated:iter() do
 			if query ~= current_query_id then continue end
 			context.total_entities(value)
+		end
+
+		if paused_updated then
+			remotes.pause_query:fire(outgoing, current_query_id, paused_state)
+			paused_updated = false
+		end
+
+		if should_refresh then
+			remotes.refresh_results:fire(outgoing, current_query_id)
+			should_refresh = false
 		end
 
 		batch(function()

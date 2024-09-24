@@ -9,5 +9,5 @@ realm = "shared"
 [dependencies]
 pebble = "alicesaidhi/pebble@0.1.0-rc.6"
 vide = "aloroid/vide-with-types@0.2.7"
-jecs = "ukendio/jecs@0.3.0-rc.1"
+jecs = "ukendio/jecs@0.3.0-rc.2"
 t = "corecii/greentea@0.4.7"

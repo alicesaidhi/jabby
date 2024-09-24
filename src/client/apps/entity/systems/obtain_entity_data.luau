@@ -31,7 +31,7 @@ return function(context: Context)
 	local current_inspectid = generate_random_query_id()
 	local outgoing = {
 		host = context.host,
-		vm = context.vm,
+		to_vm = context.vm,
 	}
 
 	remotes.inspect_entity:fire(

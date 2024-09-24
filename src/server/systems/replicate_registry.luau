@@ -13,6 +13,9 @@ type Connection = {
 	query_id: number,
 	frame: number,
 
+	paused: boolean,
+	refresh: boolean,
+
 	world: types.World,
 
 	include: {jecs.Entity<any>},
@@ -56,6 +59,8 @@ return function()
 	local request_query = queue(remotes.request_query)
 	local disconnect_query = queue(remotes.disconnect_query)
 	local advance_query_page = queue(remotes.advance_query_page)
+	local pause_query = queue(remotes.pause_query)
+	local refresh_query = queue(remotes.refresh_results)
 
 	local function check_if_query_valid(world: types.World, query: string): (boolean, string)
 		local map_components = {}
@@ -246,6 +251,7 @@ return function()
 				connection.outgoing = outgoing
 				connection.query_id = query_id
 				connection.world = world
+				connection.refresh = true
 
 				connection.include = include
 				connection.exclude = exclude
@@ -263,6 +269,9 @@ return function()
 					frame = 0,
 	
 					world = world,
+
+					paused = false,
+					refresh = false,
 	
 					include = include,
 					exclude = exclude,
@@ -279,17 +288,34 @@ return function()
 			end
 		end
 
+		for incoming, query_id in refresh_query:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+			local query = processing_queries[query_id]
+			if not query then continue end
+			query.refresh = true
+		end
+
+		for incoming, query_id, state in pause_query:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+			local query = processing_queries[query_id]
+			if not query then continue end
+			query.paused = state
+		end
+
 		for incoming, query_id, from, to in advance_query_page:iter() do
 			if not traffic_check.check_no_wl(incoming.host) then continue end
 			local query = processing_queries[query_id]
 			if not query then continue end
 
+			query.refresh = true
 			query.from = from
 			query.upto = to
 		end
 
 		for query_id, query_data in processing_queries do
+			if query_data.paused and query_data.refresh ~= true then continue end
 			debug.profilebegin("process query")
+			query_data.refresh = false
 			local world_data = query_data.world
 			local world = world_data.world
 			local debug_trait = world_data.debug
@@ -371,11 +397,11 @@ return function()
 					local entity = archetype.entities[row]
 
 					at -= 1
-					if at < from or at > upto then continue end
+					if at + 1 < from or at + 1 > upto then continue end
+					row_entity += 1
+					new_columns[1][row_entity] = entity
 					for idx, column in records do
-						row_entity += 1
 						local value = archetype.columns[column][row]
-						new_columns[1][row_entity] = entity
 						new_columns[idx + 1][row_entity] = if value == nil then NIL else value
 					end
 				end

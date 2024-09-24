@@ -24,7 +24,6 @@ return function(context: Context)
 			if incoming.from_vm ~= context.vm then continue end
 			if id ~= context.id then continue end
 			if context.enable_pick() == false then continue end
-
 			context.hovering_over(to_highlight)
 			context.entity_hovering_over(components)
 			context.set_entity(entity)

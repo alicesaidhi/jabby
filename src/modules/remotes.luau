@@ -1,6 +1,7 @@
 local net = require(script.Parent.net)
 local types = require(script.Parent.types)
 
+--todo: redo this file
 return {
 
 	--[=[
@@ -97,6 +98,19 @@ return {
 		net.create_event("advance_query_page")
 		:: types.NetEvent<number, number, number>,
 
+	--- pause the query
+	--- query id
+	--- should pause
+	pause_query = 
+		net.create_event("pause_query")
+		:: types.NetEvent<number, boolean>,
+
+	--- refreshes query results
+	--- query_id
+	refresh_results = 
+		net.create_event("refresh_query")
+		:: types.NetEvent<number>,
+
 	--[=[
 	Updates a single result
 	
@@ -107,7 +121,7 @@ return {
 	value: any
 	]=]
 	update_query_result =
-		net.create_event("update_query_result")
+		net.create_event("update_query_result", true)
 		:: types.NetEvent<(number, number, number, number, any)>,
 
 	--[=[

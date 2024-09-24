@@ -23,7 +23,7 @@ return function(context: Context)
 	remotes.send_mouse_pointer:fire(
 		{
 			host = context.host,
-			vm = context.vm	
+			to_vm = context.vm
 		},
 		context.id,
 		ray.Origin,
