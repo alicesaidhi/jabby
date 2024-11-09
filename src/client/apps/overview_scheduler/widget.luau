@@ -30,7 +30,7 @@ type props = {
 }
 
 local function color(n: number)
-	return Color3.fromHSV(0.15 * (n-1), 1, 1)
+	return Color3.fromHSV((0.15 * (n-1)) % 1, 1, 1)
 end
 
 local sort_by_options = {
