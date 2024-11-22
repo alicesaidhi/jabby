@@ -8,11 +8,20 @@ local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
 
+local entity_index_try_get_fast = jecs.entity_index_try_get_fast
+local is_pair = jecs.IS_PAIR
+local pair = jecs.pair
+local pair_first = jecs.pair_first
+local pair_second = jecs.pair_second
+local empty_table = {}
+
 local function get_all_components(world, entity): {}
-	local record = world.entityIndex.sparse[entity]
-	if not record then return {} end
+	local record = entity_index_try_get_fast(
+		world.entity_index, entity)
+
+	if not record then return empty_table end
 	local archetype = record.archetype
-	if not archetype then return {} end
+	if not archetype then return empty_table end
 
 	local components = {}
 	for _, ty in archetype.types do 
@@ -22,9 +31,9 @@ local function get_all_components(world, entity): {}
 end
 
 local function convert_component(world, debug, entity): string
- 	if jecs.IS_PAIR(entity) then
-		local left = convert_component(world, debug, jecs.pair_first(world, entity))
-		local right = convert_component(world, debug, jecs.pair_second(world, entity))
+ 	if IS_PAIR(entity) then
+		local left = convert_component(world, debug, pair_first(world, entity))
+		local right = convert_component(world, debug, pair_second(world, entity))
 		return `({left}, {right})`
 	else
 		return world:get(entity, debug) or `${tostring(entity)}`
@@ -64,7 +73,7 @@ local function get_component(ctype_name: string, map_components: {[string]: numb
 			right = get_entity(parse.right)
 		end
 
-		entity_to_set = jecs.pair(left, right)
+		entity_to_set = pair(left, right)
 	end
 
 	return entity_to_set
@@ -211,7 +220,7 @@ return function()
 			local components = get_all_components(world, entity)
 
 			local function is_tag(id: jecs.Entity<any>)
-				return if jecs.IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
+				return if IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
 					else not world:has(id, jecs.Component)
 
 			end
