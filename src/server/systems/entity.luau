@@ -9,15 +9,14 @@ local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
 
 local entity_index_try_get_fast = jecs.entity_index_try_get_fast
-local is_pair = jecs.IS_PAIR
+local IS_PAIR = jecs.IS_PAIR
 local pair = jecs.pair
 local pair_first = jecs.pair_first
 local pair_second = jecs.pair_second
 local empty_table = {}
 
 local function get_all_components(world, entity): {}
-	local record = entity_index_try_get_fast(
-		world.entity_index, entity)
+	local record = entity_index_try_get_fast(world.entity_index, entity)
 
 	if not record then return empty_table end
 	local archetype = record.archetype
