@@ -115,7 +115,7 @@ return function()
 				continue
 			end
 
-			local str = obtain_string(entity, world, world_data.debug)
+			local str = obtain_string(entity, world, jecs.Name)
 
 			remotes.send_mouse_entity:fire(
 				outgoing,

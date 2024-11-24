@@ -100,7 +100,7 @@ return function()
 			if not world or world.class_name ~= "World" then continue end
 
 			local map_components = {}
-			for id, name in world.world:query(world.debug):iter() do
+			for id, name in world.world:query(jecs.Name):iter() do
 				map_components[name] = id
 			end
 
@@ -159,7 +159,7 @@ return function()
 			local entity = inspect_data.entity
 
 			local map_components = {}
-			for id, name in world:query(world_data.debug):iter() do
+			for id, name in world:query(jecs.Name):iter() do
 				map_components[name] = id
 			end
 
@@ -225,7 +225,7 @@ return function()
 			end
 
 			for _, component in components do
-				local name = convert_component(world, inspector_data.world.debug, component)
+				local name = convert_component(world, jecs.Name, component)
 				local is_tag = is_tag(component)
 
 				if is_tag then

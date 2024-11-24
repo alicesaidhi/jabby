@@ -71,7 +71,7 @@ return function()
 			return ok, result :: any
 		end
 
-		for id, name in world.world:query(world.debug):iter() do
+		for id, name in world.world:query(jecs.Name):iter() do
 			map_components[name] = id
 		end
 
@@ -197,7 +197,7 @@ return function()
 
 			local map_components = {}
 			local map_entity: {[any]: any} = {}
-			for id, name in world.world:query(world.debug):iter() do
+			for id, name in world.world:query(jecs.Name):iter() do
 				map_components[name] = id
 			end
 
@@ -318,7 +318,7 @@ return function()
 			query_data.refresh = false
 			local world_data = query_data.world
 			local world = world_data.world
-			local debug_trait = world_data.debug
+			local debug_trait = jecs.Name
 
 			if
 				not (check_if_still_valid(world, query_data.include)

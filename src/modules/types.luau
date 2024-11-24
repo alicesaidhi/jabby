@@ -101,7 +101,6 @@ export type Scheduler = {
 export type World = {
 	class_name: "World",
 	name: string,
-	debug: jecs.Entity<string>,
 	world: jecs.World,
 
 	entities: {[Instance]: jecs.Entity<any>}?,

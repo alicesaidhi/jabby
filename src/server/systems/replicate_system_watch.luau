@@ -18,6 +18,7 @@ set()
 
 ]]
 
+local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
 local hash_connector = require(script.Parent.Parent.Parent.modules.hash_connector)
 local lon = require(script.Parent.Parent.Parent.modules.lon)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
@@ -56,7 +57,7 @@ return function()
 
 		for _, world in ipairs(public) do
 			if world.world == nil then continue end
-			map_worlds_to_name[world.world] = world.debug
+			map_worlds_to_name[world.world] = jecs.Name
 		end
 
 		local to_send = {
