@@ -403,7 +403,7 @@ return function()
 					new_columns[1][row_entity] = entity
 					for idx, column in records do
 						local value = archetype.columns[column][row]
-						local old_value = old_columns[column][row]
+						local old_value = old_columns[idx + 1][row_entity]
 						if typeof(value) == "table" and shallow_eq(value, old_value) == false then
 							value = table.clone(value)
 						end
