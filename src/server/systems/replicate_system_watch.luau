@@ -62,18 +62,25 @@ return function()
 
 		local to_send = {
 			types = data.types,
-			entities = data.entities,
+			entities = table.clone(data.entities),
 			component = table.clone(data.component),
 			values = table.clone(data.values)
 		}
 
+		print(#to_send.entities, data.entities, data.values)
+
+		for idx, entity in to_send.entities do
+			if entity == NIL then to_send.entities[idx] = "" end
+		end
+
 		for idx, ctype in to_send.component do
 			local world = data.worlds[idx]
+			if ctype == NIL then to_send.component[idx] = ""; continue end
 			to_send.component[idx] = map_worlds_to_name[world][ctype] or ctype
 		end
 
 		for idx, value in to_send.values do
-			if value == NIL then to_send.values[idx] = "" end
+			if value == NIL then to_send.values[idx] = ""; continue end
 			to_send.values[idx] = lon.output(value, false)
 		end
 

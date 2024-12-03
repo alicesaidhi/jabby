@@ -27,7 +27,7 @@ local TAG = newproxy()
 --- Indicates a value is set to nil; this is not allowed in 0.3.0
 local BAD_VALUE = newproxy()
 
-local function get_component(ctype_name: string, map_components: {[string]: number})
+local function get_component(ctype_name: string, map_components: {[number]: string})
 
 	local function get_entity(ctype: query_parser.PureComponent)
 		local value = ctype.value
@@ -124,7 +124,11 @@ return function()
 			local world = world_data.world
 			local entity = inspect_data.entity
 
-			local map_components = world_data.components
+			local map_components = {}
+
+			for e, n in world_data.components do
+				map_components[n] = e
+			end
 
 			for ctype_name, value in changes do
 

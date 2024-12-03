@@ -22,7 +22,7 @@ local function i_hook_onto(key: string, hooks: {(...any) -> ()})
 
 		-- print(debug.info(world[key], "s"))
 		world[key] = run_hook
-		to_unhook[world] = true
+		to_unhook[world] = method
 	end
 	
 	return function()

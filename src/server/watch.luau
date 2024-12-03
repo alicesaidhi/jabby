@@ -35,11 +35,11 @@ local function track_watch(watch: SystemWatch)
 
 	local hooks = {
 
-		world_hook.hook_onto("create", function(self, id, component)
+		world_hook.hook_onto("create", function(self, id)
 			local frame = watch.frames[watch.frame]
 			
 			table.insert(frame.types, "create")
-			table.insert(frame.entities, id)
+			table.insert(frame.entities, id or NIL)
 			table.insert(frame.component, NIL)
 			table.insert(frame.values, NIL)
 			table.insert(frame.worlds, self)

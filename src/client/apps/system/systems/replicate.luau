@@ -75,6 +75,7 @@ return function(context: Context)
 						worlds = {}
 					})
 				else
+					print(changes)
 					context.changes(changes)
 				end
 			end
