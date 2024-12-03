@@ -1,4 +1,4 @@
-local jecs = require(script.Parent.Parent.Parent.jecs)
+local ecr = require(script.Parent.Parent.Parent.ecr)
 type host = "client" | "server"
 
 export type IncomingConnector = {
@@ -48,10 +48,10 @@ export type SystemData = {
 type ChangeTypes = "remove" | "clear" | "delete" | "add" | "set" | "entity" | "component"
 export type WatchLoggedChanges = {
 	types: {ChangeTypes},
-	entities: {jecs.Entity<any>},
-	component: {jecs.Entity<any>},
+	entities: {ecr.entity},
+	component: {number},
 	values: {string},
-	worlds: {jecs.World}
+	worlds: {ecr.Registry}
 }
 
 export type SystemWatch = {
@@ -98,13 +98,16 @@ export type Scheduler = {
 
 }
 
+
+
 export type World = {
 	class_name: "World",
 	name: string,
-	world: jecs.World,
+	world: ecr.Registry,
+	components: {[any]: string},
 
-	entities: {[Instance]: jecs.Entity<any>}?,
-	get_entity_from_part: ((part: BasePart) -> (jecs.Entity<any>?, Part?))?
+	entities: {[Instance]: ecr.entity}?,
+	get_entity_from_part: ((part: BasePart) -> (ecr.entity?, Part?))?
 }
 
 export type Application<T> = {

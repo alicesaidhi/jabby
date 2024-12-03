@@ -1,4 +1,4 @@
-local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
+local ecr = require(script.Parent.Parent.Parent.Parent.ecr)
 local lon = require(script.Parent.Parent.Parent.modules.lon)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
@@ -8,35 +8,18 @@ local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
 
-local entity_index_try_get = jecs.entity_index_try_get
-local IS_PAIR = jecs.IS_PAIR
-local pair = jecs.pair
-local pair_first = jecs.pair_first
-local pair_second = jecs.pair_second
 local empty_table = {}
 
-local function get_all_components(world, entity): {}
-	local record = entity_index_try_get(world.entity_index, entity)
-
-	if not record then return empty_table end
-	local archetype = record.archetype
-	if not archetype then return empty_table end
-
-	local components = {}
-	for _, ty in archetype.types do 
-		table.insert(components, ty)
+local function get_all_components(world: ecr.Registry, components: { [any]: string }, entity: ecr.entity): { any }
+	local has = {}
+	for component in components do
+		if world:has(entity, component) then table.insert(has, component) end
 	end
-	return components
+	return has
 end
 
-local function convert_component(world, debug, entity): string
- 	if IS_PAIR(entity) then
-		local left = convert_component(world, debug, pair_first(world, entity))
-		local right = convert_component(world, debug, pair_second(world, entity))
-		return `({left}, {right})`
-	else
-		return world:get(entity, debug) or `${tostring(entity)}`
-	end
+local function convert_component(debug: {[any]: string}, component: unknown): string
+	return debug[component] or `${component}`
 end
 
 --- Indicates a value is a tag
@@ -49,9 +32,7 @@ local function get_component(ctype_name: string, map_components: {[string]: numb
 	local function get_entity(ctype: query_parser.PureComponent)
 		local value = ctype.value
 
-		if value.type == "Entity" then
-			return value.entity
-		elseif value.type == "Name" then
+		if value.type == "Name" then
 			return map_components[value.name]
 		end
 		error("bad")
@@ -61,18 +42,6 @@ local function get_component(ctype_name: string, map_components: {[string]: numb
 	local parse = query_parser(ctype_name)[1]
 	if parse.type == "Component" then
 		entity_to_set = get_entity(parse)
-	elseif parse.type == "Relationship" then
-		local left, right = jecs.Wildcard, jecs.Wildcard
-
-		if parse.left.type == "Component" then
-			left = get_entity(parse.left)
-		end
-
-		if parse.right.type == "Component" then
-			right = get_entity(parse.right)
-		end
-
-		entity_to_set = pair(left, right)
 	end
 
 	return entity_to_set
@@ -99,10 +68,7 @@ return function()
 			if not traffic_check.check_no_wl(incoming.host) then continue end
 			if not world or world.class_name ~= "World" then continue end
 
-			local map_components = {}
-			for id, name in world.world:query(jecs.Name):iter() do
-				map_components[name] = id
-			end
+			local map_components = world.components
 
 			local ok, reason = pcall(get_component, ctype_name, map_components)
 
@@ -158,10 +124,7 @@ return function()
 			local world = world_data.world
 			local entity = inspect_data.entity
 
-			local map_components = {}
-			for id, name in world:query(jecs.Name):iter() do
-				map_components[name] = id
-			end
+			local map_components = world_data.components
 
 			for ctype_name, value in changes do
 
@@ -216,24 +179,13 @@ return function()
 			local new_values = inspector_data.new_values
 			local old_values = inspector_data.old_values
 
-			local components = get_all_components(world, entity)
-
-			local function is_tag(id: jecs.Entity<any>)
-				return if IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
-					else not world:has(id, jecs.Component)
-
-			end
+			local components = get_all_components(world, inspector_data.world.components, entity)
 
 			for _, component in components do
-				local name = convert_component(world, jecs.Name, component)
-				local is_tag = is_tag(component)
+				local name = convert_component(inspector_data.world.components, component)
 
-				if is_tag then
-					new_values[name] = TAG
-				else
-					local value = world:get(entity, component)
-					new_values[name] = if value == nil then BAD_VALUE else value
-				end
+				local value = world:get(entity, component)
+				new_values[name] = if value == nil then TAG else value
 			end
 
 			for name, new_value in new_values do

@@ -81,11 +81,6 @@ return function(props: props)
 							if not ok then return true end
 							if not node[1] then return true end
 							if node[2] then return true end
-							local n = node[1]
-							if n.type == "Relationship" then
-								if n.left.type == "Wildcard" then return true end
-								if n.right.type == "Wildcard" then return true end
-							end
 
 							return false
 						end,

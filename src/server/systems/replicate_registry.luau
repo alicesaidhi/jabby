@@ -1,4 +1,5 @@
-local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
+
+local ecr = require(script.Parent.Parent.Parent.Parent.ecr)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
@@ -18,9 +19,9 @@ type Connection = {
 
 	world: types.World,
 
-	include: {jecs.Entity<any>},
-	exclude: {jecs.Entity<any>},
-	with: {jecs.Entity<any>},
+	include: { any },
+	exclude: { any },
+	with: { any },
 
 	new_columns: {{any}},
 	old_columns: {{any}},	
@@ -51,6 +52,46 @@ local function reverse_columns(columns: {{any}}, size: number)
 	return columns
 end
 
+local function BUFFER_GET(b: buffer, i: number): number
+    return buffer.readu32(b, i * 4)
+end
+
+local function HAS_ANY(world: ecr.Registry, id: number, ...: any)
+	for i = 1, select("#", ...) do
+		if world:has(id, select(i, ...)) then return true end
+	end
+	return false
+end
+
+local function query(world: ecr.Registry, includes: { any }, excludes: { any })
+	local smallest_pool
+
+	for i, ctype in includes do
+		local pool = world:storage(ctype)
+		if smallest_pool == nil or pool.size < smallest_pool.size then smallest_pool = pool end
+	end
+
+	local n = smallest_pool.size
+	local entities = smallest_pool.entities
+	local j = 0
+
+	return function()
+        for i = j, n - 1, 1 do
+            local id = BUFFER_GET(entities, i)
+            
+            if excludes and HAS_ANY(world, id, unpack(excludes)) then continue end
+            local has_all = world:has(id, unpack(includes))
+
+            if has_all == false then continue end
+            j = i + 1
+            return id
+        end
+
+        return nil
+    end
+
+end
+
 return function()
 
 	local processing_queries: {[number]: Connection} = {}
@@ -67,12 +108,12 @@ return function()
 		local ok, result = pcall(query_parser, query)
 		local msg = nil
 
-		if not ok then
-			return ok, result :: any
+		for ctype, name in world.components do
+			map_components[name] = ctype
 		end
 
-		for id, name in world.world:query(jecs.Name):iter() do
-			map_components[name] = id
+		if not ok then
+			return ok, result :: any
 		end
 
 		local total_to_query = 0
@@ -85,46 +126,12 @@ return function()
 			end
 
 			if ctype.type == "Component" then
-				if ctype.value.type == "Entity" then
-					if world.world:contains(ctype.value.entity) then continue end
-					return false, "entity does not exist"
-				elseif ctype.value.type == "Name" then
+				if ctype.value.type == "Name" then
+					print(ctype)
 					if map_components[ctype.value.name] then continue end
 					return false, `unknown component called {ctype.value.name}`
 				else
 					return false, "what"
-				end
-			elseif ctype.type == "Relationship" then
-				local both_wildcard = ctype.left.type == "Wildcard" and ctype.right.type == "Wildcard"
-				if both_wildcard then
-					return false, `(*, *) is not a valid relationship`
-				end
-
-				local left = ctype.left
-				local right = ctype.right
-
-				if left.type == "Component" then
-					if left.value.type == "Entity" then
-						if world.world:contains(left.value.entity) then continue end
-						return false, "entity does not exist"
-					elseif left.value.type == "Name" then
-						if map_components[left.value.name] then continue end
-						return false, `unknown component called {left.value.name}`
-					else
-						return false, "what"
-					end
-				end
-
-				if right.type == "Component" then
-					if right.value.type == "Entity" then
-						if world.world:contains(right.value.entity) then continue end
-						return false, "entity does not exist"
-					elseif right.value.type == "Name" then
-						if map_components[right.value.name] then continue end
-						return false, `unknown component called {right.value.name}`
-					else
-						return false, "what"
-					end
 				end
 			end
 		end
@@ -135,20 +142,6 @@ return function()
 		end
 
 		return ok, msg
-	end
-
-	--fixme: contains is missing from types
-	local function check_if_still_valid(world: any, entities: {any})
-		for _, id in entities do
-			if jecs.IS_PAIR(id) then
-				if not (world:contains(jecs.pair_first(world, id) and jecs.pair_second(world, id))) then
-					return false
-				end
-			elseif not world:contains(id) then
-				return false
-			end
-		end
-		return true
 	end
 
 	return function()
@@ -197,38 +190,22 @@ return function()
 
 			local map_components = {}
 			local map_entity: {[any]: any} = {}
-			for id, name in world.world:query(jecs.Name):iter() do
-				map_components[name] = id
+
+			for ctype, name in world.components do
+				map_components[name] = ctype
 			end
 
-			local function get_entity(ctype: query_parser.PureComponent)
+			local function get_component_id(ctype: query_parser.PureComponent)
 				local value = ctype.value
-
-				if value.type == "Entity" then
-					return value.entity
-				elseif value.type == "Name" then
+				
+				if value.type == "Name" then
 					return map_components[value.name]
 				end
 				error("bad")
 			end
 
 			for _, ctype in result do
-				if ctype.type == "Component" then
-					map_entity[ctype] = get_entity(ctype)
-				elseif ctype.type == "Relationship" then
-					local left, right = jecs.Wildcard, jecs.Wildcard
-
-					if ctype.left.type == "Component" then
-						left = get_entity(ctype.left)
-					end
-
-					if ctype.right.type == "Component" then
-						right = get_entity(ctype.right)
-					end
-
-					local pair = jecs.pair(left, right)
-					map_entity[ctype] = pair
-				end
+				map_entity[ctype] = get_component_id(ctype)
 			end
 
 			for _, ctype in result do
@@ -317,29 +294,11 @@ return function()
 			debug.profilebegin("process query")
 			query_data.refresh = false
 			local world_data = query_data.world
+			local map_components = world_data.components
 			local world = world_data.world
-			local debug_trait = jecs.Name
 
-			if
-				not (check_if_still_valid(world, query_data.include)
-				and check_if_still_valid(world, query_data.exclude)
-				and check_if_still_valid(world, query_data.with))
-			then
-				-- query is no longer valid!
-				--todo: query is invalid, notify the client about this
-				debug.profileend()
-				continue
-			end
-
-			local query = world:query(unpack(query_data.include))
-
-			if #query_data.exclude > 0 then
-				query = query:without(unpack(query_data.exclude))
-			end
-
-			if #query_data.with > 0 then
-				query = query:with(unpack(query_data.with))
-			end
+			local query_components = table.clone(query_data.include)
+			table.move(query_data.with, 1, #query_data.with, #query_components + 1, query_components)
 
 			local from = query_data.from
 			local upto = query_data.upto
@@ -349,14 +308,8 @@ return function()
 			-- set the names of each column
 			--todo: fix type
 			local function get_name(entity: any)
-				if jecs.IS_PAIR(entity) then
-					local left = jecs.pair_first(world, entity)
-					local right = jecs.pair_second(world, entity)
-					return `({get_name(left)}, {get_name(right)})`
-				elseif entity == jecs.Wildcard :: any then
-					return "*"
-				elseif world:has(entity, debug_trait) then
-					return world:get(entity, debug_trait)
+				if map_components[entity] then
+					return map_components[entity]
 				else
 					return `${entity}`
 				end
@@ -373,47 +326,31 @@ return function()
 				end
 			end
 
-			-- process the data into columns
-			-- we inline the query here, as jecs queries are in reverse to prevent iterator invalidation
-			-- this is usually fine, but it's annoying, as now entities are added to the first page.
 			--todo: pause button
-			local total_entities = 0
-			local archetypes = query:archetypes()
-
-			for _, archetype: jecs.Archetype in archetypes do
-				total_entities += #archetype.entities
-			end
-
-			local entities = table.create(total_entities)
-			local at = total_entities
+			local at = 0
+			local total = 0
 			local row_entity = 1
 
-			for _, archetype: jecs.Archetype in archetypes do
-				for row = #archetype.entities, 1, -1 do
-					local entity = archetype.entities[row]
-					table.insert(entities, entity)
-				end
-			end
-
-			table.sort(entities)
-
-			for i = from, upto do
+			for entity in query(world, query_data.include, query_data.exclude) do
+				at += 1
+				total += 1
+				if at + 1 < from or at + 1 > upto then continue end
 				row_entity += 1
-				local entity = entities[i]
-				if not entity then continue end
 				new_columns[1][row_entity] = entity
-				for idx, ctype in query_data.include do
-					local value = world:get(entity, ctype)
-					new_columns[idx + 1][row_entity] = if value == nil then NIL else value
+				for i, component in query_data.include do
+					new_columns[i + 1][row_entity] = world:get(entity, component)
 				end
 			end
+
+			local rows = math.min(total - 1, upto - from)
+			reverse_columns(new_columns, rows)
 
 			--- reverse the order of each array
 
 			remotes.count_total_entities:fire(
 				query_data.outgoing,
 				query_id,
-				total_entities
+				total
 			)
 
 			-- diff the columns and replicate any new values

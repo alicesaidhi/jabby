@@ -1,4 +1,4 @@
-local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
+local ecr = require(script.Parent.Parent.Parent.Parent.ecr)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.modules.remotes)
 local reverse_connector = require(script.Parent.Parent.Parent.modules.reverse_connector)
@@ -6,84 +6,17 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
-local entity_index_try_get = jecs.entity_index_try_get
-local IS_PAIR = jecs.IS_PAIR
-local pair_first = jecs.pair_first
-local pair_second = jecs.pair_second
-local empty_table = {}
-
-
-local function convert_component(world, debug, entity): string
-	if IS_PAIR(entity) then
-	   local left = convert_component(world, debug, pair_first(world, entity))
-	   local right = convert_component(world, debug, pair_second(world, entity))
-	   return `({left}, {right})`
-   else
-	   return world:get(entity, debug) or `${tostring(entity)}`
-   end
-end
-
-local function get_type(t: { [any]: any }): string
-	local key, value = next(t)
-	if key == nil then return "" end
-	return `[{typeof(key)}]: {typeof(value)}`
-end
-
-local function get_string_keys(t: { [any]: any }): ({ string }, boolean)
-	local keys = {}
-	local i = 0
-	for key in t do
-		if i > 3 then return keys, true end
-		if typeof(key) ~= "string" then continue end
-		table.insert(keys, key)
-		i += 1
-	end
-	return keys, false
-end
-
-local function is_tag(world: jecs.World, id: jecs.Entity<any>)
-	return not
-		if IS_PAIR(id) then
-			world:has(pair_first(world, id), jecs.Component) or
-			world:has(pair_second(world, id), jecs.Component)
-		else
-			world:has(id, jecs.Component)
-end
-
-local function get_all_components(world, entity): {}
-	local record = entity_index_try_get(world.entity_index, entity)
-
-	if not record then return empty_table end
-	local archetype = record.archetype
-	if not archetype then return empty_table end
-
-	local components = {}
-	for _, ty in archetype.types do 
-		table.insert(components, ty)
-	end
-
-	table.sort(components, function(a, b)
-		return if is_tag(world, a) and is_tag(world, b) then a < b
-			elseif is_tag(world, a) then true
-			elseif is_tag(world, b) then false
-			else a < b
-	end)
-
-	return components
-end
-
-local function obtain_string(entity: jecs.Entity<any>, world: jecs.World)
-	local MAX_SIZE = 840
+local function obtain_string(entity: ecr.entity, world: ecr.Registry, components: { [any]: string })
+	local MAX_SIZE = 750
 	local has_more = false
 	local entity_name = world:get(entity, jecs.Name)
 	local strings = {`<b>{if entity_name then `{entity_name} #` else "#"}{entity}</b>\n`}
 	local n = #strings[1]
 
-	for _, id in get_all_components(world, entity) do
-		if id == jecs.Name then continue end
-		local name = convert_component(world, jecs.Name, id)
-		local value = if is_tag(world, id) then nil else world:get(entity, id)
-		local to_append
+	for id, name in components do
+		if not world:has(entity, id) then continue end
+		local v = world:get(entity, id)
+		local str
 
 		if typeof(value) == "table" then
 			local string_keys = get_string_keys(value)
@@ -198,7 +131,7 @@ return function()
 				continue
 			end
 
-			local str = obtain_string(entity, world, jecs.Name)
+			local str = obtain_string(entity, world, world_data.components)
 
 			remotes.send_mouse_entity:fire(
 				outgoing,

@@ -35,6 +35,60 @@ local function track_watch(watch: SystemWatch)
 
 	local hooks = {
 
+		world_hook.hook_onto("create", function(self, id, component)
+			local frame = watch.frames[watch.frame]
+			
+			table.insert(frame.types, "create")
+			table.insert(frame.entities, id)
+			table.insert(frame.component, NIL)
+			table.insert(frame.values, NIL)
+			table.insert(frame.worlds, self)
+		end),
+	
+		world_hook.hook_onto("destroy", function(self, id)
+			local frame = watch.frames[watch.frame]
+			
+			table.insert(frame.types, "delete")
+			table.insert(frame.entities, id)
+			table.insert(frame.component, NIL)
+			table.insert(frame.values, NIL)
+			table.insert(frame.worlds, self)
+		end),
+	
+		world_hook.hook_onto("add", function(self, id, ...)
+			local frame = watch.frames[watch.frame]
+
+			for i = 1, select("#", ...) do
+				local ctype = select(i, ...)
+				if self:has(id, ctype) then continue end
+				table.insert(frame.types, "add")
+				table.insert(frame.entities, id)
+				table.insert(frame.component, ctype)
+				table.insert(frame.values, NIL)
+				table.insert(frame.worlds, self)
+			end
+		end),
+
+		world_hook.hook_onto("set", function(self, entity, component, value)
+			local frame = watch.frames[watch.frame]
+			
+			table.insert(frame.types, "set")
+			table.insert(frame.entities, entity)
+			table.insert(frame.component, component)
+			table.insert(frame.values, if value == nil then NIL else value)
+			table.insert(frame.worlds, self)
+		end),
+
+		world_hook.hook_onto("patch", function(self, entity, component, fn)
+			local frame = watch.frames[watch.frame]
+			
+			table.insert(frame.types, "patch")
+			table.insert(frame.entities, entity)
+			table.insert(frame.component, component)
+			table.insert(frame.values, NIL)
+			table.insert(frame.worlds, self)
+		end),
+
 		world_hook.hook_onto("remove", function(self, id, component)
 			local frame = watch.frames[watch.frame]
 			
@@ -45,56 +99,19 @@ local function track_watch(watch: SystemWatch)
 			table.insert(frame.worlds, self)
 		end),
 	
-		world_hook.hook_onto("clear", function(self, id)
+		world_hook.hook_onto("clear", function(self, ...)
 			local frame = watch.frames[watch.frame]
 			
-			table.insert(frame.types, "clear")
-			table.insert(frame.entities, id)
-			table.insert(frame.component, NIL)
-			table.insert(frame.values, NIL)
-			table.insert(frame.worlds, self)
-		end),
-	
-		world_hook.hook_onto("delete", function(self, id)
-			local frame = watch.frames[watch.frame]
-			
-			table.insert(frame.types, "delete")
-			table.insert(frame.entities, id)
-			table.insert(frame.component, NIL)
-			table.insert(frame.values, NIL)
-			table.insert(frame.worlds, self)
-		end),
-	
-		world_hook.hook_onto("add", function(self, id, component)
-			local frame = watch.frames[watch.frame]
-			
-			table.insert(frame.types, "add")
-			table.insert(frame.entities, id)
-			table.insert(frame.component, component)
-			table.insert(frame.values, NIL)
-			table.insert(frame.worlds, self)
-		end),
-		
-		world_hook.hook_onto("set", function(self, entity, component, value)
-			if self:has(entity, component) then
-				local frame = watch.frames[watch.frame]
-				
-				table.insert(frame.types, "change")
-				table.insert(frame.entities, entity)
-				table.insert(frame.component, component)
-				table.insert(frame.values, value)
-				table.insert(frame.worlds, self)
-			else
-				local frame = watch.frames[watch.frame]
-				
-				table.insert(frame.types, "move")
-				table.insert(frame.entities, entity)
-				table.insert(frame.component, component)
-				table.insert(frame.values, value)
+			for i = 1, select("#", ...) do
+				local ctype = select(i, ...)
+				table.insert(frame.types, "clear")
+				table.insert(frame.entities, NIL)
+				table.insert(frame.component, ctype)
+				table.insert(frame.values, NIL)
 				table.insert(frame.worlds, self)
 			end
-		end)
-
+		end),
+		
 	}
 	
 	--- stops all hooks

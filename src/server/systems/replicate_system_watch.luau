@@ -18,7 +18,7 @@ set()
 
 ]]
 
-local jecs = require(script.Parent.Parent.Parent.Parent.jecs)
+local ecr = require(script.Parent.Parent.Parent.Parent.ecr)
 local hash_connector = require(script.Parent.Parent.Parent.modules.hash_connector)
 local lon = require(script.Parent.Parent.Parent.modules.lon)
 local queue = require(script.Parent.Parent.Parent.modules.queue)
@@ -45,7 +45,7 @@ return function()
 	end
 
 	local function send_watch_data_to(host: types.OutgoingConnector, watch_id: number, frame: number)
-		local map_worlds_to_name = {}
+		local map_worlds_to_name: {[ecr.Registry]: {[any]: string}} = {}
 		local watch = stored_watches[watch_id]
 		local frames = watch.watch.frames
 		local data = frames[frame]
@@ -57,7 +57,7 @@ return function()
 
 		for _, world in ipairs(public) do
 			if world.world == nil then continue end
-			map_worlds_to_name[world.world] = jecs.Name
+			map_worlds_to_name[world.world] = world.components
 		end
 
 		local to_send = {
@@ -69,7 +69,7 @@ return function()
 
 		for idx, ctype in to_send.component do
 			local world = data.worlds[idx]
-			to_send.component[idx] = world:get(ctype, map_worlds_to_name[world]) or ctype
+			to_send.component[idx] = map_worlds_to_name[world][ctype] or ctype
 		end
 
 		for idx, value in to_send.values do

@@ -1,29 +1,35 @@
 
-local jecs = require(script.Parent.Parent.Parent.jecs)
-local world = jecs.World.new()
+local public = require(script.Parent.public)
 
 local function i_hook_onto(key: string, hooks: {(...any) -> ()})
 
-	local method: any = world[key]
+	local to_unhook = {}
+	for _, world_data in ipairs(public) do
+		local world = world_data.world
+		if not world then continue end
 
-	assert(typeof(method) == "function", "can only hook onto functions")
+		local method: any = world[key]
 
-	-- create a new wrapper function
-	local function run_hook(...)
-		for _, hook in hooks do
-			hook(...)
+		assert(typeof(method) == "function", "can only hook onto functions")
+
+		-- create a new wrapper function
+		local function run_hook(...)
+			for _, hook in hooks do
+				hook(...)
+			end
+			return method(...)
 		end
-		return method(...)
-	end
 
-	-- print(debug.info(world[key], "s"))
-	world.__index[key] = run_hook
-
-	local function unhook()
-		world.__index[key] = method
+		-- print(debug.info(world[key], "s"))
+		world[key] = run_hook
+		to_unhook[world] = true
 	end
 	
-	return unhook
+	return function()
+		for world, method in to_unhook do
+			world[key] = method
+		end
+	end
 end
 
 local hooks = {}

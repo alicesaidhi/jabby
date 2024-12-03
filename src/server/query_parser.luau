@@ -22,8 +22,8 @@ export type Position = {
 export type String = {type: "string", s: string}
 export type Number = {type: "number", s: number}
 export type Identifier = {type: "identifier", s: string}
-export type Operator = {type: "operator", s: "#" | "!" | "*" | "$"}
-export type Symbol = {type: "symbol", s: "(" | ")" | ";" | ","}
+export type Operator = {type: "operator", s: "#" | "!"}
+export type Symbol = {type: "symbol", s: ";" | ","}
 export type EOF = {type: "eof", s: "eof"}
 
 export type Token =
@@ -110,11 +110,11 @@ local function lex(source: string): Stream
 	end
 	
 	local function is_op_char(char: string)
-		return char == "#" or char == "!" or char == "*" or char == "$"
+		return char == "#" or char == "!"
 	end
 
 	local function is_punc(char: string)
-		return not not string.match(char, "[%(%);,]")
+		return char == ";" or char == ","
 	end
 
 	local function read_while(predicate: (char: string) -> boolean)
@@ -236,17 +236,9 @@ local function lex(source: string): Stream
 	}
 end
 
-type Wildcard = {
-	type: "Wildcard",
-	name: "*"
-}
-
 export type Value = {
 	type: "Name",
 	name: string
-} | {
-	type: "Entity",
-	entity: number
 }
 
 export type PureComponent = {
@@ -256,25 +248,15 @@ export type PureComponent = {
 	value: Value,
 }
 
-export type Relationship = {
-	type: "Relationship",
-	query: boolean,
-	exclude: boolean,
-	left: PureComponent | Wildcard,
-	right: PureComponent | Wildcard
-}
+type Component = PureComponent
 
-type Component = Relationship | PureComponent | Wildcard
-
-local function parse(input: string): {PureComponent | Relationship}
+local function parse(input: string): {PureComponent}
 	local lexer = lex(input)
 
-	local result: {PureComponent | Relationship} = {}
+	local result: {PureComponent} = {}
 
 	local should_query = true
 	local should_exclude = false
-	local should_relationship = false
-	local interpret_pointer = false
 	local components: {Component} = {}
 
 	while true do
@@ -282,82 +264,17 @@ local function parse(input: string): {PureComponent | Relationship}
 		-- print2(symbol)
 		if symbol.type == "eof" then
 			break
-		elseif interpret_pointer or symbol.type == "number" then
-			if not interpret_pointer then
-				lexer.croak("expected $")
-			elseif symbol.type ~= "number" then
-				lexer.croak("expected number")
-				error("")
-			end
-
-			table.insert(components, {
-				type = "Component",
-				query = should_query,
-				exclude = should_exclude,
-				value = {type = "Entity", entity = tonumber(lexer.next().s) :: number}
-			})
-
-			should_query = if should_relationship then should_query else true
-			should_exclude = if should_relationship then should_exclude else false
-			interpret_pointer = false
-			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after identifier") end
 		elseif symbol.type == "operator" then
 			if symbol.s == "#" then
-				if should_relationship then lexer.croak("cannot tag inside relationship") end
 				should_query = false
 				lexer.next()
 			elseif symbol.s == "!" then
-				if should_relationship then lexer.croak("cannot exclude in relationship") end
 				should_exclude = true
 				should_query = false
 				lexer.next()
-			elseif symbol.s == "$" then
-				interpret_pointer = true
-				lexer.next()
-			elseif symbol.s == "*" then
-				if not should_relationship then lexer.croak("cannot use wildcards outside relationship") end
-				table.insert(components, {
-					type = "Wildcard",
-					name = "*"
-				})
-				lexer.next()
 			end
 		elseif symbol.type == "symbol" then
-			if symbol.s == "(" then
-				if should_relationship == true then lexer.croak("relationship within relationship") end
-				should_relationship = true
-				lexer.next()
-			elseif symbol.s == ")" then
-				if should_relationship == false then lexer.croak("missing (") end
-				if #components == 2 then
-					local right = table.remove(components) :: Component
-					local left = table.remove(components) :: Component
-
-					if left.type == "Wildcard" and right.type == "Wildcard" then
-						lexer.croak("both components are wildcards")
-					end
-
-					components = {{
-						type = "Relationship",
-						query = should_query,
-						exclude = should_exclude,
-						left = left :: any,
-						right = right :: any
-					}}
-
-					should_query = true
-					should_exclude = false
-					should_relationship = false
-					lexer.next()
-				else
-					lexer.croak(`expected 2 components, got {#components}`)
-				end
-			elseif symbol.s == "," or symbol.s == ";" then
-				if should_relationship then
-					lexer.next()
-					continue
-				end
-
+			if symbol.s == "," or symbol.s == ";" then
 				local ctype = table.remove(components)
 				if ctype == nil then
 					lexer.croak("no component provided")
@@ -378,8 +295,6 @@ local function parse(input: string): {PureComponent | Relationship}
 				value = {type = "Name", name = lexer.next().s :: string}
 			})
 
-			should_query = if should_relationship then should_query else true
-			should_exclude = if should_relationship then should_exclude else false
 			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after identifier") end
 		elseif symbol.type == "string" then
 			table.insert(components, {
@@ -388,8 +303,6 @@ local function parse(input: string): {PureComponent | Relationship}
 				exclude = should_exclude,
 				value = {type = "Name", name = lexer.next().s :: string}
 			})
-			should_query = if should_relationship then should_query else true
-			should_exclude = if should_relationship then should_exclude else false
 			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after string") end
 		end
 	end
