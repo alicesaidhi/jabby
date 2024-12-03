@@ -1,6 +1,6 @@
 [package]
-name = "alicesaidhi/jabby"
-description = "Jecs debugger built with Vide"
+name = "alicesaidhi/ebba"
+description = "ECR debugger built with Vide (jabby port)"
 version = "0.2.0-rc.8"
 registry = "https://github.com/UpliftGames/wally-index"
 exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "todo.md", "docs"]
