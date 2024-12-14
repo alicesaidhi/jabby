@@ -72,7 +72,7 @@ return function()
 			local world = world_data.world
 			local outgoing = reverse_connector(incoming)
 
-			if world_data.entities == nil then continue end
+			if world_data.entities == nil and world_data.get_entity_from_part == nil then continue end
 			if not world_data or world_data.class_name ~= "World" then continue end
 
 			local result = workspace:Raycast(pos, dir * 1000)
