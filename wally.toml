@@ -1,13 +1,20 @@
 [package]
 name = "alicesaidhi/jabby"
 description = "Jecs debugger built with Vide"
-version = "0.2.0-rc.5"
+version = "0.2.0-rc.6"
 registry = "https://github.com/UpliftGames/wally-index"
-exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "todo.md"]
+exclude = [
+	"out",
+	".vscode",
+	"aftman.toml",
+	".luaurc",
+	"test.project.json",
+	"todo.md",
+]
 realm = "shared"
 
 [dependencies]
 pebble = "alicesaidhi/pebble@0.1.0-rc.9"
 vide = "centau/vide@0.3.1"
 jecs = "ukendio/jecs@0.4.0"
-t = "corecii/greentea@0.4.7"
+t = "osyrisrblx/t@3.1.1"

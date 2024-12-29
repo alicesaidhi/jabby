@@ -8,7 +8,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local gt = require(script.Parent.Parent.Parent.t)
+local t = require(script.Parent.Parent.Parent.t)
 local signal = require(script.Parent.signal)
 local vm_id = require(script.Parent.vm_id)
 local traffic_check = require(script.Parent.traffic_check)
@@ -23,13 +23,16 @@ else
 	local_host = Players.LocalPlayer
 end
 
-local tincoming_connector = gt.build(gt.table({
-	host = gt.union(gt.literal("server"), gt.Instance()),
-	from_vm = gt.number({integer = true}),
-	to_vm = gt.optional(gt.number({integer = true}))
-}))
+local tincoming_connector = t.strictInterface({
+	host = t.union(t.literal("server"), t.Instance),
+	from_vm = t.integer,
+	to_vm = t.optional(t.integer),
+})
 
-local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent & { actor: BindableEvent, peer: RemoteEvent }
+local function get_remote_event(
+	name: string,
+	unreliable: boolean?
+): RemoteEvent & { actor: BindableEvent, peer: RemoteEvent }
 	if RunService:IsServer() then
 		return script:FindFirstChild(name) :: RemoteEvent & { actor: BindableEvent }
 			or (function()
@@ -40,7 +43,7 @@ local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent
 				local fire_actor = Instance.new("BindableEvent")
 				fire_actor.Name = "actor"
 				fire_actor.Parent = remote
-				
+
 				local peer = Instance.new("RemoteEvent")
 				peer.Name = "peer"
 				peer.Parent = remote
@@ -65,29 +68,22 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 				-- print("cancel fire!", remote.Name)
 				return
 			end
-			
-			if
-				connector.host == local_host
-				and connector.to_vm == vm_id
-			then
 
+			if connector.host == local_host and connector.to_vm == vm_id then
 				local incoming = {
 					host = local_host,
 					from_vm = vm_id,
-					to_vm = connector.to_vm
+					to_vm = connector.to_vm,
 				}
 
 				fire(incoming, ...)
 			--- if the host is the same, but in a separate actor
 			--- we have to fire the actor
-			elseif
-				connector.host == local_host
-				and connector.to_vm ~= vm_id
-			then
+			elseif connector.host == local_host and connector.to_vm ~= vm_id then
 				local incoming = {
 					host = local_host,
 					from_vm = vm_id,
-					to_vm = connector.to_vm
+					to_vm = connector.to_vm,
 				}
 
 				remote.actor:Fire(incoming, ...)
@@ -96,7 +92,7 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 				local incoming = {
 					host = "server",
 					from_vm = vm_id,
-					to_vm = connector.to_vm
+					to_vm = connector.to_vm,
 				}
 
 				remote:FireServer(incoming, ...)
@@ -105,7 +101,7 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 				local incoming = {
 					host = "server",
 					from_vm = vm_id,
-					to_vm = connector.to_vm
+					to_vm = connector.to_vm,
 				}
 
 				remote:FireClient(connector.host, incoming, ...)
@@ -114,17 +110,16 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 				local incoming = {
 					host = connector.host,
 					from_vm = vm_id,
-					to_vm = connector.to_vm
+					to_vm = connector.to_vm,
 				}
 
 				remote:FireServer(incoming, ...)
 			end
-
 		end,
 
 		connect = function(_, callback: (types.IncomingConnector, T...) -> ())
 			on_event_fire:connect(callback :: any)
-		end
+		end,
 	}
 
 	if RunService:IsServer() then
@@ -136,26 +131,28 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 			end
 
 			--- check if its a proper connector
-			if not tincoming_connector(target) then return end
-	
+			if not tincoming_connector(target) then
+				return
+			end
+
 			if target.host == "server" and (target.to_vm == vm_id or target.to_vm == nil) then
 				target.host = player
 				fire(target, ...)
 			elseif target.host ~= "server" and vm_id == MANAGER_VM then
 				local to = target.host
 				target.host = player
-				remote:FireClient(
-					to,
-					target,
-					...
-				)
+				remote:FireClient(to, target, ...)
 			end
 		end)
 	else
 		remote.OnClientEvent:Connect(function(incoming: types.IncomingConnector, ...)
 			-- print("receive", remote.Name, "from", incoming.host)
-			if tincoming_connector(incoming) == false then return end
-			if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then return end
+			if tincoming_connector(incoming) == false then
+				return
+			end
+			if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then
+				return
+			end
 			traffic_check._whitelist(local_host, incoming.host)
 
 			fire(incoming, ...)
@@ -163,7 +160,9 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 	end
 
 	remote.actor.Event:Connect(function(incoming: types.IncomingConnector, ...)
-		if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then return end
+		if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then
+			return
+		end
 		fire(incoming, ...)
 	end)
 
@@ -233,7 +232,6 @@ end
 -- 				-- return unpack(tuple, 2)
 -- 			end
 
-
 -- 		end
 -- 	}
 
@@ -250,7 +248,7 @@ end
 -- 			if typeof(guid) ~= "string" then return end
 -- 			if tincoming_connector(incoming_connector) == false then return end
 -- 			if do_not_block_traffic == false or not traffic_check.check(player) then return end
-			
+
 -- 			local tuple = {callback(incoming_connector, ...)}
 -- 			remote.receive:FireClient(player, guid, unpack(tuple))
 -- 		end)
@@ -262,5 +260,5 @@ end
 return {
 	-- create_callback = create_callback,
 	create_event = create_event,
-	local_host = local_host
+	local_host = local_host,
 }
