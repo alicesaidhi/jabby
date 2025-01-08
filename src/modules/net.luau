@@ -8,7 +8,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local gt = require(script.Parent.Parent.Parent.t)
+local t = require(script.Parent.Parent.Parent.t)
 local signal = require(script.Parent.signal)
 local vm_id = require(script.Parent.vm_id)
 local traffic_check = require(script.Parent.traffic_check)
@@ -23,11 +23,11 @@ else
 	local_host = Players.LocalPlayer
 end
 
-local tincoming_connector = gt.build(gt.table({
-	host = gt.union(gt.literal("server"), gt.Instance()),
-	from_vm = gt.number({integer = true}),
-	to_vm = gt.optional(gt.number({integer = true}))
-}))
+local tincoming_connector = t.strictInterface({
+	host = t.union(t.literal("server"), t.Instance),
+	from_vm = t.integer,
+	to_vm = t.optional(t.integer),
+})
 
 local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent & { actor: BindableEvent, peer: RemoteEvent }
 	if RunService:IsServer() then

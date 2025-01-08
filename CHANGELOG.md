@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Registry replication is now done through unreliable remotes
 - Id column is now shorter by default
 - Update to Jecs 0.5.0
+- Switches away from greentea to `t` for editor performance by @ffrostfall
 
 ### Fixed
 
