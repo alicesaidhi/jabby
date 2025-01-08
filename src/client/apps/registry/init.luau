@@ -81,9 +81,7 @@ function overview_query.mount(props: props, destroy: () -> ())
 		script.systems.highlight_workspace_entity
 	)
 
-	cleanup(
-		RunService.Heartbeat:Connect(app_loop)
-	)
+	cleanup(RunService.Heartbeat:Connect(app_loop))
 
 	local function open_entity_widget(_, state: Enum.UserInputState)
 		local entity = current_entity()
