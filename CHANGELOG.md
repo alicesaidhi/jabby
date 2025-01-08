@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Id column is now shorter by default
 - Update to Jecs 0.5.0
 - Switches away from greentea to `t` for editor performance by @ffrostfall
+- Add remotes to ReplicatedStorage instead of jabby
 
 ### Fixed
 
