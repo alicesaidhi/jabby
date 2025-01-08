@@ -35,7 +35,7 @@ type props = {
 
 	enable_pick: vide.Source<boolean>,
 	entity_hovering_over: () -> string,
-	hovering_over: () -> number,
+	hovering_over: () -> BasePart,
 
 	columns: () -> {{any}},
 

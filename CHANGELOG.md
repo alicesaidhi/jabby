@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add encoding into LON for `RaycastResult` (converts into table)
 - Add resizeable columns for tables
 - Add `get_entity_from_part` as an alternative from obtaining entities from a Part
+- Add `jabby.register` to replace `jabby.public`. Jabby will focus more on this in version 0.3
 
 ### Changes
 
@@ -25,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Id column is now shorter by default
 - Update to Jecs 0.5.0
 - Switches away from greentea to `t` for editor performance by @ffrostfall
-- Add remotes to ReplicatedStorage instead of jabby
+- Move location where remotes get added to ReplicatedStorage
 
 ### Fixed
 
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed `mark_system_frame_end` and `mark_system_frame_start`
+- Removed `jabby.public` due to roblox-ts incompatibility
 
 ## 0.1.0 - 2024-08-26
 

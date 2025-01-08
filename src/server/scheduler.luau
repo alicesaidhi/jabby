@@ -18,14 +18,14 @@ local schedulers = {}
 
 local function unit() end
 
-local function create_scheduler(name: string)
+local function create_scheduler()
 
 	local count = 1
 	local frames = 0
 
 	local scheduler = {
 		class_name = "Scheduler",
-		name = name,
+		name = "Scheduler",
 
 		--- contains a map of valid system ids
 		valid_system_ids = {} :: {[SystemId]: true},
