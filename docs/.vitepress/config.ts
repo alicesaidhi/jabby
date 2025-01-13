@@ -57,6 +57,7 @@ export default defineConfig({
                     { text: "obtain_client", link: "/api/jabby/obtain_client/" },
                     { text: "register", link: "/api/jabby/register/" },
                     { text: "applets", link: "/api/applets/" },
+                    { text: "broadcast", link: "/api/broadcast/" },
                 ] },
                 { text: "Client", link: "/api/client/", collapsed: false, items: [
                     { text: "spawn_app", link: "/api/client/spawn_app/" },

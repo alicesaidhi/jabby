@@ -8,11 +8,12 @@ All of Jabby's API's, in one place.
 
 ## Jabby
 
-- [vm_id](./vm_id/)
-- [applets](./applets/)
-- [set_check_function](./set_check_function/)
-- [obtain_client](./obtain_client/)
-- [register](./register/)
+- [vm_id](./jabby/vm_id/)
+- [applets](./jabby/applets/)
+- [set_check_function](./jabby/set_check_function/)
+- [obtain_client](./jabby/obtain_client/)
+- [register](./jabby/register/)
+- [broadcast](./jabby/broadcast/)
 
 </div>
 

@@ -12,3 +12,4 @@ Entry-point to jabby.
 - [set_check_function](./set_check_function/)
 - [obtain_client](./obtain_client/)
 - [register](./register/)
+- [broadcast](./broadcast.md)
