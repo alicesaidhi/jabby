@@ -31,10 +31,20 @@ local tincoming_connector = t.strictInterface({
 })
 
 local NAME = "JABBY_REMOTES"
-local folder = if RunService:IsServer() then Instance.new("Folder") else ReplicatedStorage:WaitForChild(NAME)
-folder.Name = NAME
-folder.Archivable = false
-folder.Parent = ReplicatedStorage
+local folder: Instance
+if RunService:IsServer() then
+	local existing = ReplicatedStorage:FindFirstChild(NAME)
+	if existing then
+		folder = existing
+	else
+		folder = Instance.new("Folder")
+		folder.Name = NAME
+		folder.Archivable = false
+		folder.Parent = ReplicatedStorage
+	end
+else
+	folder = ReplicatedStorage:WaitForChild(NAME)
+end
 
 local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent & { actor: BindableEvent, peer: RemoteEvent }
 	if RunService:IsServer() then
