@@ -21,11 +21,11 @@ All of Jabby's API's, in one place.
 
 ## Scheduler
 
-- [get_system_data](./get_system_data.md)
-- [register_system](./register_system.md)
-- [remove_system](./remove_system.md)
-- [run](./run.md)
-- [set_system_data](./set_system_data.md)
+- [get_system_data](./scheduler/get_system_data.md)
+- [register_system](./scheduler/register_system.md)
+- [remove_system](./scheduler/remove_system.md)
+- [run](./scheduler/run.md)
+- [set_system_data](./scheduler/set_system_data.md)
 
 </div>
 
@@ -33,8 +33,9 @@ All of Jabby's API's, in one place.
 
 ## Client
 
-- [applets.scheduler](./scheduler.md)
-- [applets.world](./world.md)
+- [apps](./client/apps.md)
+- [spawn_app](./client/spawn_app.md)
+- [unmount_all](./client/unmount_all.md)
 
 
 </div>
@@ -43,8 +44,8 @@ All of Jabby's API's, in one place.
 
 ## Applets
 
-- [applets.scheduler](./scheduler.md)
-- [applets.world](./world.md)
+- [applets.scheduler](./applets/scheduler.md)
+- [applets.world](./applets/world.md)
 
 </div>
 

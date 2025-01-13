@@ -5,5 +5,6 @@ relevant widget you need to spawn is `home`
 
 ## Core Applets
 
-- [applets.scheduler](./scheduler.md)
-- [applets.world](./world.md)
+- [apps](./apps.md)
+- [spawn_app](./spawn_app.md)
+- [unmount_all](./unmount_all.md)
