@@ -5,7 +5,7 @@ aside: right
 
 # register
 
-Registers a new [applet](./applets/) and broadcasts it to every client.
+Registers a new [applet](../applets/) and broadcasts it to every client.
 
 <DividePage>
 
