@@ -9,7 +9,7 @@ All of Jabby's API's, in one place.
 ## Jabby
 
 - [vm_id](./jabby/vm_id.md)
-- [applets](./jabby/applets.md)
+- [applets](./applets/)
 - [set_check_function](./jabby/set_check_function.md)
 - [obtain_client](./jabby/obtain_client.md)
 - [register](./jabby/register.md)
