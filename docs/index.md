@@ -15,7 +15,7 @@ hero:
   actions:
     - theme: brand
       text: Learn
-      link: /resources/getting-started/
+      link: /resources/getting-started/1-install.md
     - theme: alt
       text: API Reference
       link: /api/
