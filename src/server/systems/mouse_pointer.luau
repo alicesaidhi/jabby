@@ -6,6 +6,14 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
+local IS_PAIR = jecs.IS_PAIR
+
+local function is_tag(world: jecs.World, id: jecs.Entity<any>)
+	return if IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
+		else not world:has(id, jecs.Component)
+
+end
+
 local function obtain_string(entity: jecs.Entity<any>, world: jecs.World, name: jecs.Entity<string>)
 	local MAX_SIZE = 750
 	local has_more = false
@@ -14,7 +22,7 @@ local function obtain_string(entity: jecs.Entity<any>, world: jecs.World, name: 
 
 	for id, name in world:query(name):iter() do
 		if not world:has(entity, id) then continue end
-		local v = world:get(entity, id)
+		local v = if is_tag(world, id) then nil else world:get(entity, id)
 		local str
 
 		if typeof(v) == "string" then
@@ -23,7 +31,7 @@ local function obtain_string(entity: jecs.Entity<any>, world: jecs.World, name: 
 			local temp_n = 0
 			local temp_b = {}
 
-			for key, value in v do
+			for key, value in pairs(v) do
 				if #temp_b > 0 then
 					table.insert(temp_b, "; ")
 				end
@@ -40,10 +48,12 @@ local function obtain_string(entity: jecs.Entity<any>, world: jecs.World, name: 
 			end
 
 			str = `\{{table.concat(temp_b)}\}`
+		elseif is_tag(world, id) then
+			str = "tag"
 		else
 			str = tostring(v)
 		end
-
+		
 		local to_append = `\n{name}: {str}`
 		if MAX_SIZE > n + #to_append then
 			n += #to_append
@@ -67,6 +77,7 @@ return function()
 
 		for incoming, world_id, pos, dir in send_mouse_pointer:iter() do
 			if not traffic_check.check_no_wl(incoming.host) then continue end
+			print("er")
 			
 			local world_data: types.World = public[world_id]
 			local world = world_data.world
