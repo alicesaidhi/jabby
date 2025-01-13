@@ -68,11 +68,11 @@ return function(props: props)
 
 	local function is_empty()
 		local no_objects = next(objects()) == nil
-		if no_objects then return "No objects found. Did you forget to set updated?" end
-		for _, object in objects() do
-			if #object.worlds() == 0 then return "No worlds found. Did you forget to set updated?" end
-			if #object.schedulers() == 0 then return "No schedulers found. Did you forget to set updated?" end
-		end
+		if no_objects then return "No objects found. You may not have permissions to use this." end
+		-- for _, object in objects() do
+		-- 	if #object.worlds() == 0 then return "No worlds found. Did you forget to set updated?" end
+		-- 	if #object.schedulers() == 0 then return "No schedulers found. Did you forget to set updated?" end
+		-- end
 		return false
 	end
 
