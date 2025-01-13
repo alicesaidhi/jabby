@@ -10,5 +10,10 @@
 		"**/Thumbs.db": true,
 
 		"Packages": false
+	},
+	"markdownlint.config": {
+		"no-inline-html": {
+			"allowed_elements": [ "template", "DividePage", "script", "Badge" ],
+		}
 	}
 }
