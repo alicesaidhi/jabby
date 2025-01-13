@@ -77,8 +77,6 @@ return function()
 
 		for incoming, world_id, pos, dir in send_mouse_pointer:iter() do
 			if not traffic_check.check_no_wl(incoming.host) then continue end
-			print("er")
-			
 			local world_data: types.World = public[world_id]
 			local world = world_data.world
 			local outgoing = reverse_connector(incoming)
