@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix type for `jabby.set_check_function`
 - Fix parsing for entity pointers
 - Fix tags and nil values appearing as userdata in the query widget
+- Fix entity highlighting erroring when an entity has a tag
 - Query view should work jecs 0.3.0
 
 ### Removed
