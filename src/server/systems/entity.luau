@@ -7,6 +7,7 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
+local shallow_eq = require(script.Parent.Parent.Parent.modules.shallow_eq)
 
 local entity_index_try_get = jecs.entity_index_try_get
 local IS_PAIR = jecs.IS_PAIR
@@ -232,6 +233,11 @@ return function()
 					new_values[name] = TAG
 				else
 					local value = world:get(entity, component)
+					local old_value = old_values[name]
+					if typeof(value) == "table" and shallow_eq(value, old_value) == false then
+						value = table.clone(value)
+					end
+					
 					new_values[name] = if value == nil then BAD_VALUE else value
 				end
 			end
