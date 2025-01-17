@@ -12,9 +12,12 @@ value that the entity must have.
 This refers to a named term. Terms in jabby get their name from the applet.
 
 This would display a list of all entities that have a Position __and__ Rotation component.
+By default, jabby only supports alphanumeric characters and underscores for the language,
+but it's possible to get named terms using characters not part of that by surrounding them
+in `"`.
 
 ```
-Position, Rotation
+Position, Rotation, "jecs.ChildOf"
 ```
 
 
