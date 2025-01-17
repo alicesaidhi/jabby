@@ -34,7 +34,6 @@ return function(context: context)
 	local scheduler_frame_data_updated = queue(remotes.scheduler_system_update)
 
 	cleanup(function()
-		print("cleaning up")
 		remotes.disconnect_scheduler:fire(outgoing, context.id)
 	end)
 
