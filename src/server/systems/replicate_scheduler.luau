@@ -69,6 +69,7 @@ return function()
 			
 			local map = {}
 			for system_id in scheduler.system_data_updated do
+				scheduler.system_data_updated[system_id] = nil
 				local data = scheduler.system_data[system_id]
 
 				for _, connector in connected do
