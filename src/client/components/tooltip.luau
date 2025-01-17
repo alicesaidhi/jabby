@@ -35,8 +35,8 @@ return function(props: props)
 					mouse_location().Y + 24
 				)
 			end,
-			Size = UDim2.fromOffset(200, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
+			Size = UDim2.fromOffset(400, 0),
+			AutomaticSize = Enum.AutomaticSize.XY,
 			BackgroundColor3 = pebble.theme.bg[0],
 			BackgroundTransparency = props.transparency or 0.5,
 

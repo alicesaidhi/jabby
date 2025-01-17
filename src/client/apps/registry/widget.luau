@@ -105,7 +105,10 @@ return function(props: props)
 						return props.entity_hovering_over() or ""
 					end,
 					xalignment = Enum.TextXAlignment.Left,
-					wrapped = true
+					wrapped = true,
+					code = true,
+					
+					{ RichText = true }
 				}
 			},
 
