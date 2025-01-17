@@ -7,7 +7,6 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
-
 return function()
 
 	local connected = {}
@@ -67,8 +66,8 @@ return function()
 		for id, connected in connected do
 			local scheduler: types.Scheduler = public[id]
 			
-			local map = {}
 			for system_id in scheduler.system_data_updated do
+				local map = {}
 				scheduler.system_data_updated[system_id] = nil
 				local data = scheduler.system_data[system_id]
 

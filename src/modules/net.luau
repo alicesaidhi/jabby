@@ -80,11 +80,9 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 
 		fire = function(_, connector: types.OutgoingConnector, ...)
 			--- if the host is within this vm, we can fire it straight to
-			if not traffic_check.check(local_host, connector.host, true) then
-				-- print("cancel fire!", remote.Name)
-				return
-			end
+			if not traffic_check.check(local_host, connector.host, true) then return end
 			
+			-- same host, same vm.
 			if
 				connector.host == local_host
 				and connector.to_vm == vm_id
@@ -150,7 +148,6 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		remote.OnServerEvent:Connect(function(player, target: types.IncomingConnector, ...)
 			--- check if the player is allowed to send this
 			if not do_not_block_traffic and not traffic_check.check(player, target.host) then
-				print("cancel!", remote.Name)
 				return
 			end
 
