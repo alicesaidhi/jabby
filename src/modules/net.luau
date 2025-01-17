@@ -9,7 +9,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local t = require(script.Parent.Parent.Parent.t)
 local signal = require(script.Parent.signal)
 local vm_id = require(script.Parent.vm_id)
 local traffic_check = require(script.Parent.traffic_check)
@@ -24,11 +23,14 @@ else
 	local_host = Players.LocalPlayer
 end
 
-local tincoming_connector = t.strictInterface({
-	host = t.union(t.literal("server"), t.Instance),
-	from_vm = t.integer,
-	to_vm = t.optional(t.integer),
-})
+local function tincoming_connector(t: any): boolean
+	if typeof(t) ~= "table" then return false end
+	if t.host ~= "server" and typeof(t) ~= "Instance" and t:IsA("Player") == false then return false end
+	if typeof(t.from_vm) ~= "number" then return false end
+	if t.to_vm ~= nil and typeof(t.to_vm) ~= "number" then return false end
+
+	return true
+end
 
 local NAME = "JABBY_REMOTES"
 local folder: Instance
