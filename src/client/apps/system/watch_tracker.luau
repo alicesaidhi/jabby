@@ -86,6 +86,7 @@ return function(props: props)
 						Activated = function()
 							watching_frame(index())
 						end,
+						AutoLocalize = false,
 
 						create "Frame" {
 							Size = function()

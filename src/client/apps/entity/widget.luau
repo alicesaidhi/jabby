@@ -107,10 +107,26 @@ return function(props: props)
 
 				pebble.button {
 					text = "Live Updates",
-					accent = live_updates,
 					activated = function()
 						live_updates(not live_updates())
 					end,
+
+					create "UIListLayout" {
+						FillDirection = Enum.FillDirection.Horizontal,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						HorizontalFlex = Enum.UIFlexAlignment.SpaceBetween,
+						Padding = UDim.new(0, 4)
+					},
+
+					pebble.checkbox {
+						size = UDim2.fromOffset(16, 16),
+						layoutorder = -1,
+						checked = live_updates,
+
+						create "UIFlexItem" {
+							FlexMode = Enum.UIFlexMode.None,
+						}
+					}
 					
 				},
 

@@ -25,7 +25,7 @@ end
 
 local function tincoming_connector(t: any): boolean
 	if typeof(t) ~= "table" then return false end
-	if t.host ~= "server" and typeof(t) ~= "Instance" and t:IsA("Player") == false then return false end
+	if not (t.host == "server" or (typeof(t.host) == "Instance" and t.host:IsA("Player"))) then return false end
 	if typeof(t.from_vm) ~= "number" then return false end
 	if t.to_vm ~= nil and typeof(t.to_vm) ~= "number" then return false end
 

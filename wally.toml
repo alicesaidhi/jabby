@@ -7,6 +7,6 @@ exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "tod
 realm = "shared"
 
 [dependencies]
-pebble = "alicesaidhi/pebble@0.1.0-rc.11"
+pebble = "alicesaidhi/pebble@0.1.1"
 vide = "centau/vide@0.3.1"
 jecs = "ukendio/jecs@0.5.3"

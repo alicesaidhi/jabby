@@ -52,12 +52,13 @@ return function(props: props)
 
 	local options = derive(function()
 		local options = {}
-		options[Players.LocalPlayer] = "Client"
-		options["all"] = "All"
 
 		for host, servers in hosts() do
-			options[host] = type(host) == "string" and host or `@{host.Name}`
+			options[host] = if type(host) == "string" then host else `@{host.Name}`
 		end	
+
+		options[Players.LocalPlayer] = "localplayer"
+		options["all"] = "all"
 
 		return options
 	end)
