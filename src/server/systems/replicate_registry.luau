@@ -6,6 +6,7 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 local query_parser = require(script.Parent.Parent.query_parser)
+local shallow_eq = require(script.Parent.Parent.Parent.modules.shallow_eq)
 
 type Connection = {
 
@@ -402,6 +403,11 @@ return function()
 					new_columns[1][row_entity] = entity
 					for idx, column in records do
 						local value = archetype.columns[column][row]
+						local old_value = old_columns[idx + 1][row_entity]
+						if typeof(value) == "table" and shallow_eq(value, old_value) == false then
+							value = table.clone(value)
+						end
+
 						new_columns[idx + 1][row_entity] = if value == nil then NIL else value
 					end
 				end
