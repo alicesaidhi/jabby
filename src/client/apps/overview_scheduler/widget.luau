@@ -384,7 +384,7 @@ return function(props: props)
 					return pebble.accordion {
 						expanded = expanded,
 						set_expanded = expanded,
-						text = phase,
+						text = tostring(phase),
 						
 						pebble.container {
 							Size = UDim2.fromScale(1, 0),
