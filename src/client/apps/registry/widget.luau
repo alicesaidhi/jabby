@@ -94,6 +94,7 @@ return function(props: props)
 			BackgroundTransparency = 1,
 
 			tooltip {
+				transparency = 0.3,
 				visible = function()
 					return props.entity_hovering_over() and #props.entity_hovering_over() > 0 or false
 				end,
@@ -108,7 +109,12 @@ return function(props: props)
 					wrapped = true,
 					code = true,
 					
-					{ RichText = true }
+					{ RichText = true },
+
+					create "UIStroke" {
+						Thickness = 1,
+						Color = pebble.theme.bg[-5]
+					}
 				}
 			},
 
