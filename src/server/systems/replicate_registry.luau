@@ -384,31 +384,29 @@ return function()
 				total_entities += #archetype.entities
 			end
 
+			local entities = table.create(total_entities)
 			local at = total_entities
 			local row_entity = 1
+
 			for _, archetype: jecs.Archetype in archetypes do
-				local records = table.clone(query_data.include)
-
-				for idx, ctype in records do
-					records[idx] = archetype.records[ctype].column
-				end
-
 				for row = #archetype.entities, 1, -1 do
 					local entity = archetype.entities[row]
-
-					at -= 1
-					if at + 1 < from or at + 1 > upto then continue end
-					row_entity += 1
-					new_columns[1][row_entity] = entity
-					for idx, column in records do
-						local value = archetype.columns[column][row]
-						new_columns[idx + 1][row_entity] = if value == nil then NIL else value
-					end
+					table.insert(entities, entity)
 				end
 			end
 
-			local rows = math.min(total_entities - 1, upto - from)
-			reverse_columns(new_columns, rows)
+			table.sort(entities)
+
+			for i = from, upto do
+				row_entity += 1
+				local entity = entities[i]
+				if not entity then continue end
+				new_columns[1][row_entity] = entity
+				for idx, ctype in query_data.include do
+					local value = world:get(entity, ctype)
+					new_columns[idx + 1][row_entity] = if value == nil then NIL else value
+				end
+			end
 
 			--- reverse the order of each array
 
@@ -420,11 +418,11 @@ return function()
 
 			-- diff the columns and replicate any new values
 			for column = 1, math.max(#new_columns, #old_columns) do
-				for row = 1, math.max(upto - from + 2, #new_columns[column], #old_columns[column]) do
+				for row = 1, upto do
 					local new_value = new_columns[column][row]
 					local old_value = old_columns[column][row]
 
-					if new_value ~= old_value then
+					if new_value ~= old_value or typeof(new_value) == "table" then
 						-- todo: improve replication of the new value
 						-- ideally, we would figure out if the value is a certain type and needs special replication
 						-- if we for example determine a value is a string, or table, we cap it at MAX_CHARACTERS
@@ -466,7 +464,6 @@ return function()
 						end
 
 						if row == 1 then str = new_value end
-
 						remotes.update_query_result:fire(
 							query_data.outgoing,
 							query_id,
