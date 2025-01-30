@@ -196,7 +196,7 @@ return function(props: props)
 
 					indexes(components, function(value, key)
 						return pebble.button {
-							name = key,
+							{ Name = if not string.match(key, "^%a") then "zzzz" .. key else key },
 							size = UDim2.new(1, 0, 0, 32),
 							automaticsize = Enum.AutomaticSize.Y,
 					
@@ -244,6 +244,7 @@ return function(props: props)
 								xalignment = Enum.TextXAlignment.Left,
 								text = value,
 								wrapped = true,
+								truncate = Enum.TextTruncate.AtEnd,
 								code = true,
 					
 								create "UIFlexItem" {
@@ -267,7 +268,11 @@ return function(props: props)
 									disabled = true,
 									textsize = 14,
 								}
-							end)
+							end),
+
+							create "UISizeConstraint" {
+								MaxSize = Vector2.new(math.huge, 300)
+							}
 						}
 					end),
 				},
@@ -288,7 +293,7 @@ return function(props: props)
 						end
 
 						return pebble.button {
-							name = key,
+							{ Name = if not string.match(key, "^%a") then "zzzz" .. key else key },
 							size = UDim2.new(1, 0, 0, 24),
 					
 							text = "",

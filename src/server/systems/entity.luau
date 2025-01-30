@@ -247,7 +247,7 @@ return function()
 					if new_value == TAG then "tag"
 					--todo: figure out a better way to say that you are not allowed to store nil in a component
 					elseif new_value == BAD_VALUE then "nil (not allowed)"
-					else lon.output(new_value, false)
+					else lon.output(new_value, true)
 				)
 			end
 
