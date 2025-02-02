@@ -77,13 +77,6 @@ export type Scheduler = {
 	class_name: "Scheduler",
 	name: string,
 
-	valid_system_ids: {[SystemId]: true},
-	system_data: {[SystemId]: SystemData},
-	system_data_updated: {[SystemId]: true},
-	system_frames: {[SystemId]: SystemFrame},
-	system_frames_updated: {[SystemId]: {[SystemFrame]: true}},
-	system_watches: {[SystemId]: {WatchData}},
-
 	register_system: (Scheduler, settings: SystemSettingData?) -> SystemId,
 	set_system_data: (Scheduler, system: SystemId, settings: SystemSettingData) -> (),
 	get_system_data: (Scheduler, system: SystemId) -> SystemSettingData,
@@ -94,7 +87,7 @@ export type Scheduler = {
 	-- mark_system_frame_end: (Scheduler, system: SystemId, s: number?) -> (),
 	-- append_extra_frame_data: (Scheduler, system: SystemId, label: SystemLabel) -> (),
 	--- this should call mark_system_frame_start and mark_system_frame_end for you
-	run: <T...>(Scheduler, system: SystemId, system: () -> (), T...) -> (),
+	run: <T...>(Scheduler, system: SystemId, system: (T...) -> (), T...) -> (),
 
 }
 

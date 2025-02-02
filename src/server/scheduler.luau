@@ -18,7 +18,7 @@ local schedulers = {}
 
 local function unit() end
 
-local function create_scheduler()
+local function create_scheduler(): types.Scheduler
 
 	local count = 1
 	local frames = 0
