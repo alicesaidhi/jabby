@@ -1,4 +1,4 @@
-local jecs = require(script.Parent.jecs)
+local ecr = require(script.Parent.ecr)
 local traffic_check = require(script.modules.traffic_check)
 local types = require(script.modules.types)
 local vm_id = require(script.modules.vm_id)
@@ -14,13 +14,19 @@ type Applet<T> = {
 
 local world_applet = {
 	add_to_public = function(
-		name: string, config: { world: jecs.World, entities: {[Instance]: jecs.Entity<any>}?, get_entity_from_part: ((part: BasePart) -> (jecs.Entity<any>, Part?))? }
+		name: string, config: {
+			world: ecr.Registry,
+			components: {[any]: string},
+			entities: {[Instance]: ecr.entity}?,
+			get_entity_from_part: ((part: BasePart) -> (ecr.entity, Part?))?
+		}
 	)
 		public.updated = true
 		table.insert(public, {
 			class_name = "World",
 			name = name,
 			world = config.world,
+			components = config.components,
 			entities = config.entities,
 			get_entity_from_part = config.get_entity_from_part
 		})

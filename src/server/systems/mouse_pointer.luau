@@ -6,17 +6,39 @@ local traffic_check = require(script.Parent.Parent.Parent.modules.traffic_check)
 local types = require(script.Parent.Parent.Parent.modules.types)
 local public = require(script.Parent.Parent.public)
 
+local function get_type(t: { [any]: any }): string
+	local key, value = next(t)
+	if key == nil then return "" end
+	return `[{typeof(key)}]: {typeof(value)}`
+end
+
+local function get_string_keys(t: { [any]: any }): ({ string }, boolean)
+	local keys = {}
+	local i = 0
+	for key in t do
+		if i > 3 then return keys, true end
+		if typeof(key) ~= "string" then continue end
+		table.insert(keys, key)
+		i += 1
+	end
+	return keys, false
+end
+
 local function obtain_string(entity: ecr.entity, world: ecr.Registry, components: { [any]: string })
+	local names = {}
+	for value, key in components do
+		names[key] = value
+	end
+
 	local MAX_SIZE = 750
 	local has_more = false
-	local entity_name = world:get(entity, jecs.Name)
-	local strings = {`<b>{if entity_name then `{entity_name} #` else "#"}{entity}</b>\n`}
+	local strings = {`<b>#{entity}</b>\n`}
 	local n = #strings[1]
 
 	for id, name in components do
-		if not world:has(entity, id) then continue end
-		local v = world:get(entity, id)
-		local str
+		if world:has(entity, id) == false then continue end
+		local value = world:get(entity, id)
+		local to_append
 
 		if typeof(value) == "table" then
 			local string_keys = get_string_keys(value)
@@ -51,7 +73,7 @@ local function obtain_string(entity: ecr.entity, world: ecr.Registry, components
 			else
 				to_append = `<b>{name}</b>: {get_type(value)}`
 			end
-		elseif is_tag(world, id) then
+		elseif value == nil then
 			to_append = `<b>{name}</b>`
 		else
 			local value = tostring(value)
