@@ -127,9 +127,13 @@ return function()
 
 			if ctype.type == "Component" then
 				if ctype.value.type == "Name" then
-					print(ctype)
 					if map_components[ctype.value.name] then continue end
 					return false, `unknown component called {ctype.value.name}`
+				elseif ctype.value.type == "Id" then
+					if world.components[ctype.value.id] then continue end
+					local ok = pcall(world.world.storage, world.world, ctype.value.id)
+					if not ok then return false, `no component in this world associated with #{ctype.value.id}` end
+					return true, `no component name associated with id #{ctype.value.id}`
 				else
 					return false, "what"
 				end
@@ -200,6 +204,8 @@ return function()
 				
 				if value.type == "Name" then
 					return map_components[value.name]
+				elseif value.type == "Id" then
+					return value.id
 				end
 				error("bad")
 			end

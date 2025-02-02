@@ -22,7 +22,7 @@ export type Position = {
 export type String = {type: "string", s: string}
 export type Number = {type: "number", s: number}
 export type Identifier = {type: "identifier", s: string}
-export type Operator = {type: "operator", s: "#" | "!"}
+export type Operator = {type: "operator", s: "#" | "!" | "$"}
 export type Symbol = {type: "symbol", s: ";" | ","}
 export type EOF = {type: "eof", s: "eof"}
 
@@ -110,7 +110,7 @@ local function lex(source: string): Stream
 	end
 	
 	local function is_op_char(char: string)
-		return char == "#" or char == "!"
+		return char == "#" or char == "!" or char == "$"
 	end
 
 	local function is_punc(char: string)
@@ -236,6 +236,11 @@ local function lex(source: string): Stream
 	}
 end
 
+export type Entity = {
+	type: "Id",
+	id: number
+}
+
 export type Value = {
 	type: "Name",
 	name: string
@@ -245,7 +250,7 @@ export type PureComponent = {
 	type: "Component",
 	query: boolean,
 	exclude: boolean,
-	value: Value,
+	value: Value | Entity,
 }
 
 type Component = PureComponent
@@ -257,6 +262,7 @@ local function parse(input: string): {PureComponent}
 
 	local should_query = true
 	local should_exclude = false
+	local is_id = false
 	local components: {Component} = {}
 
 	while true do
@@ -271,6 +277,9 @@ local function parse(input: string): {PureComponent}
 			elseif symbol.s == "!" then
 				should_exclude = true
 				should_query = false
+				lexer.next()
+			elseif symbol.s == "$" then
+				is_id = true
 				lexer.next()
 			end
 		elseif symbol.type == "symbol" then
@@ -304,6 +313,18 @@ local function parse(input: string): {PureComponent}
 				value = {type = "Name", name = lexer.next().s :: string}
 			})
 			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after string") end
+		elseif symbol.type == "number" then
+			if not is_id then lexer.croak("are you attempting to query for an id? prefix with $") end
+
+			table.insert(components, {
+				type = "Component",
+				query = should_query,
+				exclude = should_exclude,
+				value = { type = "Id", id = lexer.next().s :: number }
+			})
+			if lexer.peek().type ~= "symbol" and lexer.peek().type ~= "eof" then lexer.croak("expected symbol or eof after string") end
+		else
+			error(`unrecognized symbol {symbol.type}`)
 		end
 	end
 
