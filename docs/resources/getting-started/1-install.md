@@ -15,14 +15,14 @@ In your `wally.toml`, add the following line to your dependencies.
 jabby = "alicesaidhi/jabby@0.2.0"
 ```
 
-==Pesde (wally)
+==pesde (wally)
 In your terminal, run the following command.
 
 ```sh
 pesde add wally#alicesaidhi/jabby@0.2.0
 ```
 
-==Pesde (pull from github)
+==pesde (pull from github)
 In your terminal, run the following command.
 
 ```sh
