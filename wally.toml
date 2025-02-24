@@ -1,7 +1,7 @@
 [package]
 name = "alicesaidhi/ebba"
 description = "ECR debugger built with Vide (jabby port)"
-version = "0.2.0-rc.9"
+version = "0.2.0"
 registry = "https://github.com/UpliftGames/wally-index"
 exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "todo.md", "docs"]
 realm = "shared"
