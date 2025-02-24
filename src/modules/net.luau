@@ -178,7 +178,7 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		end)
 	end
 
-	remote.actor.Event:Connect(function(incoming: types.IncomingConnector, ...)
+	remote:WaitForChild("actor").Event:Connect(function(incoming: types.IncomingConnector, ...)
 		if incoming.to_vm ~= vm_id and incoming.to_vm ~= nil then return end
 		fire(incoming, ...)
 	end)
