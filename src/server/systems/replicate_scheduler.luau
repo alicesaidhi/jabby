@@ -44,10 +44,15 @@ return function()
 			if not traffic_check.check_no_wl(incoming.host) then continue end
 
 			if not connected[id] then continue end
-			for idx, connector in connected[id] do
+
+			local scheduler_connected = connected[id]
+
+			for i = #scheduler_connected, 1, -1 do
+				local connector = scheduler_connected[i]
 				if connector.host ~= incoming.host then continue end
 				if connector.to_vm ~= incoming.from_vm then continue end
-				table.remove(connector, idx)
+				scheduler_connected[i] = scheduler_connected[#scheduler_connected]
+				scheduler_connected[#scheduler_connected] = nil
 				break
 			end
 		end
