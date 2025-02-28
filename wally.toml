@@ -1,7 +1,7 @@
 [package]
 name = "alicesaidhi/jabby"
 description = "Jecs debugger built with Vide"
-version = "0.2.0"
+version = "0.2.1"
 registry = "https://github.com/UpliftGames/wally-index"
 exclude = ["out", ".vscode", "aftman.toml", ".luaurc", "test.project.json", "todo.md", "docs"]
 realm = "shared"
