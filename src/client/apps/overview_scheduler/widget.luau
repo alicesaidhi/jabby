@@ -329,7 +329,7 @@ return function(props: props)
 				options = sort_by_options,
 				selected = sort_by,
 				update_selected = function(new)
-					print(new)
+					-- print(new)
 					sort_by(new)
 				end
 			},
@@ -380,7 +380,7 @@ return function(props: props)
 				indexes(map_phases_to_systems, function(systems, phase)
 					if phase == false then return {} end
 					local expanded = source(true)
-					print(systems())
+					-- print(systems())
 					return pebble.accordion {
 						expanded = expanded,
 						set_expanded = expanded,

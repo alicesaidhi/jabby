@@ -28,7 +28,7 @@ return function()
 			local outgoing = reverse_connector(incoming)
 			connected[id] = connected[id] or {}
 			table.insert(connected[id], outgoing)
-			print("connected")
+			-- print("connected")
 			
 			for system_id, data in scheduler.system_data do
 				remotes.scheduler_system_static_update:fire(outgoing, id, system_id, data)

@@ -55,7 +55,7 @@ local function check_no_wl(from: "server" | Player)
 	if traffic_check.can_use_jabby(from) then
 		return true
 	else
-		print(from, "cant use jabby")
+		-- print(from, "cant use jabby")
 		fire(from)
 		return false
 	end
