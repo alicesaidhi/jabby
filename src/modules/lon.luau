@@ -150,6 +150,9 @@ local function lex(source: string)
 	end
 
 	local function read_number(): Number
+		local sign = 1
+		if input.peek() == "-" then sign = -1; input.next() end
+
 		local token = read_while(function(char)
 			return is_digit(char) or char == "." or char == "e"
 		end)
@@ -160,7 +163,7 @@ local function lex(source: string)
 			input.croak(`could not read {token} as number`)
 		end
 
-		return {type = "number", s = assert(n)}
+		return {type = "number", s = assert(n) * sign}
 	end
 
 	local function read_identifier(): Identifier | Keyword
@@ -188,6 +191,7 @@ local function lex(source: string)
 		if is_start_identifier(char) then return read_identifier() end
 		if is_op_char(char) then return {type = "operator" :: "operator", s = input.next() :: any} end
 		if is_punc(char) then return {type = "symbol" :: "symbol", s = input.next() :: any} end
+		if char == "-" then return read_number() end
 
 		input.croak(`cannot lex "{char}" {string.byte(char)}`)
 		error("fail")
