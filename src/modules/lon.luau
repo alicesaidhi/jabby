@@ -191,7 +191,7 @@ local function lex(source: string)
 		if is_start_identifier(char) then return read_identifier() end
 		if is_op_char(char) then return {type = "operator" :: "operator", s = input.next() :: any} end
 		if is_punc(char) then return {type = "symbol" :: "symbol", s = input.next() :: any} end
-		if char == "-" then read_number() end
+		if char == "-" then return read_number() end
 
 		input.croak(`cannot lex "{char}" {string.byte(char)}`)
 		error("fail")
