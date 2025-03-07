@@ -2,7 +2,7 @@ name: site-deploy
 
 on:
   push:
-    branches: [main] # todo: remove later
+    branches: [0.2]
 
   workflow_dispatch:
 
