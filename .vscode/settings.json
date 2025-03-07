@@ -1,6 +1,7 @@
 {
 	"luau-lsp.sourcemap.rojoProjectFile": "test.project.json",
 	"luau-lsp.completion.imports.requireStyle": "alwaysRelative",
+	"luau-lsp.fflags.enableNewSolver": true,
 	"files.exclude": {
 		"**/.git": true,
 		"**/.svn": true,
@@ -15,5 +16,14 @@
 		"no-inline-html": {
 			"allowed_elements": [ "template", "DividePage", "script", "Badge" ],
 		}
+	},
+
+	"editor.insertSpaces": false,
+	"editor.rulers": [
+		80,
+		120
+	],
+	"[luau]": {
+		"editor.formatOnSave": false
 	}
 }

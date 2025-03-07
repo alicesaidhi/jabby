@@ -1,0 +1,14 @@
+name = "alicesaidhi/jabby_core"
+version = "0.1.0"
+includes = ["src/*", "pesde.toml"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "src/lib.luau"
+build_files = ["src"]
+
+[indices]
+default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]
