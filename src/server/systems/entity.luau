@@ -107,7 +107,9 @@ return function()
 			local world = world_data.world
 			local entity = inspect_data.entity
 
-			world:delete(entity)
+			if world:contains(entity) then
+				world:destroy(entity)
+			end
 		end
 
 		for incoming, inspect_id, settings in update_inspect_settings:iter() do
