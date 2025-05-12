@@ -12,14 +12,14 @@ Wally installed.
 In your `wally.toml`, add the following line to your dependencies.
 
 ```toml
-jabby = "alicesaidhi/jabby@0.2.0"
+jabby = "alicesaidhi/jabby@0.2.3"
 ```
 
 ==pesde (wally)
 In your terminal, run the following command.
 
 ```sh
-pesde add wally#alicesaidhi/jabby@0.2.0
+pesde add wally#alicesaidhi/jabby@0.2.3
 ```
 
 ==pesde (pull from github)
