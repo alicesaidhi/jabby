@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 
+local jecs = require(script.Parent.Parent.Parent.Parent.Parent.Parent.jecs)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.Parent.vide)
 local queue = require(script.Parent.Parent.Parent.Parent.Parent.modules.queue)
 local remotes = require(script.Parent.Parent.Parent.Parent.Parent.modules.remotes)
@@ -14,7 +15,8 @@ type Context = {
 	validate_query: () -> string,
 
 	msg: (string) -> (),
-	ok: (boolean) -> ()
+	ok: (boolean) -> (),
+	primary_entity: (any?) -> ()
 
 }
 
@@ -52,7 +54,7 @@ return function(context: Context)
 			context.msg("")
 		end
 
-		for incoming, world, query, ok, msg in validate_result:iter() do
+		for incoming, world, query, terms, ok, msg in validate_result:iter() do
 			if incoming.host ~= context.host then continue end
 			if incoming.from_vm ~= context.vm then continue end
 			if world ~= context.id then continue end
@@ -60,6 +62,15 @@ return function(context: Context)
 
 			context.ok(ok)
 			context.msg(msg or "")
+			context.primary_entity(nil)
+
+			if not terms then continue end
+			if #terms.include + #terms.exclude + #terms.with > 1 then continue end
+			local first = terms.include[1]
+
+			if first == nil then continue end
+			if jecs.IS_PAIR(first) then continue end
+			context.primary_entity(terms.include[1])
 		end
 
 		n += dt

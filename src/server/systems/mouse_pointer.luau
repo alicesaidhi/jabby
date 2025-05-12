@@ -42,12 +42,7 @@ local function get_string_keys(t: { [any]: any }): ({ string }, boolean)
 end
 
 local function is_tag(world: jecs.World, id: jecs.Entity<any>)
-	return not
-		if IS_PAIR(id) then
-			world:has(pair_first(world, id), jecs.Component) or
-			world:has(pair_second(world, id), jecs.Component)
-		else
-			world:has(id, jecs.Component)
+	return jecs.is_tag(world, id)
 end
 
 local function get_all_components(world, entity): {}

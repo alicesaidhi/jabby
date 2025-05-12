@@ -151,6 +151,63 @@ return function()
 		return true
 	end
 
+	local function get_terms(query: string, world: jecs.World)
+		local result = query_parser(query)
+		local include = {}
+		local exclude = {}
+		local with = {}
+
+		local map_components = {}
+		local map_entity: {[any]: any} = {}
+		for id, name in world:query(jecs.Name):iter() do
+			map_components[name] = id
+		end
+
+		local function get_entity(ctype: query_parser.PureComponent)
+			local value = ctype.value
+
+			if value.type == "Entity" then
+				return value.entity
+			elseif value.type == "Name" then
+				return map_components[value.name]
+			end
+			error("bad")
+		end
+
+		for _, ctype in result do
+			if ctype.type == "Component" then
+				map_entity[ctype] = get_entity(ctype)
+			elseif ctype.type == "Relationship" then
+				local left, right = jecs.Wildcard, jecs.Wildcard
+
+				if ctype.left.type == "Component" then
+					left = get_entity(ctype.left)
+				end
+
+				if ctype.right.type == "Component" then
+					right = get_entity(ctype.right)
+				end
+
+				local pair = jecs.pair(left, right)
+				map_entity[ctype] = pair
+			end
+		end
+
+		for _, ctype in result do
+			local entity = map_entity[ctype]
+			if ctype.exclude then
+				table.insert(exclude, entity)
+			elseif ctype.query then
+				-- local name = if ctype.type == "Component" then ctype.name else `({ctype.left.name}, {ctype.right.name})`
+				table.insert(include, entity)
+			else
+				table.insert(with, entity)
+			end
+		end
+
+		return include, exclude, with
+	end
+
 	return function()
 
 		for incoming, world_id, query in validate_query:iter() do
@@ -160,12 +217,20 @@ return function()
 			local outgoing = reverse_connector(incoming)
 
 			if not world or world.class_name ~= "World" then
-				remotes.validate_result:fire(outgoing, world_id, query, false, "world does not exist")
+				remotes.validate_result:fire(outgoing, world_id, query, nil, false, "world does not exist")
 				continue
 			end
 
 			local ok, message = check_if_query_valid(world, query)
-			remotes.validate_result:fire(outgoing, world_id, query, ok, message)
+			local include, exclude, with
+
+			if ok then include, exclude, with = get_terms(query, world.world) end
+
+			remotes.validate_result:fire(outgoing, world_id, query, ok and {
+				include = include,
+				exclude = exclude,
+				with = with
+			}, ok, message)
 		end
 
 		for incoming, query_id in disconnect_query:iter() do
@@ -184,65 +249,16 @@ return function()
 			
 			if not ok then continue end
 
-			local result = query_parser(query)
-			local include = {}
-			local exclude = {}
-			local with = {}
-
+			local include, exclude, with = get_terms(query, world.world)
 			local new_columns = {}
 			local old_columns = {}
 
 			table.insert(new_columns, {})
 			table.insert(old_columns, {})
 
-			local map_components = {}
-			local map_entity: {[any]: any} = {}
-			for id, name in world.world:query(jecs.Name):iter() do
-				map_components[name] = id
-			end
-
-			local function get_entity(ctype: query_parser.PureComponent)
-				local value = ctype.value
-
-				if value.type == "Entity" then
-					return value.entity
-				elseif value.type == "Name" then
-					return map_components[value.name]
-				end
-				error("bad")
-			end
-
-			for _, ctype in result do
-				if ctype.type == "Component" then
-					map_entity[ctype] = get_entity(ctype)
-				elseif ctype.type == "Relationship" then
-					local left, right = jecs.Wildcard, jecs.Wildcard
-
-					if ctype.left.type == "Component" then
-						left = get_entity(ctype.left)
-					end
-
-					if ctype.right.type == "Component" then
-						right = get_entity(ctype.right)
-					end
-
-					local pair = jecs.pair(left, right)
-					map_entity[ctype] = pair
-				end
-			end
-
-			for _, ctype in result do
-				local entity = map_entity[ctype]
-				if ctype.exclude then
-					table.insert(exclude, entity)
-				elseif ctype.query then
-					-- local name = if ctype.type == "Component" then ctype.name else `({ctype.left.name}, {ctype.right.name})`
-					table.insert(include, entity)
-					table.insert(new_columns, {})
-					table.insert(old_columns, {})
-				else
-					table.insert(with, entity)
-				end
+			for _, ctype in include do
+				table.insert(new_columns, {})
+				table.insert(old_columns, {})
 			end
 
 			if processing_queries[query_id] then

@@ -34,11 +34,17 @@ end
 
 local NAME = "JABBY_REMOTES"
 local folder: Instance
+local created_folder = false
 if RunService:IsServer() then
 	local existing = ReplicatedStorage:FindFirstChild(NAME)
 	if existing then
 		folder = existing
 	else
+		created_folder = true
+		warn("\z
+		There's a bug with jabby that sometimes causes the JABBY_REMOTES folder to not replicate very rarely. \z
+		Unfortunately, I still haven't thought of a fix yet -,- so please instead clone the JABBY_REMOTES \z
+		folder into your game which should stop it. make sure to set archivable to true!")
 		folder = Instance.new("Folder")
 		folder.Name = NAME
 		folder.Archivable = false
@@ -52,6 +58,10 @@ local function get_remote_event(name: string, unreliable: boolean?): RemoteEvent
 	if RunService:IsServer() then
 		return folder:FindFirstChild(name) :: RemoteEvent & { actor: BindableEvent }
 			or (function()
+				if not created_folder then
+					warn(`btw, you are missing {name} from the JABBY_REMOTES folder`)
+				end
+
 				local remote = Instance.new(if unreliable then "UnreliableRemoteEvent" else "RemoteEvent")
 				remote.Name = name
 				remote.Parent = folder

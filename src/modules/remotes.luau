@@ -1,7 +1,14 @@
+local jecs = require(script.Parent.Parent.Parent.jecs)
 local net = require(script.Parent.net)
 local types = require(script.Parent.types)
 
 --todo: redo this file
+type Query = {
+	include: { jecs.Entity<any> },
+	exclude: { jecs.Entity<any> },
+	with: { jecs.Entity<any> },
+}
+
 return {
 
 	--[=[
@@ -60,11 +67,11 @@ return {
 
 	--[=[
 	Result of the validation
-	world: number query: string, ok: boolean, message: string?
+	world: number query: string, terms: {}, ok: boolean, message: string?
 	]=]
 	validate_result =
 		net.create_event("validate_result")
-		:: types.NetEvent<number, string, boolean, string?>,
+		:: types.NetEvent<number, string, Query?, boolean, string?>,
 
 	--[=[
 	Requests a server to initiate replication of a query.

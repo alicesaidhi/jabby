@@ -219,8 +219,7 @@ return function()
 			local components = get_all_components(world, entity)
 
 			local function is_tag(id: jecs.Entity<any>)
-				return if IS_PAIR(id) then not world:has(jecs.pair_first(world, id), jecs.Component)
-					else not world:has(id, jecs.Component)
+				return jecs.is_tag(world, id)
 
 			end
 

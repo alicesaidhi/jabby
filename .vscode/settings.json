@@ -15,5 +15,8 @@
 		"no-inline-html": {
 			"allowed_elements": [ "template", "DividePage", "script", "Badge" ],
 		}
-	}
+	},
+
+	"luau-lsp.fflags.enableNewSolver": false,
+	"luau-lsp.completion.enableFragmentAutocomplete": false
 }

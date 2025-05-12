@@ -38,6 +38,7 @@ function overview_query.mount(props: props, destroy: () -> ())
 	local msg = source("")
 
 	local query = source("")
+	local primary_entity = source()
 	local columns = source({})
 	local from = source(1)
 	local upto = source(25)
@@ -61,6 +62,7 @@ function overview_query.mount(props: props, destroy: () -> ())
 
 			columns = columns,
 			query = query,
+			primary_entity = primary_entity,
 			paused = paused,
 			refresh = refresh,
 
@@ -126,6 +128,8 @@ function overview_query.mount(props: props, destroy: () -> ())
 		current_query = query,
 		total_rows_per_page = source(25),
 		set_rows_per_page = source(25),
+
+		primary_entity = primary_entity,
 
 		from = from,
 		upto = upto,

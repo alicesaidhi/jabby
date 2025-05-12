@@ -29,6 +29,8 @@ type props = {
 	from: vide.Source<number>,
 	upto: vide.Source<number>,
 
+	primary_entity: () -> number?,
+
 	update_system_query: (query: string) -> (),
 	current_query: () -> string,
 	total_entities: () -> number,
@@ -172,6 +174,38 @@ return function(props: props)
 					},
 
 				},
+				
+				vide.show(function()
+					return props.primary_entity()
+				end, function()
+					return pebble.button {
+						size = UDim2.fromOffset(30, 30),
+		
+						text = "",
+	
+						activated = function()
+							spawn_app.spawn_app(entity, {
+								host = props.host,
+								vm = props.vm,
+								id = props.id,
+								entity = props.primary_entity()
+							})
+						end,
+						
+						create "ImageLabel" {
+							Size = UDim2.fromOffset(24, 24),
+							Position = UDim2.fromScale(0.5, 0.5),
+							AnchorPoint = Vector2.new(0.5, 0.5),
+		
+							BackgroundTransparency = 1,
+	
+							ImageColor3 = pebble.theme.fg_on_bg_high[3],
+
+							Image = "rbxassetid://10723415903"
+						},
+		
+					}
+				end),
 
 				pebble.button {
 					size = UDim2.fromOffset(30, 30),
