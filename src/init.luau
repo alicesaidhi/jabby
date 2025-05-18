@@ -6,7 +6,9 @@ local server = require(script.server)
 local public = require(script.server.public)
 local scheduler = require(script.server.scheduler)
 
-type Applet<T> = {
+export type Scheduler = types.Scheduler
+
+export type Applet<T> = {
 	--- this is currently a temporary measure, while i work on a more
 	--- long-term solution for jabby 0.3.
 	add_to_public: (name: string, config: T) -> ()
