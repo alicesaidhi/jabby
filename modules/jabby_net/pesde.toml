@@ -1,4 +1,4 @@
-name = "alicesaidhi/jabby_core"
+name = "alicesaidhi/jabby_net"
 version = "0.1.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"

@@ -1,4 +1,4 @@
-name = "alicesaidhi/jabby_core"
+name = "alicesaidhi/jabby_types"
 version = "0.1.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
@@ -12,4 +12,3 @@ build_files = ["src"]
 default = "https://github.com/daimond113/pesde-index"
 
 [dependencies]
-jabby_types = { workspace = "alicesaidhi/jabby_types" }

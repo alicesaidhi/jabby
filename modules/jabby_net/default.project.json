@@ -1,0 +1,9 @@
+{
+	"tree": {
+		"packages": {
+			"$path": "roblox_packages"
+		},
+
+		"$path": "src"
+	}
+}
