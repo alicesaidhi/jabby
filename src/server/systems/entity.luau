@@ -199,7 +199,7 @@ return function()
 				elseif data == TAG then
 					-- tag is handled separately, as its still just "nil"
 					-- the difference is that entities used as tags arent allowed to store data
-					world:set(entity, entity_to_set)
+					world:add(entity, entity_to_set)
 				else
 					world:set(entity, entity_to_set, data)
 				end
