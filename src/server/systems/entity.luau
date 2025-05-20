@@ -197,8 +197,8 @@ return function()
 				if data == nil then
 					world:remove(entity, entity_to_set)
 				elseif data == TAG then
-					-- tag is handled separately, as its still just "nil"
-					-- the difference is that entities used as tags arent allowed to store data
+					-- trying to use world:set with a tag will result in an error,
+					-- even if the data is nil, so instead we use world:add
 					world:add(entity, entity_to_set)
 				else
 					world:set(entity, entity_to_set, data)
