@@ -1,19 +1,12 @@
---- Every player gets a couple permissions.
-export type User = {
-	read name: string,
-	read player: Player?,
-	read permissions: { string }
-}
-
 --- An applet receives this object which can be used to perform things as an
 --- applet.
 export type JabbyApplet<Configuration> = {
 	read name: string,
 	read description: string,
 	read configuration: Configuration,
-	
 	read unique_id: number,
-	read connect: () -> ()
+
+	read unique_name: (JabbyApplet<Configuration>) -> string,
 }
 
 --- An applet needs to conform to this interface
@@ -26,6 +19,11 @@ export type JabbyAppletInterface<Configuration> = {
 	read registered: (self: JabbyApplet<Configuration>) -> (),
 }
 
+--- The host of an applet.
 export type Host = "server" | Player
+
+-- JABBY NETWORKING
+
+--- 
 
 return nil

@@ -5,6 +5,20 @@ name = "alicesaidhi/jabby_net"
 version = "0.1.0"
 target = "roblox"
 
+[graph."alicesaidhi/jabby_core@0.1.0 roblox"]
+direct = ["jabby_core", { workspace = "alicesaidhi/jabby_core", version = "^" }, "standard"]
+resolved_ty = "standard"
+
+[graph."alicesaidhi/jabby_core@0.1.0 roblox".dependencies]
+"alicesaidhi/jabby_types@0.1.0 roblox" = "jabby_types"
+
+[graph."alicesaidhi/jabby_core@0.1.0 roblox".pkg_ref]
+ref_ty = "workspace"
+path = "modules/jabby_core"
+
+[graph."alicesaidhi/jabby_core@0.1.0 roblox".pkg_ref.dependencies]
+jabby_types = [{ workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
+
 [graph."alicesaidhi/jabby_types@0.1.0 roblox"]
 direct = ["jabby_types", { workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
 resolved_ty = "standard"
@@ -12,3 +26,19 @@ resolved_ty = "standard"
 [graph."alicesaidhi/jabby_types@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_types"
+
+[graph."alicesaidhi/jabby_util@0.1.0 roblox"]
+direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
+resolved_ty = "standard"
+
+[graph."alicesaidhi/jabby_util@0.1.0 roblox".pkg_ref]
+ref_ty = "workspace"
+path = "modules/jabby_util"
+
+[graph."corecii/greentea@0.4.11 roblox"]
+direct = ["gt", { name = "corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
+resolved_ty = "standard"
+
+[graph."corecii/greentea@0.4.11 roblox".pkg_ref]
+ref_ty = "pesde"
+index_url = "https://github.com/daimond113/pesde-index"
