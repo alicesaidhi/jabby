@@ -10,6 +10,9 @@ workspace_members = ["modules/*"]
 [target]
 environment = "roblox"
 
+[wally_indices]
+default = "https://github.com/UpliftGames/wally-index"
+
 [indices]
 default = "https://github.com/pesde-pkg/index"
 

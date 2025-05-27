@@ -1,4 +1,4 @@
-name = "alicesaidhi/jabby_core"
+name = "alicesaidhi/jabby_types"
 version = "0.1.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
@@ -8,11 +8,7 @@ environment = "roblox"
 lib = "src/lib.luau"
 build_files = ["src"]
 
-[wally_indices]
-default = "https://github.com/UpliftGames/wally-index"
-
 [indices]
 default = "https://github.com/daimond113/pesde-index"
 
 [dependencies]
-jabby_types = { workspace = "alicesaidhi/jabby_types" }

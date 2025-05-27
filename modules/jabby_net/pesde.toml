@@ -1,4 +1,4 @@
-name = "alicesaidhi/jabby_core"
+name = "alicesaidhi/jabby_net"
 version = "0.1.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
@@ -14,5 +14,12 @@ default = "https://github.com/UpliftGames/wally-index"
 [indices]
 default = "https://github.com/daimond113/pesde-index"
 
+[dev_dependencies]
+jest = { wally = "jsdotlua/jest", version = "^3.10.0" }
+jest_globals = { wally = "jsdotlua/jest-globals", version = "^3.10.0" }
+promise = { wally = "evaera/promise", version = "^4.0.0" }
+
 [dependencies]
 jabby_types = { workspace = "alicesaidhi/jabby_types" }
+jabby_util = { workspace = "alicesaidhi/jabby_util" }
+gt = { name = "corecii/greentea", version = "^0.4.11" }

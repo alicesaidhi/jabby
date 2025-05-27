@@ -5,4 +5,5 @@
 
 [tools]
 rojo = "rojo-rbx/rojo@7.4.4"
-pesde = "daimond113/pesde@0.6.0+registry.0.2.0"
+pesde = "daimond113/pesde@0.7.0-rc.3+registry.0.2.3-rc.2"
+lune = "lune-org/lune@0.8.9"

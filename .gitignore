@@ -4,8 +4,9 @@
 
 # Packages
 /Packages
+*_packages
 
-/sourcemap.json
+sourcemap.json
 /out
 
 /wally.lock
@@ -13,3 +14,5 @@
 # Documentation
 /docs/node_modules/
 /docs/.vitepress/cache
+
+.env
