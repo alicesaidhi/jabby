@@ -1,0 +1,28 @@
+title = "jabby"  # From Git
+gitRepoUrl = "https://github.com/alicesaidhi/jabby" # From Git
+
+gitSourceBranch = "main"
+changelog = true
+classOrder = []
+autoSectionPath = "modules/"
+
+[docusaurus]
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+
+# From git:
+projectName = "jabby"
+url = "https://alicesaidhi.github.io"
+baseUrl = "/jabby"
+tagline = "Powerful Roblox tooling"
+
+[footer]
+style = "dark"
+copyright = "Copyright © 2025 alicesaidhi. Built with Moonwave and Docusaurus"
+
+[[footer.links]]
+title = "examples"
+
+[[footer.links.items]]
+label = "example"
+href = "https://example.com/"

@@ -1,4 +1,4 @@
---[=[
+--[[
 
 jabby_net is the underlying networking abstraction for jabby, alllowing developers
 to create networking primitives that can be used to communicate with other clients,
@@ -8,7 +8,7 @@ NOTES:
 -1 is intended for global
 -2 is intended for redirecting
 
-]=]
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -83,6 +83,39 @@ type EventInstance = {
 	read id2id: BindableEvent,
 }
 
+--- @class RemoteConnection
+
+--[=[
+@within RemoteConnection
+@method on_event
+@param fn (Sender, T) -> ()
+Sets the callback to run whenever an event is received.
+
+:::warning
+This will disable using `:iter()` to iterate over all events in the past frame which may be undesired behavior.
+:::
+]=]
+
+--[=[
+@within RemoteConnection
+@method set_permission_data
+@param fn (sender: Sender, target: Target, packet: T)
+Takes in a function that produces information about what the player is trying to do
+with this event. 
+]=]
+
+--[=[
+@within RemoteConnection
+@method iter
+@return () -> (Sender, T)
+Iterates over all events that have been received in the past frame.
+]=]
+
+--[=[
+@within RemoteConnection
+@method disconnect
+Disconnects all connections made.
+]=]
 export type RemoteConnection<T> = {
 	read id: number,
 	read namespace: string,
@@ -106,6 +139,29 @@ export type RemoteConnection<T> = {
 	read disconnect: (RemoteConnection<T>) -> ()
 }
 
+
+--[=[
+@class Remote
+
+Allows you to fire an one-way event to a client.
+]=]
+
+--[=[
+@within Remote
+@method fire
+@param target { to: number, id: number }
+@param packet T
+
+Fires an event to the given target.
+]=]
+
+--[=[
+@within Remote
+@method connect
+@return RemoteConnection
+Connects to the remote, returning a RemoteConnection
+]=]
+
 export type Remote<T> = {
 	read namespace: string,
 	read identifier: string,
@@ -120,6 +176,31 @@ export type Remote<T> = {
 
 	read connect: (Remote<T>, as: Id) -> RemoteConnection<T>
 }
+
+
+--[=[
+@class RemoteFnConnection
+A bi-directional event allowing you to invoke the server and expect a result back.
+]=]
+
+--[=[
+@within RemoteFnConnection
+@method on_invoke
+@param fn (Sender, Packet) -> ReturnPacket
+Sets the callback which is used to process the request from the client and to return a result.
+
+:::warning
+This will disable using `:iter()` to iterate over all invokes which may be undesired behavior.
+:::
+]=]
+
+--[=[
+@within RemoteFnConnection
+@method iter
+@return () -> (Sender, (ReturnPacket) -> (), Packet)
+Iterates over all invokes that have been received since last iteration and
+allows you to return a result if ready.
+]=]
 
 export type RemoteFnConnection<T, U> = {
 	read id: number,
@@ -137,6 +218,26 @@ export type RemoteFnConnection<T, U> = {
 	read iter: (RemoteFnConnection<T, U>) -> () -> (Sender, (U) -> (), T)
 }
 
+--[=[
+@class RemoteFn
+A bi-directional event allowing you to invoke the server and expect a result back.
+]=]
+
+--[=[
+@within RemoteFn
+@method invoke
+@param target Target
+@param packet Packet
+@return Yield<ReturnValue>
+Invokes the provided target waiting for a result back.
+]=]
+
+--[=[
+@within RemoteFn
+@method connect
+@return RemoteConnection
+Connects to the remote, returning a RemoteFnConnection which allows you to handle what to do when invoked.
+]=]
 export type RemoteFn<T, U> = {
 	read namespace: string,
 	read identifier: string,
@@ -149,6 +250,60 @@ export type RemoteFn<T, U> = {
 
 	read connect: (RemoteFn<T, U>, as: Id) -> RemoteFnConnection<T, U>
 }
+
+--[=[
+@class Socket
+
+Created by RemoteSocket, it implements a basic socket that allows for receiving
+and sending data.
+]=]
+
+--[=[
+@within Socket
+@method send
+@param Packet unknown
+
+Sends some data to the target.
+]=]
+
+--[=[
+@within Socket
+@method receive
+@return () -> unknown
+
+Iterates over all the data that was sent by the target.
+
+:::warning
+Iterators will stop when they encounter the first nil value! As result, nil packets cannot be iterated over.
+:::
+]=]
+
+--[=[
+@within Socket
+@method on_event
+@param fn (unknown) -> ()
+
+Sets the callback which is used to process the event from the client.
+
+:::warning
+This will disable using `:receive()` to iterate over all events which may be undesired behavior.
+:::
+]=]
+
+--[=[
+@within Socket
+@method status
+@return "closed" | "waiting" | "open"
+
+Returns if the socket is closed, waiting or opened.
+]=]
+
+--[=[
+@within Socket
+@method close
+
+Closes the given socket
+]=]
 
 export type Socket<T> = {
 	read remote: RemoteSocket<T>,
@@ -178,6 +333,33 @@ type SocketRequest = {
 	when: number
 }
 
+--[=[
+@class RemoteSocket
+
+Allow for creating sockets which can be used to transfer data to eachother and skip authority checks.
+This should be the preferred method for when you want the server to constantly send a stream of data back.
+]=]
+
+--[=[
+@within RemoteSocket
+@method open_socket
+@param target Player | "server"
+@return Socket<T>
+
+Opens a new socket that will wait for the target to accept the socket.
+]=]
+
+--[=[
+@within RemoteSocket
+@method accept_socket
+@param target Player | "server"
+@param id number
+@return Socket<T>
+
+Accepts the socket from target with the given id and initiates communication.
+This will last until one of the sockets close.
+]=]
+
 export type RemoteSocket<T> = {
 	read namespace: string,
 	read identifier: string,
@@ -187,9 +369,9 @@ export type RemoteSocket<T> = {
 	read _close_socket: Remote<typeof(SOCKET_INFO)>,
 	read _talk_socket: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
 
-	--- sockets that are currently waiting. they map the sender to a map mapping socket ids to the target
+	-- sockets that are currently waiting. they map the sender to a map mapping socket ids to the target
 	read _waiting_sockets: { [Sender]: { [number]: { target: Sender, when: number } } },
-	--- sockets that are currently active. they map the sender to a map mapping socket ids to the target
+	-- sockets that are currently active. they map the sender to a map mapping socket ids to the target
 	read _open_sockets: { [Sender]: { [number]: Sender } },
 
 	read open_socket: (RemoteSocket<T>, target: Sender) -> (Socket<T>, number),
@@ -821,6 +1003,57 @@ local function socket_create<T>(
 
 	return socket
 end
+
+--[=[
+@class jabby_net
+
+Responsible for all tasks networking within jabby, allows client-server,
+server-client and client-client communication through secure primitives.
+]=]
+
+--[=[
+@within jabby_net
+@function set_auth_callback
+@param fn (action: { user: Sender, action: string, [string]: any }) -> boolean
+
+Sets the function that will determine if a user is allowed to fire an event or
+not within jabby.
+]=]
+
+--[=[
+@within jabby_net
+@function event_create
+@param namespace string
+@param identifier string
+@external Type https://corecii.github.io/GreenTea/api/Type
+@param type Type
+@return Remote
+
+Creates a new Remote for sending events.
+]=]
+
+--[=[
+@within jabby_net
+@function function_create
+@param namespace string
+@param identifier string
+@param type_packet Type
+@param type_result Type
+@return RemoteFn
+
+Creates a new RemoteFn for invokes.
+]=]
+
+--[=[
+@within jabby_net
+@function socket_create
+@param namespace string
+@param identifier string
+@param type Type
+@return RemoteSocket
+
+Creates a new RemoteSocket for creating sockets.
+]=]
 
 return {
 	set_auth_callback = function(fn: (any) -> boolean)
