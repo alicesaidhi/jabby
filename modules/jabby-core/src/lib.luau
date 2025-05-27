@@ -23,7 +23,7 @@ config to store any extra data that the applet needs to know about.
 @within jabby_core
 @param applet JabbyAppletInterface<T>
 @param config T
-@returns JabbyApplet
+@return JabbyApplet
 ]=]
 local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 	local applet_data: JabbyApplet<T> = {
