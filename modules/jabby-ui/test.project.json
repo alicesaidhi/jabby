@@ -1,0 +1,16 @@
+{
+	"name": "jabby-ui",
+  	"emitLegacyScripts": true,
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"roblox_packages": {
+				"$path": "roblox_packages"
+			},
+			"src": {
+				"$path": "src"
+			}
+		}
+	}
+}
