@@ -16,10 +16,6 @@ local function get_applet_hash(host: Host, id: number)
 	return `{host}:{id}`
 end
 
-local function get_unique_name<T>(applet: JabbyApplet<T>)
-	return `{applet.name}:{applet.unique_id}`
-end
-
 --[=[
 Registers a new applet with the provided interface internally inside the jabby core.
 ]=]
