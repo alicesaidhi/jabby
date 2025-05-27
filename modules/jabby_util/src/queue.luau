@@ -28,7 +28,8 @@ type Array<T> = { T }
 export type Queue<T...> = typeof(setmetatable({} :: {
     add: (self: Queue<T...>, T...) -> (),
     clear: (self: Queue<T...>) -> (),
-    iter: (self: Queue<T...>) -> () -> (T...)
+    iter: (self: Queue<T...>) -> () -> (T...),
+    transform: <U...>(self: Queue<T...>, transform: (T...) -> U...) -> () -> U...
 }, {} :: {
     __len: (self: Queue<T...>) -> number,
     __iter: (self: Queue<T...>) -> () -> (T...)

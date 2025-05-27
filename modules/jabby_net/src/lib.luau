@@ -4,6 +4,10 @@ jabby_net is the underlying networking abstraction for jabby, alllowing develope
 to create networking primitives that can be used to communicate with other clients,
 the host or itself.
 
+NOTES:
+-1 is intended for global
+-2 is intended for redirecting
+
 ]=]
 
 local Players = game:GetService("Players")
@@ -15,6 +19,7 @@ local gt = require(script.Parent.Parent.roblox_packages.gt)
 local jabby_types = require(script.Parent.Parent.roblox_packages.jabby_types)
 local jabby_util = require(script.Parent.Parent.roblox_packages.jabby_util)
 local call_counter = require(script.Parent.call_counter)
+local socket_id = require(script.Parent.socket_id)
 
 local SHOULD_NOT_CREATE_REMOTE_EVENTS = _G.JABBY_DO_NOT_CREATE_REMOTES
 
@@ -45,6 +50,18 @@ local function FUNCTION_RESULT_TYPE<T>(data: T)
 			value = data
 		}
 	)
+end
+
+local SOCKET_INFO = gt.table {
+	socket_id = gt.number({ range = "[0,)" }),
+	target = gt.union(gt.literal("server") :: "server", gt.isA.Player())
+}
+
+local SOCKET_SEND = function<T>(data: T)
+	return gt.table {
+		id = gt.number( { range = "[0, )"} ),
+		data = data
+	}
 end
 
 type Id = number
@@ -134,37 +151,48 @@ export type RemoteFn<T, U> = {
 
 
 export type Socket<T> = {
-	read namespace: string,
-	read identifier: string,
-	read typechecker: gt.Type,
+	read remote: RemoteSocket<T>,
 
 	read socket_id: number,
-	read target: Target,
+	read target: Sender,
+	read creator: Sender,
+
+	read _talk_remote: Remote<T>,
+	read _queue: jabby_util.Queue<T>,
+	_callback: (T) -> (),
+
+	read status: (Socket<T>) -> "waiting" | "closed" | "open",
+	read close: (Socket<T>) -> (),
 
 	read send: (Socket<T>, value: T) -> (),
 	read receive: (Socket<T>) -> () -> T,
-	read on_receive: (Socket<T>, fn: (T) -> ()) -> ()
+	read on_event: (Socket<T>, fn: (T) -> ()) -> (),
+	-- read on_close: (Socket<T>, fn: (T) -> ()) -> ()
+	
 }
 
-
-type SocketCreate<T> = ((create: true) -> Socket<T>) & ((create: false) -> ())
-export type RemoteSocketConnection<T, U> = {
-	read id: number,
-	read typechecker: gt.Type,
-
-	read on_request: (RemoteFnConnection<T, U>, fn: (sender: Sender, socket: SocketCreate<U>, packet: T) -> ()) -> (),
-	read iter: (RemoteFnConnection<T, U>) -> () -> (Sender, SocketCreate<U>, T)
+type SocketRequest = {
+	from: Sender,
+	to: Target,
+	when: number
 }
 
-export type RemoteSocket<T, U> = {
+export type RemoteSocket<T> = {
 	read namespace: string,
 	read identifier: string,
-	read typechecker: (T) -> (boolean, any),
 
-	read fire: (RemoteSocket<T, U>, target: Target, value: T) -> (),
-	read set_permission_data: (RemoteConnection<T>, fn: (Sender, Target, T) -> T) -> (),
+	read _request_socket: RemoteFn<typeof(SOCKET_INFO), boolean>,
+	read _accept_socket: RemoteFn<typeof(SOCKET_INFO), boolean>,
+	read _close_socket: Remote<typeof(SOCKET_INFO)>,
+	read _talk_socket: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
 
-	read connect: (RemoteSocket<T, U>, as: Id) -> RemoteSocketConnection<T, U>
+	--- sockets that are currently waiting. they map the sender to a map mapping socket ids to the target
+	read _waiting_sockets: { [Sender]: { [number]: { target: Sender, when: number } } },
+	--- sockets that are currently active. they map the sender to a map mapping socket ids to the target
+	read _open_sockets: { [Sender]: { [number]: Sender } },
+
+	read open_socket: (RemoteSocket<T>, target: Sender) -> (Socket<T>, number),
+	read accept_socket: (RemoteSocket<T>, target: Sender, id: number) -> Socket<T>,
 }
 
 local PACKET_TARGET: jabby_types.Host = if RunService:IsServer() then "server" else Players.LocalPlayer
@@ -451,8 +479,8 @@ local function function_create<T, U>(
 		identifier = identifier,
 		pending_from = {},
 
-		invoke_event = event_create(namespace, `FNJABBY_{identifier}_invoke`, FUNCTION_INVOKE_TYPE(gt_invoke)),
-		result_event = event_create(namespace, `FNJABBY_{identifier}_result`, FUNCTION_RESULT_TYPE(gt_result)),
+		invoke_event = event_create(namespace, `JABBY_{identifier}_invoke`, FUNCTION_INVOKE_TYPE(gt_invoke)),
+		result_event = event_create(namespace, `JABBY_{identifier}_result`, FUNCTION_RESULT_TYPE(gt_result)),
 
 		invoke = function_invoke,
 		connect = function_connect
@@ -527,12 +555,256 @@ local function function_create<T, U>(
 	return self
 end
 
+local function socket_create_waiting_socket(
+	socket: RemoteSocket<any>,
+	sender: Sender,
+	target: Sender,
+	socket_id: number
+): boolean
+	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
+	if map_sender_to_waiting_sockets[socket_id] then return false end
+	if #map_sender_to_waiting_sockets > 10 then return false end
+	
+	map_sender_to_waiting_sockets[socket_id] = {
+		target = target,
+		when = os.clock()
+	}
+	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
+end
+
+local function socket_open_waiting_socket(
+	socket: RemoteSocket<any>,
+	sender: Sender,
+	socket_id: number
+): boolean
+	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
+	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
+
+	if not map_sender_to_waiting_sockets[socket_id] then return false end
+	if not map_sender_to_open_sockets[socket_id] then return false end
+
+	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
+	socket._open_sockets[sender] = map_sender_to_open_sockets
+
+	local info = map_sender_to_waiting_sockets[socket_id]
+
+	if info.target ~= sender then return false end
+
+	map_sender_to_waiting_sockets[socket_id] = nil
+	map_sender_to_open_sockets[socket_id] = info.target	
+end
+
+
+local function socket_close_socket(
+	socket: RemoteSocket<any>,
+	sender: Sender,
+	target: Sender,
+	socket_id: number
+)
+	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
+	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
+
+	if not map_sender_to_waiting_sockets[socket_id] then return end
+	if not map_sender_to_open_sockets[socket_id] then return end
+
+	local info = map_sender_to_waiting_sockets[socket_id] and map_sender_to_waiting_sockets[socket_id].target
+		or map_sender_to_open_sockets[socket_id]
+
+	if not info or (info ~= target and sender ~= target) then return end
+
+	map_sender_to_waiting_sockets[socket_id] = nil
+	map_sender_to_open_sockets[socket_id] = nil	
+end
+
+local function socket_status<T>(socket: Socket<T>): "open" | "closed" | "waiting"
+	local map_open_sockets = socket.remote._open_sockets
+	local is_open = not not (map_open_sockets[socket.creator] and map_open_sockets[socket.creator][socket.socket_id])
+	local map_waiting_sockets = socket.remote._open_sockets
+	local is_waiting = not not (map_waiting_sockets[socket.creator] and map_waiting_sockets[socket.creator][socket.socket_id])
+
+	return if is_open then "open" elseif is_waiting then "waiting" else "closed"
+end
+
+local function socket_close<T>(socket: Socket<T>)
+	if socket_status(socket) then return end
+	socket_close_socket(socket.remote, socket.creator, PACKET_TARGET, socket.socket_id)
+	socket.remote._close_socket:fire({ to = "server", id = -1 }, { socket_id = socket.socket_id, target = socket.creator })
+end
+
+local function socket_send<T>(socket: Socket<T>, value: T)
+	socket._talk_remote:fire({ to = socket.target, id = if socket.creator == socket.target then 1 else 0 }, value)
+end
+
+local function socket_receive<T>(socket: Socket<T>): () -> T
+	return socket._queue:iter()
+end
+
+local function socket_on_event<T>(socket: Socket<T>, fn: (T) -> ())
+	socket._callback = fn
+end
+
+local function socket_create_connected_socket<T>(
+	socket: RemoteSocket<T>,
+	creator: Sender,
+	target: Sender,
+	socket_id: number
+): Socket<T>
+	local queue = jabby_util.queue()
+	
+	local self: Socket<T> = {
+		remote = socket,
+
+		socket_id = socket_id,
+		target = target,
+		creator = creator,
+
+		_talk_remote = socket._talk_socket,
+		_queue = queue,
+		_callback = function(data)
+			queue:add(data)
+		end,
+
+		status = socket_status,
+		close = socket_close,
+
+		send = socket_send,
+		receive = socket_receive,
+		on_event = socket_on_event
+	}
+
+	socket._talk_socket:connect(if creator == target then 0 else 1):on_event(function(sender, packet)
+		if sender ~= self.target then return end
+		if packet.id ~= socket_id then return end
+
+		self._callback(packet.data)
+	end)
+
+	return self
+end
+
+local function socket_open<T>(socket: RemoteSocket<T>, target: Sender): (Socket<T>, number)
+	local id = socket_id()
+	
+	socket_create_waiting_socket(socket, PACKET_TARGET, target, id)
+	return socket_create_connected_socket(socket, PACKET_TARGET, target, id), id
+end
+
+local function socket_accept<T>(socket: RemoteSocket<T>, from: Sender, id: number): Socket<T>
+	socket_create_waiting_socket(socket, from, PACKET_TARGET, id)
+
+	local result = socket._accept_socket:invoke({ to = "server", id = -1 }, {
+		socket_id = id,
+		target = from
+	})
+
+	result:after(function(result)
+		if result.ok and result.value then
+			socket_open_waiting_socket(socket, from, id)
+		else
+			socket_close_socket(socket, from, from, id)
+		end
+	end)
+	
+	return socket_create_connected_socket(socket, from, from, id)
+end
+
+local function socket_create<T>(
+	namespace: string,
+	identifier: string,
+	gt_send: T
+): RemoteSocket<T>
+	local request_socket = function_create(namespace, `{identifier}_CREATE_SOCKET`, SOCKET_INFO, gt.bool())
+	local accept_socket = function_create(namespace, `{identifier}_ACCEPT_SOCKET`, SOCKET_INFO, gt.bool())
+	local close_socket = event_create(namespace, `{identifier}_CLOSE_SOCKET`, SOCKET_INFO)
+	local talk_socket = event_create(namespace, `{identifier}_TALK_SOCKET`, SOCKET_SEND(gt_send) )
+
+	local waiting_sockets = {}
+	local opened_sockets = {}
+
+	local socket: RemoteSocket<T> = {
+		namespace = namespace,
+		identifier = identifier,
+
+		_request_socket = request_socket,
+		_accept_socket = accept_socket,
+		_close_socket = close_socket,
+		_talk_socket = talk_socket,
+
+		_waiting_sockets = waiting_sockets,
+		_open_sockets = opened_sockets,
+		
+		open_socket = socket_open,
+		accept_socket = socket_accept
+	}
+
+	if RunService:IsServer() then
+		request_socket.invoke_event.permissions.redirect = function()
+			return false
+		end
+
+		request_socket.result_event.permissions.redirect = function()
+			return false
+		end
+
+		accept_socket.invoke_event.permissions.redirect = function()
+			return false
+		end
+
+		accept_socket.result_event.permissions.redirect = function()
+			return false
+		end
+
+		close_socket.permissions.redirect = function()
+			return false
+		end
+
+		request_socket.invoke_event.permissions.process = function(_, target: Target)
+			return target.to == "server" and target.id == -1
+		end
+
+		request_socket.invoke_event.permissions.process = function(_, target: Target)
+			return target.to == "server" and target.id == -1
+		end
+
+		close_socket.permissions.process = function(_, target: Target)
+			return target.to == "server" and target.id == -1
+		end
+		
+		talk_socket.permissions.process = function(sender: Sender, target: Target, data: Socket<any>)
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to][data.socket_id]
+			if not opened then return false end
+			return (opened == target.to or opened == sender) and target.id == -1
+		end
+
+		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: Socket<any>)
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to][data.socket_id]
+			if not opened then return false end
+			return (opened == target.to or opened == sender) and target.id == -1
+		end
+
+		request_socket:connect(-1):on_invoke(function(sender, data)
+			return socket_create_waiting_socket(socket, sender, data.target, data.socket_id)
+		end)
+		
+		accept_socket:connect(-1):on_invoke(function(sender, data)
+			return socket_open_waiting_socket(socket, data.target, data.socket_id)
+		end)
+
+		close_socket:connect(-1):on_event(function(sender, data: typeof(SOCKET_INFO))
+			socket_close_socket(socket, data.target, sender, data.socket_id)
+		end)
+	end
+
+	return socket
+end
+
 return {
 	set_auth_callback = function(fn: (any) -> boolean)
 		CAN_USE_THING = fn
 	end,
 
 	function_create = function_create,
-	event_create = event_create
+	event_create = event_create,
+	socket_create = socket_create
 
 }

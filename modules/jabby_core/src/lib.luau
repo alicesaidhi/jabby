@@ -1,7 +1,5 @@
-local HttpService = game:GetService("HttpService")
-
+local jabby_types = require(script.Parent.Parent.roblox_packages.jabby_types)
 local host = require(script.Parent.host)
-local jabby_types = require(script.Parent.packages.jabby_types)
 local vm_counter = require(script.Parent.vm_counter)
 local vm_id = require(script.Parent.vm_id)
 
@@ -18,6 +16,10 @@ local function get_applet_hash(host: Host, id: number)
 	return `{host}:{id}`
 end
 
+local function get_unique_name<T>(applet: JabbyApplet<T>)
+	return `{applet.name}:{applet.unique_id}`
+end
+
 --[=[
 Registers a new applet with the provided interface internally inside the jabby core.
 ]=]
@@ -26,13 +28,14 @@ local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 		name = applet.name,
 		description = applet.description,
 		configuration = config,
-
 		unique_id = vm_counter()
 	} :: JabbyApplet<T>
 
 	active_applets[get_applet_hash(host, applet_data.unique_id)] = applet_data
 
-	return applet.registered(applet_data)
+	applet.registered(applet_data)
+
+	return applet_data
 end
 
 return {
