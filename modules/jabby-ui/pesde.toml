@@ -16,6 +16,3 @@ default = "https://github.com/daimond113/pesde-index"
 
 [dependencies]
 vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.3" }
-
-[patches]
-"alicesaidhi/vide" = { "0.4.1-test.3 roblox" = "patches/alicesaidhi+vide-0.4.1-test.3+roblox.patch" }
