@@ -125,6 +125,23 @@ describe("event", function()
 			idx += 1
 		end
 	end)
+
+	it("does not fire when disconnected", function()
+		local event_channel = lib.event_create("testing", "event_5", ANY)
+		local connection = event_channel:connect(1)
+
+		connection:disconnect()
+
+		event_channel:fire({ to = "server", id = 1 }, 1)
+		event_channel:fire({ to = "server", id = 1 }, 2)
+		event_channel:fire({ to = "server", id = 1 }, 3)
+		event_channel:fire({ to = "server", id = 1 }, 4)
+		event_channel:fire({ to = "server", id = 1 }, 5)
+
+		for sender, value in connection:iter() do
+			expect(value).toBe(nil)
+		end
+	end)
 end)
 
 describe("function", function()
@@ -265,5 +282,76 @@ describe("socket", function()
 		local function_channel = lib.socket_create("testing", "test1")
 		
 		expect(function_channel).toBeDefined(nil)
+	end)
+
+	it("create and accept socket", function()
+		local channel = lib.socket_create("testing", "test2", gt.number())
+		local socket0, id = channel:open_socket("server")
+
+		expect(socket0:status()).toBe("waiting")
+
+		local socket1 = channel:accept_socket("server", id)
+		expect(socket1:status()).toBe("waiting")
+		task.wait()
+
+		expect(socket0:status()).toBe("open")
+		expect(socket1:status()).toBe("open")
+
+	end)
+
+	it("send events to eachother", function()
+		local channel = lib.socket_create("testing", "test2", gt.number())
+		local socket0, id = channel:open_socket("server")
+
+		expect(socket0:status()).toBe("waiting")
+
+		local socket1 = channel:accept_socket("server", id)
+		expect(socket1:status()).toBe("waiting")
+		task.wait()
+
+		expect(socket0:status()).toBe("open")
+		expect(socket1:status()).toBe("open")
+
+		socket0:send(0)
+		socket1:send(1)
+
+		for value in socket1:receive() do
+			expect(value).toBe(0)
+		end
+
+		for value in socket0:receive() do
+			expect(value).toBe(1)
+		end
+	end)
+	
+	it("closed socket does not receive", function()
+		local channel = lib.socket_create("testing", "test2", gt.number())
+		local socket0, id = channel:open_socket("server")
+
+		expect(socket0:status()).toBe("waiting")
+
+		local socket1 = channel:accept_socket("server", id)
+		expect(socket1:status()).toBe("waiting")
+		task.wait()
+
+		expect(socket0:status()).toBe("open")
+		expect(socket1:status()).toBe("open")
+
+		socket0:close()
+
+		expect(socket0:status()).toBe("closed")
+		task.wait()
+		expect(socket1:status()).toBe("closed")
+
+		socket0:send(0)
+		socket1:send(1)
+
+		for value in socket1:receive() do
+			expect(value).never()
+		end
+
+		for value in socket0:receive() do
+			expect(value).never()
+		end
 	end)
 end)

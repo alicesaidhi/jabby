@@ -98,10 +98,12 @@ export type RemoteConnection<T> = {
 	callback: (Sender, T) -> (),
 
 	permission_data: (Sender, Target, T) -> GenericActionData,
+	event: { RBXScriptConnection },
 
 	read set_permission_data: (RemoteConnection<T>, fn: (Sender, Target, T) -> GenericActionData) -> (),
 	read on_event: (RemoteConnection<T>, fn: (sender: Sender, packet: T) -> ()) -> (),
-	read iter: (RemoteConnection<T>) -> () -> (Sender, T)
+	read iter: (RemoteConnection<T>) -> () -> (Sender, T),
+	read disconnect: (RemoteConnection<T>) -> ()
 }
 
 export type Remote<T> = {
@@ -139,7 +141,6 @@ export type RemoteFn<T, U> = {
 	read namespace: string,
 	read identifier: string,
 	read pending_from: { [number]: thread },
-	permission_data: (Sender, Target, T) -> GenericActionData,
 
 	read invoke_event: Remote<typeof(FUNCTION_INVOKE_TYPE(newproxy() :: T))>,
 	read result_event: Remote<typeof(FUNCTION_RESULT_TYPE(newproxy() :: U))>,
@@ -157,7 +158,8 @@ export type Socket<T> = {
 	read target: Sender,
 	read creator: Sender,
 
-	read _talk_remote: Remote<T>,
+	read _talk_remote: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
+	read _talk_receive: RemoteConnection<typeof(SOCKET_SEND(newproxy() :: T))>,
 	read _queue: jabby_util.Queue<T>,
 	_callback: (T) -> (),
 
@@ -297,10 +299,19 @@ local function event_iter<T>(self: RemoteConnection<T>)
 	return self.queue:iter()
 end
 
+local function event_disconnect<T>(self: RemoteConnection<T>)
+	for _, event in self.event do
+		event:Disconnect()
+	end
+
+	self.event = {}
+end
+
 local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T>
 	local event = get_event(self.namespace, self.identifier)
 	local queue = jabby_util.queue()
-	local object = {
+	local events = {}
+	local object: RemoteConnection<T> = {
 		id = id,
 		permissions = self.permissions,
 		namespace = self.namespace,
@@ -314,7 +325,10 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 		permission_data = function(sender: Sender, target: Target, data: T)
 			return { user = sender, action = "unknown" }
 		end,
+		
+		event = events,
 
+		disconnect = event_disconnect,
 		iter = event_iter,
 		on_event = event_on_event,
 		set_permission_data = set_permission_data
@@ -334,8 +348,8 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 	end
 	
 	if RunService:IsServer() and event then
-		event.server.OnServerEvent:Connect(process_event)
-		event.id2id.Event:Connect(process_event)
+		table.insert(events, event.server.OnServerEvent:Connect(process_event))
+		table.insert(events, event.id2id.Event:Connect(process_event))
 	elseif event then
 		event.server.OnClientEvent:Connect(process_event)
 		event.id2id.Event:Connect(process_event)
@@ -420,7 +434,7 @@ local function function_connect<T, U>(
 	id: number
 ): RemoteFnConnection<T, U>
 	local queue = jabby_util.queue()
-	local self = {
+	local fn_connection = {
 		id = id,
 		namespace = self.namespace,
 		identifier = self.identifier,
@@ -439,14 +453,14 @@ local function function_connect<T, U>(
 		iter = function_iter,
 	}
 
-	self.callback = function(sender: Sender, packet: T)
-		self.queue:add(coroutine.running(), sender, packet)
+	fn_connection.callback = function(sender: Sender, packet: T)
+		fn_connection.queue:add(coroutine.running(), sender, packet)
 		local value = coroutine.yield()
 		return value
 	end
 
-	self.invoke_event:on_event(function(sender, data)
-		local result = jabby_util.result.safe(self.callback, sender, data.value)
+	fn_connection.invoke_event:on_event(function(sender, data)
+		local result = jabby_util.result.safe(fn_connection.callback, sender, data.value)
 		local value = if result.ok then {
 			idx = data.idx,
 			kind = "ok" :: "ok",
@@ -457,10 +471,10 @@ local function function_connect<T, U>(
 			why = tostring(result.why)
 		}
 
-		self.result_event:fire({ to = sender, id = -1 }, value)
+		fn_connection.result_event:fire({ to = sender, id = -1 }, value)
 	end)
 
-	return self
+	return fn_connection
 end
 
 local CACHED_FUNCTIONS: { [string]: RemoteFn<any, any> } = {}
@@ -474,7 +488,7 @@ local function function_create<T, U>(
 	if CACHED_FUNCTIONS[key] then return CACHED_FUNCTIONS[key] end
 	local allowed_connections = {}
 
-	local self = {
+	local self: RemoteFn<T, U> = {
 		namespace = namespace,
 		identifier = identifier,
 		pending_from = {},
@@ -569,7 +583,9 @@ local function socket_create_waiting_socket(
 		target = target,
 		when = os.clock()
 	}
+
 	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
+	return true
 end
 
 local function socket_open_waiting_socket(
@@ -581,7 +597,7 @@ local function socket_open_waiting_socket(
 	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
 
 	if not map_sender_to_waiting_sockets[socket_id] then return false end
-	if not map_sender_to_open_sockets[socket_id] then return false end
+	if map_sender_to_open_sockets[socket_id] then return false end
 
 	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
 	socket._open_sockets[sender] = map_sender_to_open_sockets
@@ -592,6 +608,7 @@ local function socket_open_waiting_socket(
 
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = info.target	
+	return true
 end
 
 
@@ -603,9 +620,6 @@ local function socket_close_socket(
 )
 	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
 	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
-
-	if not map_sender_to_waiting_sockets[socket_id] then return end
-	if not map_sender_to_open_sockets[socket_id] then return end
 
 	local info = map_sender_to_waiting_sockets[socket_id] and map_sender_to_waiting_sockets[socket_id].target
 		or map_sender_to_open_sockets[socket_id]
@@ -619,20 +633,23 @@ end
 local function socket_status<T>(socket: Socket<T>): "open" | "closed" | "waiting"
 	local map_open_sockets = socket.remote._open_sockets
 	local is_open = not not (map_open_sockets[socket.creator] and map_open_sockets[socket.creator][socket.socket_id])
-	local map_waiting_sockets = socket.remote._open_sockets
+	local map_waiting_sockets = socket.remote._waiting_sockets
 	local is_waiting = not not (map_waiting_sockets[socket.creator] and map_waiting_sockets[socket.creator][socket.socket_id])
 
 	return if is_open then "open" elseif is_waiting then "waiting" else "closed"
 end
 
 local function socket_close<T>(socket: Socket<T>)
-	if socket_status(socket) then return end
+	if socket_status(socket) == "closed" then return end
 	socket_close_socket(socket.remote, socket.creator, PACKET_TARGET, socket.socket_id)
 	socket.remote._close_socket:fire({ to = "server", id = -1 }, { socket_id = socket.socket_id, target = socket.creator })
 end
 
 local function socket_send<T>(socket: Socket<T>, value: T)
-	socket._talk_remote:fire({ to = socket.target, id = if socket.creator == socket.target then 1 else 0 }, value)
+	socket._talk_remote:fire(
+		{ to = socket.target, id = if socket.creator == socket.target then 1 else 0 },
+		{ id = socket.socket_id, data = value }
+	)
 end
 
 local function socket_receive<T>(socket: Socket<T>): () -> T
@@ -643,10 +660,22 @@ local function socket_on_event<T>(socket: Socket<T>, fn: (T) -> ())
 	socket._callback = fn
 end
 
+local function socket_handle_receive<T>(
+	self: Socket<T>
+)
+	return function(sender: Sender, packet: typeof(SOCKET_SEND(newproxy() :: T)))
+		if sender ~= self.target then return end
+		if packet.id ~= self.socket_id then return end
+
+		self._callback(packet.data)
+	end
+end
+
 local function socket_create_connected_socket<T>(
 	socket: RemoteSocket<T>,
 	creator: Sender,
 	target: Sender,
+	is_creator: boolean,
 	socket_id: number
 ): Socket<T>
 	local queue = jabby_util.queue()
@@ -659,6 +688,7 @@ local function socket_create_connected_socket<T>(
 		creator = creator,
 
 		_talk_remote = socket._talk_socket,
+		_talk_receive = nil :: any,
 		_queue = queue,
 		_callback = function(data)
 			queue:add(data)
@@ -672,12 +702,7 @@ local function socket_create_connected_socket<T>(
 		on_event = socket_on_event
 	}
 
-	socket._talk_socket:connect(if creator == target then 0 else 1):on_event(function(sender, packet)
-		if sender ~= self.target then return end
-		if packet.id ~= socket_id then return end
-
-		self._callback(packet.data)
-	end)
+	(self :: any)._talk_receive = socket._talk_socket:connect(if is_creator then 0 else 1):on_event(socket_handle_receive(self))
 
 	return self
 end
@@ -686,7 +711,7 @@ local function socket_open<T>(socket: RemoteSocket<T>, target: Sender): (Socket<
 	local id = socket_id()
 	
 	socket_create_waiting_socket(socket, PACKET_TARGET, target, id)
-	return socket_create_connected_socket(socket, PACKET_TARGET, target, id), id
+	return socket_create_connected_socket(socket, PACKET_TARGET, target, true, id), id
 end
 
 local function socket_accept<T>(socket: RemoteSocket<T>, from: Sender, id: number): Socket<T>
@@ -705,7 +730,7 @@ local function socket_accept<T>(socket: RemoteSocket<T>, from: Sender, id: numbe
 		end
 	end)
 	
-	return socket_create_connected_socket(socket, from, from, id)
+	return socket_create_connected_socket(socket, from, from, false, id)
 end
 
 local function socket_create<T>(
@@ -771,13 +796,13 @@ local function socket_create<T>(
 		end
 		
 		talk_socket.permissions.process = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to][data.socket_id]
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
 			if not opened then return false end
 			return (opened == target.to or opened == sender) and target.id == -1
 		end
 
 		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to][data.socket_id]
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
 			if not opened then return false end
 			return (opened == target.to or opened == sender) and target.id == -1
 		end
