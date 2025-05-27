@@ -16,9 +16,9 @@ local function get_applet_hash(host: Host, id: number)
 	return `{host}:{id}`
 end
 
---[=[
+--[[
 Registers a new applet with the provided interface internally inside the jabby core.
-]=]
+]]
 local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 	local applet_data = {
 		name = applet.name,

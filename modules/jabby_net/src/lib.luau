@@ -1,4 +1,4 @@
---[=[
+--[[
 
 jabby_net is the underlying networking abstraction for jabby, alllowing developers
 to create networking primitives that can be used to communicate with other clients,
@@ -8,7 +8,7 @@ NOTES:
 -1 is intended for global
 -2 is intended for redirecting
 
-]=]
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -187,9 +187,9 @@ export type RemoteSocket<T> = {
 	read _close_socket: Remote<typeof(SOCKET_INFO)>,
 	read _talk_socket: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
 
-	--- sockets that are currently waiting. they map the sender to a map mapping socket ids to the target
+	-- sockets that are currently waiting. they map the sender to a map mapping socket ids to the target
 	read _waiting_sockets: { [Sender]: { [number]: { target: Sender, when: number } } },
-	--- sockets that are currently active. they map the sender to a map mapping socket ids to the target
+	-- sockets that are currently active. they map the sender to a map mapping socket ids to the target
 	read _open_sockets: { [Sender]: { [number]: Sender } },
 
 	read open_socket: (RemoteSocket<T>, target: Sender) -> (Socket<T>, number),
