@@ -150,7 +150,6 @@ export type RemoteFn<T, U> = {
 	read connect: (RemoteFn<T, U>, as: Id) -> RemoteFnConnection<T, U>
 }
 
-
 export type Socket<T> = {
 	read remote: RemoteSocket<T>,
 
