@@ -1,7 +1,6 @@
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
 local guistate = require(script.Parent.Parent.util.guistate)
-local theme = require(script.Parent.Parent.util.theme)
 
 local create = vide.create
 local read = vide.read
@@ -42,7 +41,6 @@ return component(function(p: {
 	local properties: any = {}
 
 	if p.image then
-		
 		properties = {
 			Image = p.image,
 			ImageColor3 = p.color,

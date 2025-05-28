@@ -1,6 +1,7 @@
 -- thank u cen
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local pad = require(script.Parent.Parent.components.pad)
+local auto = require(script.Parent.auto)
 
 local source = vide.source
 local action = vide.action
@@ -30,6 +31,8 @@ type SpecialProperties = {
     wr: Can<number>?, hr: Can<number>?,
     --- zindex
     z: number?,
+    --- automatic size
+    auto: Can<auto.Auto>?,
     --- the layout order
     order: number?,
     --- the anchor point
@@ -40,6 +43,10 @@ type SpecialProperties = {
     pad: pad.Pad?,
     --- flex properties
     flex: FlexProperties?,
+    --- specifies properties for flex item
+    grow: number?,
+    shrink: number?,
+    align: "auto" | "start" | "end" | "center" | "stretch"?
 }
 
 type function CombineTable(a: type, b: type, c: type)
@@ -137,6 +144,23 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
             layout.Parent = parent
         end
 
+        if props.align or props.grow or props.shrink then
+            local item = vide.create ("UIFlexItem" :: "UIFlexItem") {
+                FlexMode = Enum.UIFlexMode.Custom,
+                GrowRatio = props.grow,
+                ShrinkRatio = props.shrink,
+                ItemLineAlignment =
+                    if props.align == "auto" then Enum.ItemLineAlignment.Automatic
+                    elseif props.align == "center" then Enum.ItemLineAlignment.Center
+                    elseif props.align == "end" then Enum.ItemLineAlignment.End
+                    elseif props.align == "start" then Enum.ItemLineAlignment.Start
+                    elseif props.align == "stretch" then Enum.ItemLineAlignment.Stretch
+                    else nil
+            }
+            
+            item.Parent = parent
+        end
+
         if props.pad then
             pad(props.pad).Parent = parent
         end
@@ -147,6 +171,12 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
 
         local w_given = w or ws or wr
         local h_given = h or hs or hr
+
+        if props.auto then
+            effect(function()
+                (instance :: GuiObject).AutomaticSize = auto(read(props.auto))
+            end)
+        end
 
         if w_given or h_given then 
             w = w or 0

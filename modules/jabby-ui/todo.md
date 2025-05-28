@@ -3,9 +3,9 @@
 - [x] Container
 - [x] Button
 - [x] Padding
-- [ ] Text
-- [ ] Gap
-- [ ] Divider
+- [x] Text
+- [x] Gap
+- [x] Divider
 - [ ] Portal
 - [ ] Checkbox
 - [ ] Image
