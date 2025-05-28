@@ -41,19 +41,20 @@ local function compute_color(
     depth: number,
     contrast: number
 ): vector
-    local offset = vector.create(contrast, 0, 0)
-    
-    -- if the contrast is already really high, then turning it down should be fine
+
     if should_flip(oklch.x) then
-        oklch += vector.create(depth * STEP_SIZE_DEPTH, 0, 0)
+        oklch -= vector.create(contrast, 0, 0)
+    else
+        oklch += vector.create(contrast, 0, 0)
     end
 
-    -- same goes here. high contrast should result in a lower value.
     if should_flip(oklch.x) then
-        return oklch - offset
+        oklch -= vector.create(depth * STEP_SIZE_DEPTH, 0, 0)
     else
-        return oklch + offset
+        oklch += vector.create(depth * STEP_SIZE_DEPTH, 0, 0)
     end
+    
+    return oklch
 end
 
 local function obtain_color_generator(base: Can<vector>, depth: Can<number>, contrast: Can<number>)
@@ -72,13 +73,9 @@ local function compute_sequence(
     base: Can<vector>,
     contrast: Can<number>
 )
-    local mt = {}
-    mt.__index = function(self, depth: number)
-        self[depth] = derive(obtain_color_generator(base, depth, contrast))
-        return self[depth]
+    return function(depth: Can<number>)
+        return obtain_color_generator(base, depth, contrast)
     end
-
-    return setmetatable({}, mt)
 end
 
 return {
