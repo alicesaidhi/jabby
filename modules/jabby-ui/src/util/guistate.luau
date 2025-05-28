@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
@@ -27,24 +28,32 @@ return function(p: GuiState)
 		end
 	end)
 
-	local function input_began(input: InputObject)
-		if not enabled() or input.UserInputState ~= Enum.UserInputState.Begin then return end
-		input_object(input)
-		if p.hold then p.hold(true) end
-		if p.input then p.input(input) end
-	end
-	
-	local function input_changed(input: InputObject)
-		if not enabled() or input ~= input_object() then return end
-		assert(p.input); p.input(input)
-	end
-
 	local function input_ended(input: InputObject)
 		if not enabled() or input ~= input_object() then return end
 		input_object(nil)
 		if p.hold then p.hold(false) end
 		if p.input then p.input(input) end
 		if p.clicked then p.clicked(input) end
+	end
+
+	local function input_began(input: InputObject)
+		if not enabled() or input.UserInputState ~= Enum.UserInputState.Begin then return end
+		input_object(input)
+		if p.hold then p.hold(true) end
+		if p.input then p.input(input) end
+		
+		local connection: RBXScriptConnection
+		connection = RunService.Heartbeat:Connect(function(dt)
+			if input.UserInputState == Enum.UserInputState.End then
+				input_ended(input)
+				connection:Disconnect()
+			end
+		end)
+	end
+	
+	local function input_changed(input: InputObject)
+		if not enabled() or input ~= input_object() then return end
+		assert(p.input); p.input(input)
 	end
 
 	local function defer_set<T>(fn: (T) -> (), value: T)
@@ -57,7 +66,6 @@ return function(p: GuiState)
 		assert(instance:IsA("GuiButton"), "instance has no input events")
 
 		cleanup(instance.InputBegan:Connect(input_began))
-		cleanup(UserInputService.InputEnded:Connect(input_ended))
 		if p.input then cleanup(instance.InputChanged:Connect(input_changed)) end
 
 		if p.hover then
