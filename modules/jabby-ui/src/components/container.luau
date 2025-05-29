@@ -29,6 +29,9 @@ return component(function(p: {
 	slice_scale: Can<number>?,
 	tile_size: Can<UDim2>?,
 
+	-- general properties
+	clips: Can<boolean>?,
+
 	-- input properties
     sink: Can<boolean>?,
 	enabled: (() -> boolean)?,
@@ -44,19 +47,22 @@ return component(function(p: {
 		properties = {
 			Image = p.image,
 			ImageColor3 = p.color,
-			ImageTransparency = p.transparency or if p.color then 0 else 1,
+			ImageTransparency = p.transparency or 0,
 			ScaleType = p.scale_type or Enum.ScaleType.Stretch,
 			ImageRectOffset = p.rect_offset,
 			ImageRectSize = p.rect_size,
 			SliceCenter = p.slice_center,
 			SliceScale = p.slice_scale,
 			TileSize = p.tile_size,
-			BackgroundTransparency = 1
+			BackgroundTransparency = 1,
+			AutoLocalize = false,
+			ClipsDescendants = p.clips,
 		}
 	else
 		properties = {
             BackgroundColor3 = p.color,
-            BackgroundTransparency = p.transparency or if p.color then 0 else 1
+            BackgroundTransparency = p.transparency or if p.color then 0 else 1,
+			ClipsDescendants = p.clips,
         }
 	end
 

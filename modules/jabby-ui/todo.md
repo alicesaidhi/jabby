@@ -6,17 +6,18 @@
 - [x] Text
 - [x] Gap
 - [x] Divider
-- [ ] Portal
-- [ ] Checkbox
-- [ ] Image
-- [ ] Shadow
+- [x] Portal
+- [x] Checkbox
+- [x] Image
+- [x] Shadow
 - [ ] Text Field
+- [ ] Resizeable Bar
+- [ ] Tables
 - [ ] Accordion
 - [ ] Select
 - [ ] Slider
 - [ ] Switch
 - [ ] Button Group
-- [ ] Resizeable Bar
 - [ ] Chip https://mui.com/material-ui/react-chip/
 - [ ] Tooltip
 - [ ] Backdrop
@@ -32,7 +33,6 @@
 - [ ] Histogram Plot
 - [ ] Line Plot
 - [ ] Scrolling Container
-- [ ] Tables
 - [ ] Tree
 - [ ] Radio Button
 - [ ] Dock Widget WITH PROPER DOCKING

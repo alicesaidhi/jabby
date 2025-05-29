@@ -25,7 +25,7 @@ return function(props: Pad)
 	local l = props.l or x
 	local t = props.t or y
 	local b = props.b or y
-	local r = props.r or y
+	local r = props.r or x
 
 	return create ("UIPadding" :: "UIPadding") {
 		PaddingLeft = function() return UDim.new(0, read(l)) end,

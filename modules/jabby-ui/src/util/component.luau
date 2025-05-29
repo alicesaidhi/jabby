@@ -97,7 +97,7 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
 
         local flex = props.flex
         if flex then
-            local layout = Instance.new("UIListLayout")
+            local layout = parent:FindFirstChildWhichIsA("UIListLayout") or Instance.new("UIListLayout")
             layout.FillDirection = (flex.direction or "column") == "column" and Enum.FillDirection.Vertical or Enum.FillDirection.Horizontal
             layout.SortOrder = (flex.sort or "order") == "order" and Enum.SortOrder.LayoutOrder or Enum.SortOrder.Name
             layout.Wraps = if flex.wrap ~= nil then flex.wrap else false
