@@ -29,6 +29,10 @@ type SpecialProperties = {
     ws: Can<number>?, hs: Can<number>?,
     --- width and height defined in pixels but scale is 1 (if not set)
     wr: Can<number>?, hr: Can<number>?,
+
+    x: Can<number>?, y: Can<number>?,
+    xs: Can<number>?, ys: Can<number>?,
+
     --- zindex
     z: number?,
     --- automatic size
@@ -203,6 +207,31 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
 				if not x or not y or not xs or not ys then return end
                 local size = UDim2.new(xs, x * global_scale(), ys, y * global_scale())
                 ;(instance :: GuiObject).Size = size 
+            end)
+        end
+
+        local x, y = props.x, props.y
+        local xs, ys = props.xs, props.ys
+
+        local x_given = x or xs
+        local y_given = y or ys
+
+        if x_given or y_given then
+            x = x or 0
+            y = y or 0
+            xs = xs or 0
+            ys = ys or 0
+
+            effect(function()
+                local x = read(x)
+                local y = read(y)
+
+                local xs = read(xs)
+                local ys = read(ys)
+
+                if not x or not y or not xs or not ys then return end
+                local position = UDim2.new(xs, x * global_scale(), ys, y * global_scale())
+                ;(instance :: GuiObject).Position = position
             end)
         end
 

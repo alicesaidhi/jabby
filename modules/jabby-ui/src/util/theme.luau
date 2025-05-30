@@ -10,6 +10,7 @@ local CONTRAST_HIGH = 0.7
 
 local background = source(vector.create(0.2012, 0.01, 0.6))
 local accent = source(vector.create(0.405, 0.21, 0.71))
+local error = source(vector.create(0.4, 0.11, 0.04))
 
 local COMPACT = source(false)
 
@@ -25,14 +26,22 @@ return {
 
     bg = theme_generator.compute_sequence(background, 0),
     acc = theme_generator.compute_sequence(accent, 0),
+    err = theme_generator.compute_sequence(error, 0),
 
     body = source(Font.fromName("BuilderSans")),
     mono = source(Font.fromId(16658246179)),
 
-    base_button_padding = conditional(COMPACT, 6, 10),
+    base_button_padding = conditional(COMPACT, 6, 9),
     base_button_corner = conditional(COMPACT, 5, 8),
+    base_textfield_corner = conditional(COMPACT, 5, 8),
 
+    base_checkbox_thickness = conditional(COMPACT, 1, 1),
+    base_button_thickness = conditional(COMPACT, 1, 2),
+    base_textfield_thickness = conditional(COMPACT, 1, 2),
+
+    sub_size = conditional(COMPACT, 12, 14),
     body_size = conditional(COMPACT, 16, 18),
+    input_size = conditional(COMPACT, 16, 18),
     
     
 }

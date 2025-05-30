@@ -47,7 +47,8 @@ return component(function(p: {
 		corner = theme.base_button_corner,
 
 		color = spring(if p.acc then theme.acc(depth_acc) else theme.bg(depth_bg), 0.1),
-		stroke = if p.acc then theme.acc(-7) else theme.bg(-3),
+		stroke = if p.acc then theme.acc(-7) else theme.bg(-1),
+		thickness = theme.base_button_thickness,
 
 		hover = hover, --FIXME: luau bug
 		hold = hold,

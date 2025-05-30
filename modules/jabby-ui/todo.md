@@ -10,7 +10,7 @@
 - [x] Checkbox
 - [x] Image
 - [x] Shadow
-- [ ] Text Field
+- [x] Text Field
 - [ ] Resizeable Bar
 - [ ] Tables
 - [ ] Accordion

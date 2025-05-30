@@ -1,7 +1,14 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local function conditional<T>(fn: () -> unknown, a: T, b: T): () -> T
+local vide = require(ReplicatedStorage.roblox_packages.vide)
+
+local read = vide.read
+
+type Can<T> = T | () -> T
+
+local function conditional<T>(fn: unknown, a: T, b: T)
     return function()
-        return if fn() then a else b
+        return if read(fn) then read(a) else read(b)
     end
 end
 

@@ -4,8 +4,6 @@ local conditional = require(script.Parent.Parent.util.conditional)
 local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
 
-local source = vide.source
-local show = vide.show
 local spring = vide.spring
 
 type Can<T> = T | () -> T
@@ -33,6 +31,7 @@ return component(function(p: {
 
 		color = color,
 		stroke = stroke,
+		thickness = theme.base_checkbox_thickness,
 		corner = theme.base_button_corner,
 
 		container {
