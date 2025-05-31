@@ -26,7 +26,7 @@ return component(function<T>(p: {
     header: (value: () -> T, column: number, row: number) -> string,
     field: (value: () -> T, column: number, row: () -> number) -> Instance,
     element_size: Can<number>?
-}, _)
+}, children)
 
     local sizes = source({} :: { number })
     local splits = source({} :: { number })
@@ -155,6 +155,8 @@ return component(function<T>(p: {
             bottomright = theme.base_table_corner,
 
             color = theme.bg(1),
+
+            children
         }
 
     }
