@@ -58,7 +58,7 @@ return component(function(p: {
         container {
             name = "left",
             ws = 0.5, w = 0,
-            hr = function() return -read(topleft or 0) - read(bottomleft or 0) + 1 end,
+            hr = function() return -read(topleft or 0) - read(bottomleft or 0) end,
 
             ys = 0.5, y = function() return read(topleft or 0) // 2 - read(bottomleft or 0) // 2 end,
             color = p.color,
@@ -68,7 +68,7 @@ return component(function(p: {
         container {
             name = "right",
             ws = 0.5, w = 0,
-            hr = function() return -read(topright or 0) - read(bottomright or 0) + 1 + 1 end,
+            hr = function() return -read(topright or 0) - read(bottomright or 0) end,
 
             xs = 1,
             ys = 0.5, y = function() return read(topright or 0) // 2 - read(bottomright or 0) // 2 end,
@@ -79,7 +79,7 @@ return component(function(p: {
         container {
             name = "top",
             hs = 0.5, h = 0,
-            wr = function() return -read(topleft or 0) - read(topright or 0) + 1 end,
+            wr = function() return -read(topleft or 0) - read(topright or 0) end,
 
             xs = 0.5, x = function() return read(topleft or 0) // 2 - read(topright or 0) // 2 end,
             color = p.color,
@@ -89,7 +89,7 @@ return component(function(p: {
         container {
             name = "bottom",
             hs = 0.5, h = 0,
-            wr = function() return -read(bottomleft or 0) - read(bottomright or 0) + 1 end,
+            wr = function() return -read(bottomleft or 0) - read(bottomright or 0) end,
 
             ys = 1,
             xs = 0.5, x = function() return read(bottomleft or 0) // 2 - read(bottomright or 0) // 2 end,

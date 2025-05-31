@@ -15,8 +15,8 @@ type Child = Instance | Array<Child> | () -> Child
 type FlexProperties = {   
     direction: "column"|"row"?,
     sort: "order"|"name"?,
-    justify: "center"|"left"|"right"|"around"|"between"|"even"?,
-    align: "center"|"top"|"bottom"|"around"|"between"|"even"?,
+    justify: "center"|"left"|"right"|"around"|"between"|"even"|"fill"?,
+    align: "center"|"top"|"bottom"|"around"|"between"|"even"|"fill"?,
     wrap: boolean?,
     pad: number?,
 }
@@ -72,7 +72,7 @@ end
 
 local global_scale = source(1)
 
-local function component<Object, Properties>(constructor: (Properties, never) -> Instance): (CombineTable<SpecialProperties, Properties, Child>) -> Instance
+local function component<Object, Properties>(constructor: (Properties, never) -> Instance): (CombineTable<SpecialProperties, Properties, any>) -> Instance
     local parent_ref: Instance?
 
     local parent_selector = action(function(instance)
@@ -127,6 +127,8 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
                 layout.HorizontalFlex = Enum.UIFlexAlignment.SpaceBetween
             elseif justify == "even" then
                 layout.HorizontalFlex = Enum.UIFlexAlignment.SpaceEvenly
+            elseif justify == "fill" then
+                layout.HorizontalFlex = Enum.UIFlexAlignment.Fill
             end
 
             local align = flex.align or "center"
@@ -137,6 +139,8 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
                 layout.VerticalAlignment = Enum.VerticalAlignment.Top
             elseif align == "bottom" then
                 layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+            elseif align == "fill" then
+                layout.VerticalFlex = Enum.UIFlexAlignment.Fill
             elseif align == "around" then
                 layout.VerticalFlex = Enum.UIFlexAlignment.SpaceAround
             elseif align == "between" then

@@ -13,8 +13,6 @@ local indexes = vide.indexes
 local changed = vide.changed
 local read = vide.read
 
-local MAX_PIXELS_OFFSET = 32
-
 local BEFORE = 0
 local AFTER = 1
 
@@ -23,7 +21,7 @@ return component(function(p: {
     fields: () -> { (idx: number) -> Instance },
     min_sizes: (() -> { number })?,
     use_offset: (() -> { number })?,
-    sizes: vide.source<{ vide.Source<number> }>?,
+    sizes: ({ number }) -> ()?,
     suggested_sizes: { number }?,
 
     splits: (vide.source<{ number }>)?,
@@ -62,6 +60,7 @@ return component(function(p: {
 
 	for i, split in p.base_splits or {} do
 		splits()[i] = split
+        splits(splits())
 	end
 
 	local function get_size(index: number): number
@@ -76,20 +75,21 @@ return component(function(p: {
 		return min_size or 0.2
 	end
 
+    effect(function()
+        for i = 1, total() do
+			min_sizes()[i] = min_sizes()[i] or 0.1
+        end
+    end)
+
 	effect(function()
 		local new = setmetatable({} :: { [number]: () -> number }, {
 			__index = function()
-				return function() return 0 end
+				return 0
 			end,
 		})
 
 		for i = 1, total() do
-			min_sizes()[i] = min_sizes()[i] or 0.1
-			untrack(function()
-				new[i] = derive(function()
-					return get_size(i)
-				end)
-			end)
+			new[i] = get_size(i)
 		end
 
 		sizes(new :: any)
@@ -174,6 +174,7 @@ return component(function(p: {
             indexes(fields, function(field: () -> (number) -> Instance, idx: number)
                 return container {
                     ws = function() return get_size(idx) end, hs = 1,
+                    flex = {},
 
                     function()
                         local fn = field()
