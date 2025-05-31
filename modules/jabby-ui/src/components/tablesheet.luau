@@ -109,7 +109,7 @@ return component(function<T>(p: {
 
             ws = 1,
             grow = 1, shrink = 1,
-            color = theme.bg(0),
+            color = theme.bg(-3),
 
             max_items = function()
                 return #p.columns()[1]() - 1

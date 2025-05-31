@@ -47,14 +47,14 @@ return {
     base_button_padding = conditional(COMPACT, 6, 9),
     base_button_corner = conditional(COMPACT, 5, 8),
     base_textfield_corner = conditional(COMPACT, 5, 8),
-    base_table_corner = conditional(COMPACT, 82, 8),
+    base_table_corner = conditional(COMPACT, 8, 8),
 
     base_checkbox_thickness = conditional(COMPACT, 1, 1),
     base_button_thickness = conditional(COMPACT, 1, 2),
     base_textfield_thickness = conditional(COMPACT, 1, 2),
     base_scrollbar_thickness = conditional(COMPACT, 4, 6),
 
-    table_element_size = conditional(COMPACT, 24, 28),
+    table_element_size = conditional(COMPACT, 20, 28),
 
     sub_size = conditional(COMPACT, 12, 14),
     body_size = conditional(COMPACT, 16, 18),
