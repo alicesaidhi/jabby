@@ -10,7 +10,7 @@ local read = vide.read
 
 type Array<T> = { T }
 type Can<T> = T | () -> T
-type Child = Instance --| () -> Array<Instance>
+type Child = Instance | Array<Child> | () -> Child
 
 type FlexProperties = {   
     direction: "column"|"row"?,
@@ -72,7 +72,7 @@ end
 
 local global_scale = source(1)
 
-local function component<Object, Properties>(constructor: (Properties, never) -> Instance): (CombineTable<SpecialProperties, Properties, Array<Child>>) -> Instance
+local function component<Object, Properties>(constructor: (Properties, never) -> Instance): (CombineTable<SpecialProperties, Properties, Child>) -> Instance
     local parent_ref: Instance?
 
     local parent_selector = action(function(instance)

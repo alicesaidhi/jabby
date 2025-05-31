@@ -74,7 +74,7 @@ return component(function(p: {
 		properties.AnchorPoint = Vector2.new(0.5, 0.5)
 	end
 
-	local interactable = p.clicked or p.hold or p.hover
+	local interactable = p.clicked or p.hold or p.hover or p.input
 
 	if interactable then
 		table.insert(properties, guistate(p))

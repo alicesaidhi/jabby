@@ -44,6 +44,7 @@ return function(p: GuiState)
 		
 		local connection: RBXScriptConnection
 		connection = RunService.Heartbeat:Connect(function(dt)
+			if p.input then p.input(input) end
 			if input.UserInputState == Enum.UserInputState.End then
 				input_ended(input)
 				connection:Disconnect()
