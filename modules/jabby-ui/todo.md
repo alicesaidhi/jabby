@@ -11,8 +11,8 @@
 - [x] Image
 - [x] Shadow
 - [x] Text Field
-- [ ] Resizeable Bar
-- [ ] Tables
+- [x] Resizeable Bar
+- [x] Tables
 - [ ] Accordion
 - [ ] Select
 - [ ] Slider
