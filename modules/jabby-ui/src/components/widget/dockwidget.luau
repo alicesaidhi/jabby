@@ -31,8 +31,19 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
 
     local old: Vector2? = UserInputService:GetMouseLocation() - Vector2.new(0, TITLEBAR_SIZE)
     cleanup(RunService.PreRender:Connect(function(dt)
-        if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then p.dragging(nil); return end
         if not p.dragging() then return end
+        if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+            local hover = state.hovering_over()
+            if hover then
+                state.dock_into_widget(p, hover.widget, hover.direction)
+                state.hovering_over(false :: false)
+            end
+
+            p.dragging(nil)
+            state.dragging(false)
+            return
+        end
+        state.dragging(true)
         local new = UserInputService:GetMouseLocation()
         assert(old)
 
@@ -114,7 +125,16 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
             color = theme.bg(3),
 
             text {
-                text = "Widget",
+                text = function()
+                    if p.kind == "tabs" then
+                        local selected = p.selected()
+                        local tabs = p.tabs()
+
+                        return tabs[selected] and tabs[selected].title() or "Widget"
+                    else
+                        return "Widget"
+                    end
+                end,
                 size = theme.header_size,
                 weight = 600
             },
@@ -132,7 +152,7 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
             
             ws = 1, h = p.h,
 
-            widget_container(source(p))
+            widget_container(source(p), 0)
         }
 
     }

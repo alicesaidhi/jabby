@@ -5,125 +5,154 @@ local theme = require(script.Parent.Parent.Parent.util.theme)
 local button = require(script.Parent.Parent.button)
 local container = require(script.Parent.Parent.container)
 local text = require(script.Parent.Parent.text)
+local guide = require(script.Parent.guide)
 local state = require(script.Parent.state)
 
 local source = vide.source
 local show = vide.show
 local indexes = vide.indexes
+local action = vide.action
+local effect = vide.effect
 local switch = vide.switch
 
 local RIBBON_SIZE = state.RIBBON_SIZE
 local DRAGGER_SIZE = state.DRAGGER_SIZE
+local DRAG_UNTIL_POP = 32
 
 local render, horizontal, vertical, tabs
 
-function tabs(p: state.TabsWidget)
-	local displaying_tab = source(1)
+function tabs(p: state.TabsWidget, layout: number)
 	local stop = false
 
 	return container {
 		name = "Tabs",
 		w = p.w, h = p.h,
+		order = layout,
 		anchor = { 0, 0 },
+		grow = 1, shrink = 1,
 		flex = {},
 		clips = true,
 
-        container {
-            name = "Border",
-            z = 100,
-
-            ws = 1, h = 1,
-            
-            color = theme.bg(-1),
-        },
-
 		show(function()
-			return p.parent().kind ~= "root"
+			if state.dragging() == false then return false end
+
+			local child: state.ParentWidget | state.ChildWidget = p
+			while child and child.kind ~= "root" do
+				if child.dragging() then return false end
+				child = child.parent()
+			end
+
+			return true
 		end, function()
-			return container {
-				ws = 1, h = state.TITLE_SIZE - 2,
-				flex = { direction = "row", gap = 8 },
-
-				color = theme.bg(3),
-
-				text {
-					text = function()
-						local tabs = p.tabs()
-						local widget = tabs[displaying_tab()]
-						if widget == nil then return "" end
-						return widget.title()
-					end,
-					
-					size = theme.sub_size
-				},
-
-				input = function(input: InputObject)
-					if input.UserInputState == Enum.UserInputState.End then stop = true; return end
-					if stop then return end
-					local pos = input.Position
-					local drag = UserInputService:GetMouseLocation() - Vector2.new(pos.X, pos.Y)
-					
-					if drag.Magnitude > 10 then
-						local tabs = p.tabs()
-						local widget = tabs[displaying_tab()]
-						if not widget then return end
-						state.remove_tab(p, widget, Vector2.new(input.Position.X, input.Position.Y))
-						stop = true
-					end
-				end
-			}
+			return guide(p)
 		end),
 
-        container {
-            name = "Border",
-            z = 100,
+		show(function()
+			local parent = p.parent()
+			return parent and parent.kind ~= "root"
+		end, function()
+			return {
+				container {
+					name = "Border",
+					z = 100,
+					order = -3,
 
-            ws = 1, h = 1,
-            
-            color = theme.bg(-1),
+					ws = 1, h = 1,
+					
+					color = theme.bg(-1),
+				},
 
-        },
+				container {
+					ws = 1, h = state.TITLE_SIZE - 2,
+					flex = { direction = "row", gap = 8 },
+					order = -2,
+
+					color = theme.bg(3),
+
+					text {
+						text = function()
+							local tabs = p.tabs()
+							local widget = tabs[p.selected()]
+							if widget == nil then return "" end
+							return widget.title()
+						end,
+						
+						size = theme.sub_size
+					},
+
+					input = function(input: InputObject)
+						if input.UserInputState == Enum.UserInputState.End then stop = true; return end
+						if stop then return end
+						local pos = input.Position
+						local drag = UserInputService:GetMouseLocation() - Vector2.new(pos.X, pos.Y)
+						
+						if drag.Magnitude > DRAG_UNTIL_POP then
+							local tabs = p.tabs()
+							local widget = tabs[p.selected()]
+							if not widget then return end
+							state.drag_out_tab(widget, Vector2.new(input.Position.X, input.Position.Y))
+							stop = true
+						end
+					end
+				},
+
+				container {
+					name = "Border",
+					z = 100, order = -1,
+
+					ws = 1, h = 1,
+					
+					color = theme.bg(-1),
+
+				},
+
+			}
+		end),
 
 		container {
 			name = "Render",
 			ws = 1, hs = 1,
-			grow = 1, shrink = 1,
+			grow = 1, shrink = 1, order = 0,
 
-			-- parents the widget
-			function(): Instance?
-				local tabs = p.tabs()
-				local widget = tabs[displaying_tab()]
-				if widget == nil then return nil end
-				return widget.widget
-			end
+			action(function(self)
+				effect(function()
+					local tabs = p.tabs()
+					local widget = tabs[p.selected()]
+					if widget == nil then return end
+					if widget.widget == nil then return end
+					widget.widget.Parent = self
+				end)
+			end)
+
 		},
 
 		show(function()
 			return #p.tabs() > 1
 		end, function()
 			return container {
-				name = "Tab Options",
+				name = "Tab Options", order = 1,
 				ws = 1, h = RIBBON_SIZE,
 				flex = { direction = "row", justify = "left" },
 				pad = { x = 2 },
-
-				color = theme.bg(-2),
 			}
 		end)
 	}
 end
 
-function horizontal(p: state.HorizontalWidget)
+function horizontal(p: state.HorizontalWidget, layout: number)
 	return container {
 		name = "Horizontal",
 		w = p.w, p.h,
 		anchor = { 0, 0 },
-		flex = { direction = "row" },
+		flex = { direction = "row", justify = "between", vertical = "between" },
+		grow = 1, shrink = 1,
+		order = layout,
 
-		render(p.left),
+		render(p.left, -1),
 
 		container {
 			w = DRAGGER_SIZE, hs = 1,
+			order = 0,
 			color = theme.bg(3),
 
 			input = function(input: InputObject)
@@ -137,19 +166,20 @@ function horizontal(p: state.HorizontalWidget)
 			end
 		},
 		
-		render(p.right)
+		render(p.right, 1)
 	}
 end
 
-
-function vertical(p: state.VerticalWidget)
+function vertical(p: state.VerticalWidget, layout: number)
 	return container {
 		name = "Vertical",
 		w = p.w, p.h,
+		order = layout,
 		anchor = { 0, 0 },
-		flex = { direction = "column" },
+		flex = { direction = "column", justify = "between", vertical = "between" },
+		grow = 1, shrink = 1,
 
-		render(p.left),
+		render(p.left, -1),
 
 		container {
 			ws = 1, h = DRAGGER_SIZE,
@@ -166,25 +196,25 @@ function vertical(p: state.VerticalWidget)
 			end
 		},
 		
-		render(p.right)
+		render(p.right, 1)
 	}
 end
 
 --[[
 Renders a horizontal or vertical widget
 ]]
-function render(p: () -> state.ChildWidget): any
+function render(p: () -> state.ChildWidget, order: number): any
 	return switch(function()
 		return p().kind
 	end) {
 		tabs = function()
-			return tabs(p() :: state.TabsWidget)
+			return tabs(p() :: state.TabsWidget, order)
 		end,
 		horizontal = function()
-			return horizontal(p() :: state.HorizontalWidget)
+			return horizontal(p() :: state.HorizontalWidget, order)
 		end,
 		vertical = function()
-			return vertical(p() :: state.VerticalWidget)
+			return vertical(p() :: state.VerticalWidget, order)
 		end
 	}
 end

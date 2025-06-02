@@ -1,7 +1,5 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local map = require(ReplicatedStorage.src.util.map)
+local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
+local map = require(script.Parent.Parent.Parent.util.map)
 
 type Source<T> = vide.Source<T>
 
@@ -34,7 +32,7 @@ export type RenderWidget = {
 
 export type TabsWidget =  {
     kind: "tabs",
-    parent: Source<ParentWidget>,
+    parent: Source<ParentWidget?>,
     dragging: Source<Vector2?>,
     z: Source<number>,
     destroy: () -> (),
@@ -48,13 +46,14 @@ export type TabsWidget =  {
     min_w: () -> number,
     min_h: () -> number,
 
-    tabs: Source<{ RenderWidget }>
+    tabs: Source<{ RenderWidget }>,
+    selected: Source<number>,
 }
 
 export type HorizontalWidget = {
     kind: "horizontal",
     position: Source<number>,
-    parent: Source<ParentWidget>,
+    parent: Source<ParentWidget?>,
     dragging: Source<Vector2?>,
     z: Source<number>,
     destroy: () -> (),
@@ -75,7 +74,7 @@ export type HorizontalWidget = {
 export type VerticalWidget = {
     kind: "vertical",
     position: Source<number>,
-    parent: Source<ParentWidget>,
+    parent: Source<ParentWidget?>,
     dragging: Source<Vector2?>,
     z: Source<number>,
     destroy: () -> (),
@@ -102,11 +101,24 @@ type Widget =
     | TabsWidget
     | RootWidget
 
-local NONE: RootWidget = { kind = "root", children = function() return {} end :: any }
+local NONE: RootWidget = { kind = "root", children = source({}) }
 local ROOT: RootWidget = { kind = "root", children = source({}) }
 local DRAGGER_SIZE = 6
 local TABS_RIBBON_SIZE = 24
 local TITLE_SIZE = 24
+
+local function insert<T>(fn: () -> { T }, value: T)
+    -- print("inserting", fn, value, debug.traceback("", 2))
+    table.insert(untrack(fn), value)
+end
+
+local function find_pop<T>(fn: () -> { T }, value: T)
+    local idx = table.find(fn(), value)
+    -- print("try pop", fn, value)
+    if not idx then return end
+    -- print("popping", fn, value, debug.traceback("", 2))
+    table.remove(untrack(fn), idx)
+end
 
 local function compute_min_w(self: Widget | RenderWidget): number
     return if self.kind == "render" then self.min_w
@@ -116,59 +128,24 @@ local function compute_min_w(self: Widget | RenderWidget): number
         else 0
 end
 
+local function get_min_h_tab_additional(self: TabsWidget)
+    local parent = self.parent()
+    local addition = 0
+    if parent and parent.kind ~= "root" then addition += TITLE_SIZE end
+    if #self.tabs() > 1 then addition += TABS_RIBBON_SIZE end
+
+    return addition
+end
+
 local function compute_min_h(self: Widget | RenderWidget): number
     return if self.kind == "render" then self.min_h
         elseif self.kind == "vertical" then compute_min_h(self.left()) + compute_min_h(self.right()) + DRAGGER_SIZE
         elseif self.kind == "horizontal" then math.max(0, compute_min_h(self.left()), compute_min_h(self.right()))
-        elseif self.kind == "tabs" then math.max(0, unpack(map(self.tabs(), compute_min_h))) + if self.parent().kind == "root" then 0 else TITLE_SIZE + if #self.tabs() > 1 then TABS_RIBBON_SIZE else 0 
+        elseif self.kind == "tabs" then math.max(0, unpack(map(self.tabs(), compute_min_h))) + get_min_h_tab_additional(self)
         else 0
 end
 
 local function noop() end
-
-local function fix_size(self: ParentWidget)
-    batch(function()
-        if self.kind == "horizontal" then
-            local w_panels = self.w() - DRAGGER_SIZE
-            local left_w = w_panels * self.position()
-            local right_w = w_panels - left_w
-
-            local min_w_left = self.left().min_w()
-            local min_w_right = self.right().min_w()
-
-            if min_w_left > left_w then
-                self.w(right_w + min_w_left + DRAGGER_SIZE)
-                self.position(min_w_left / (right_w + min_w_left))
-            end
-
-            if min_w_right > right_w then
-                self.w(left_w + min_w_right + DRAGGER_SIZE)
-                self.position(min_w_right / (left_w + min_w_right))
-            end
-
-            self.h(math.max(self.h(), self.left().min_h(), self.right().min_h()))
-        elseif self.kind == "vertical" then
-            local h_panels = self.h() - DRAGGER_SIZE
-            local left_h = h_panels * self.position()
-            local right_h = h_panels - left_h
-
-            local min_h_left = self.left().min_h()
-            local min_h_right = self.right().min_h()
-
-            if min_h_left > left_h then
-                self.h(right_h + min_h_left + DRAGGER_SIZE)
-                self.position(min_h_left / (right_h + min_h_left))
-            end
-
-            if min_h_right > right_h then
-                self.h(left_h + min_h_right + DRAGGER_SIZE)
-                self.position(min_h_right / (left_h + min_h_right))
-            end
-
-            self.w(math.max(self.w(), self.left().min_w(), self.right().min_w()))
-        end
-    end)
-end
 
 local function change_position(self: HorizontalWidget | VerticalWidget, to: number)
     local min
@@ -190,85 +167,23 @@ local function change_position(self: HorizontalWidget | VerticalWidget, to: numb
         max = 1 - (min_right / h)
     end
 
+    if min > max then max = min end
     local new = math.clamp(to, min, max)
     self.position(new)
-end
-
---[[
-    Sets the parent to root
-]]
-local function set_parent_to_root(self: ChildWidget, to: RootWidget)
-    local children = untrack(to.children)
-    if table.find(children, self) then error("ALREADY IN ROOT") end
-    table.insert(children, self)
-    to.children(children)
-end
-
-
---[=[
-    Removes any references to the child from it's parent
-]=]
-local function remove_parent(self: ChildWidget, old_parent: ParentWidget)
-    if self.kind == "root" then return end
-    if old_parent.kind == "root" then
-        local children = old_parent.children()
-        local idx = table.find(children, self)
-        if not idx then return end
-        table.remove(children, idx)
-        old_parent.children(children)
-    elseif old_parent.destroy ~= noop then
-        if old_parent.left() ~= self and old_parent.right() ~= self then return end
-
-        local other_widget =
-            if old_parent.left() == self then old_parent.right()
-            else old_parent.left()
-
-        local ancestor = old_parent.parent()
-        if ancestor == self.parent() then return end
-
-        print("moving widget to ancestor", self.kind, old_parent.kind, ancestor.kind)
-
-        if ancestor.kind ~= "root" then
-            if ancestor.left() == old_parent then
-                ancestor.left(other_widget)
-            elseif ancestor.right() == old_parent then
-                ancestor.right(other_widget)
-            else
-                error("ancestor is not part of it?")
-            end
-
-            old_parent.parent(NONE)
-            other_widget.parent(ancestor)
-            old_parent.destroy()
-        else
-            old_parent.parent(NONE)
-            other_widget.parent(ancestor)
-            other_widget.w(old_parent.w())
-            other_widget.h(old_parent.h())
-            other_widget.x(old_parent.x())
-            other_widget.y(old_parent.y())
-            old_parent.destroy()
-        end
-
-    end
 end
 
 --[[
     Removes the render widget from it's parent.
 ]]
 local function remove_parent_render_widget(self: RenderWidget, from: TabsWidget)
-    local tabs = untrack(from.tabs)
-    table.remove(tabs, table.find(tabs, self))
-    from.tabs(tabs)
+    find_pop(from.tabs, self)
 end
 
 --[[
     Adds the render widget to a Tabs widget
 ]]
 local function set_parent_render_widget(self: RenderWidget, to: TabsWidget)
-    local tabs = untrack(to.tabs)
-    table.insert(tabs, self)
-    to.tabs(tabs)
+    insert(to.tabs, self)
 end
 
 --[[
@@ -277,7 +192,7 @@ Obtains the size of a widget
 local function get_size(self: ChildWidget)
     local parent = self.parent()
     
-    if parent.kind == "root" then
+    if not parent or parent.kind == "root" then
         return self.w(), self.h(), self.x(), self.y()
     elseif parent.kind == "horizontal" then
         local pos = parent.position()
@@ -300,6 +215,55 @@ local function get_size(self: ChildWidget)
     end
 
     error("unreachable", parent)
+end
+
+--[[
+Attempts to adjust the size so that everything will fit the widget again.
+]]
+local function fix_size(self: HorizontalWidget | VerticalWidget)
+    -- get the left size and right size
+    local lw, lh = get_size(self.left())
+    local rw, rh = get_size(self.right())
+    local lmw, lmh = self.left().min_w(), self.left().min_h()
+    local rmw, rmh = self.right().min_w(), self.right().min_h()
+    local parent = self.parent()
+    
+    if parent and parent.kind ~= "root" then fix_size(parent) end
+
+    if self.kind == "horizontal" then
+        if lmw > lw then
+            self.left().w(lmw)
+            self.w(lmw + rw)
+            self.position(lmw / self.w())
+            lw = lmw
+        end
+        if rmw > rw then
+            self.right().w(lw)
+            self.w(rmw + lw)
+            self.position(rmw / self.w())
+            lh = lmh
+        end
+        
+        self.h(math.max(self.min_h(), self.h()))
+        self.w(self.left().w() + self.right().w() + DRAGGER_SIZE)
+    elseif self.kind == "vertical" then
+        if lmh > lh then
+            self.left().h(rmh)
+            self.h(lmh + rh)
+            self.position(lmh / self.h())
+            lh = lmh
+        end
+        if rmh > rh then
+            self.right().h(lh)
+            self.h(rmh + lh)
+            self.position(rmh / self.h())
+        end
+
+        self.w(math.max(self.min_w(), self.w()))
+        self.h(self.left().h() + self.right().h() + DRAGGER_SIZE)
+    end
+
+    if parent and parent.kind ~= "root" then fix_size(parent) end
 end
 
 --[[
@@ -356,30 +320,6 @@ local function widget(p: {
 end
 
 --[[
-Handles and makes sure that updating the parent works properly
-]]
-local function update_parent(self: ChildWidget)
-    local prev_parent: ParentWidget?
-    return function()
-        local old_parent = prev_parent
-        local new_parent = self.parent()
-        prev_parent = new_parent
-
-        if old_parent == new_parent then return end
-        if old_parent then
-            remove_parent(self, old_parent)
-        end
-
-        if new_parent.kind == "root" then
-            set_parent_to_root(self, new_parent)
-            print('added')
-        else
-            assert(new_parent.left() == self or new_parent.right() == self, "updated parent, but left or right is not set to widget.")
-        end
-    end
-end
-
---[[
 Makes sure updating the size works properly
 ]]
 local function update_size(self: ChildWidget)
@@ -403,10 +343,10 @@ local function tabs(p: {
         local tabs = source({} :: { RenderWidget })
         local self: TabsWidget = {
             kind = "tabs",
-            parent = source(ROOT :: ParentWidget),
+            parent = source(nil :: ParentWidget?),
             destroy = destroy,
             z = source(0),
-            dragging = source(nil :: InputObject?),
+            dragging = source(nil :: Vector2?),
             
             x = source(p.x or 0),
             y = source(p.y or 0),
@@ -417,16 +357,21 @@ local function tabs(p: {
             min_w = function() return 0 end,
             min_h = function() return 0 end,
 
-            tabs = tabs
+            tabs = tabs,
+            selected = source(1),
+
+            _tabs = tabs()
         }
+
+        effect(function()
+            self._parent = tostring(self.parent())
+        end)
 
         cleanup(function()
             self.destroy = noop
-            print("destroying tabs")
             for _, tab in tabs() do
                 tab.destroy()
             end
-            remove_parent(self, self.parent())
         end)
 
         for _, tab in { unpack(p) } do
@@ -438,7 +383,6 @@ local function tabs(p: {
 
         effect(function()
             if #tabs() ~= 0 then return end
-            print("destroying itself")
             task.defer(self.destroy)
             self.destroy = noop
         end)
@@ -451,13 +395,32 @@ local function tabs(p: {
         end)
 
         effect(update_size(self))
-        effect(update_parent(self))
 
         return self
     end)
 
     return scope
 end
+
+-- local NON_EXISTENT_TAB: TabsWidget = {
+--     kind = "tabs",
+--     parent = noop :: any,
+--     destroy = noop :: any,
+--     z = function() return 0 end :: any,
+--     dragging = function() return false end :: any,
+
+--     x = function() return 0 end,
+--     y = function() return 0 end,
+    
+--     w = function() return 0 end :: any,
+--     h = function() return 0 end :: any,
+
+--     min_w = function() return 0 end :: any,
+--     min_h = function() return 0 end :: any,
+
+--     tabs = function() return {} end :: any,
+--     selected = function() return 1 end :: any
+-- }
 
 local function horizontal(p: {
     x: number?,
@@ -470,10 +433,10 @@ local function horizontal(p: {
         local self: HorizontalWidget = {
             kind = "horizontal" :: "horizontal",
             position = source(p[1].w() / (p[1].w() + p[2].w())),
-            parent = source(ROOT :: ParentWidget),
+            parent = source(nil :: ParentWidget?),
             destroy = destroy,
             z = source(0),
-            dragging = source(nil :: InputObject?),
+            dragging = source(nil :: Vector2?),
             
             x = source(p.x or 0),
             y = source(p.y or 0),
@@ -485,10 +448,21 @@ local function horizontal(p: {
             min_h = function() return 0 end,
 
             left = source(p[1]),
-            right = source(p[2])
+            right = source(p[2]),
+
+            _left = p[1],
+            _right = p[2]
         }
 
-        effect(update_parent(self))
+        effect(function()
+            self._left = self.left()
+            self._right = self.right()
+            self._parent = tostring(self.parent())
+        end)
+
+        self.left().parent(self)
+        self.right().parent(self)
+
         effect(update_size(self))
 
         cleanup(function()
@@ -500,8 +474,6 @@ local function horizontal(p: {
             if self.right().parent() == self then
                 self.right().destroy()
             end
-
-            remove_parent(self, self.parent())
         end)
 
         p[1].parent(self)
@@ -531,10 +503,10 @@ local function vertical(p: {
         local self: VerticalWidget = {
             kind = "vertical" :: "vertical",
             position = source(p[1].h() / (p[1].h() + p[2].h())),
-            parent = source(ROOT :: ParentWidget),
+            parent = source(nil :: ParentWidget?),
             destroy = destroy,
             z = source(0),
-            dragging = source(nil :: InputObject?),
+            dragging = source(nil :: Vector2?),
             
             x = source(p.x or 0),
             y = source(p.y or 0),
@@ -549,7 +521,12 @@ local function vertical(p: {
             right = source(p[2])
         }
 
-        effect(update_parent(self))
+        effect(function()
+            self._left = self.left()
+            self._right = self.right()
+            self._parent = tostring(self.parent())
+        end)
+
         effect(update_size(self))
 
         cleanup(function()
@@ -561,8 +538,6 @@ local function vertical(p: {
             if self.right().parent() == self then
                 self.right().destroy()
             end
-
-            remove_parent(self, self.parent())
         end)
 
         p[1].parent(self)
@@ -581,114 +556,268 @@ local function vertical(p: {
     return self
 end
 
-local function set_parent(self: ChildWidget, parent: ParentWidget | ChildWidget, dir: "left" | "right" | "top" | "bottom"?)
-    if parent.kind == "root" then
-        self.parent(parent)
-    elseif dir == "left" then
-        local other_widget = horizontal {
-            x = 0, y = 0,
+-- local function set_parent(self: ChildWidget, parent: ParentWidget | ChildWidget, dir: "left" | "right" | "top" | "bottom"?)
+--     if parent.kind == "root" then
+--         self.parent(parent)
+--     elseif dir == "left" then
+--         local other_widget = horizontal {
+--             x = 0, y = 0,
 
-            self, parent
-        }
+--             self, parent
+--         }
         
-        local ancestor = parent.parent()
-        other_widget.parent(ancestor)
-        if ancestor.kind ~= "root" then
-            if ancestor.left() == parent then
-                ancestor.left(other_widget)
-            else
-                ancestor.right(other_widget)
-            end
-        end
+--         local ancestor = parent.parent()
+--         other_widget.parent(ancestor)
+--         if ancestor.kind ~= "root" then
+--             if ancestor.left() == parent then
+--                 ancestor.left(other_widget)
+--             else
+--                 ancestor.right(other_widget)
+--             end
+--         end
 
-        fix_size(ancestor)
-    elseif dir == "right" then
-        local other_widget = horizontal {
-            x = 0, y = 0,
+--     elseif dir == "right" then
+--         local other_widget = horizontal {
+--             x = 0, y = 0,
 
-            parent, self
-        }
+--             parent, self
+--         }
         
-        local ancestor = parent.parent()
-        other_widget.parent(ancestor)
-        if ancestor.kind ~= "root" then
-            if ancestor.left() == parent then
-                ancestor.left(other_widget)
-            else
-                ancestor.right(other_widget)
-            end
-        end
+--         local ancestor = parent.parent()
+--         other_widget.parent(ancestor)
+--         if ancestor.kind ~= "root" then
+--             if ancestor.left() == parent then
+--                 ancestor.left(other_widget)
+--             else
+--                 ancestor.right(other_widget)
+--             end
+--         end
         
-        fix_size(ancestor)
-    elseif dir == "top" then
-        local other_widget = vertical {
-            x = 0, y = 0,
+--         fix_size(ancestor)
+--     elseif dir == "top" then
+--         local other_widget = vertical {
+--             x = 0, y = 0,
 
-            self,
-            parent
-        }
+--             self,
+--             parent
+--         }
         
-        local ancestor = parent.parent()
-        other_widget.parent(ancestor)
-        if ancestor.kind ~= "root" then
-            if ancestor.left() == parent then
-                ancestor.left(other_widget)
-            else
-                ancestor.right(other_widget)
-            end
-        end
+--         local ancestor = parent.parent()
+--         other_widget.parent(ancestor)
+--         if ancestor.kind ~= "root" then
+--             if ancestor.left() == parent then
+--                 ancestor.left(other_widget)
+--             else
+--                 ancestor.right(other_widget)
+--             end
+--         end
 
-        fix_size(ancestor)
-    elseif dir == "bottom" then
-        local other_widget = vertical {
-            x = 0, y = 0,
+--         fix_size(ancestor)
+--     elseif dir == "bottom" then
+--         local other_widget = vertical {
+--             x = 0, y = 0,
 
-            self,
-            parent,
-        }
+--             self,
+--             parent,
+--         }
         
-        local ancestor = parent.parent()
-        other_widget.parent(ancestor)
-        if ancestor.kind ~= "root" then
-            if ancestor.left() == parent then
-                ancestor.left(other_widget)
-            else
-                ancestor.right(other_widget)
-            end
-        end
+--         local ancestor = parent.parent()
+--         other_widget.parent(ancestor)
+--         if ancestor.kind ~= "root" then
+--             if ancestor.left() == parent then
+--                 ancestor.left(other_widget)
+--             else
+--                 ancestor.right(other_widget)
+--             end
+--         end
         
-        fix_size(ancestor)
-    elseif self.kind == "tabs" and parent.kind == "tabs" then
-        for _, tab in self.tabs() do
-            table.insert(parent.tabs(), tab)
-        end
+--         fix_size(ancestor)
+--     elseif self.kind == "tabs" and parent.kind == "tabs" then
+--         for _, tab in self.tabs() do
+--             table.insert(parent.tabs(), tab)
+--         end
 
-        parent.tabs(parent.tabs())
-    else
-        error("cannot parent")
-    end
-end
+--         parent.tabs(parent.tabs())
+--     else
+--         error("cannot parent")
+--     end
+-- end
 
 local function root(p: {
     [number]: ChildWidget
 })
     for _, child in p do
+        insert(ROOT.children, child)
         child.parent(ROOT)
     end
 end
 
-local function remove_tab(p: TabsWidget, tab: RenderWidget, dragging: Vector2?): TabsWidget
-    tab.w = p.w()
-    tab.h = p.h()
+--[[
+    Replaces the given widget with a different ChildWidget.
+]]
+local function replace_itself(self: ChildWidget, replacement: ChildWidget)
+    local parent = self.parent()
 
-    local self = tabs {
-        x = p.x(), y = p.y(),
+    if parent and (parent.kind == "horizontal" or parent.kind == "vertical") then
+        if parent.left() == self then
+            parent.left(replacement)
+            replacement.parent(parent)
+        elseif parent.right() == self then
+            parent.right(replacement)
+            replacement.parent(parent)
+        else
+            error("parent is not part of ancestor")
+        end
+    elseif parent then
+        insert(parent and parent.children, replacement)
+        if self then
+            find_pop(parent and parent.children, self)
+            self.parent(parent)
+            parent.children(parent.children())
+        end
+        replacement.w(self.w())
+        replacement.h(self.h())
+        replacement.x(self.x())
+        replacement.y(self.y())
+        replacement.parent(parent or ROOT)
+    end
+end
 
+--[[
+    Given a widget, takes the parent widget, grabs the other widget that isn't itself,
+    then sets that to the parent of the parent widget on the same side as the parent widget,
+    replacing the parent widget and destroys the parent widget.
+]]
+local function swap_parent_ancestor(self: ChildWidget)
+    local parent = self.parent()
+    -- since the widget is parented to root, there is no widget to swap.
+    if not parent then return end
+    if parent.kind == "root" then
+        find_pop(parent.children, self)
+        parent.children(parent.children())
+        return
+    end
+
+    local other_widget
+
+    -- obtains the other widget
+    if parent.left() == self then
+        other_widget = parent.right()
+    else
+        other_widget = parent.left()
+    end
+
+    -- the ancestor is root, so the other widget also goes into root
+    replace_itself(parent, other_widget)
+end
+
+--[=[
+    Given a tab widget, if the widget has 0 tabs, swap parent ancestor and
+    destroy the tab widget.
+]=]
+local function if_no_tab_swap(self: TabsWidget)
+    if #self.tabs() == 0 then
+        swap_parent_ancestor(self)
+        self.destroy()
+    end
+end
+
+--[[
+    Used for the dragging out action, which removes a tab from it's parent, giving
+    it it's own widget that can be used anywhere.
+]]
+local function drag_out_tab(tab: RenderWidget, dragging: Vector2?): TabsWidget
+    
+    warn("dragged out")
+    local p = tab.parent()
+    local x, y = 64, 64
+    if p then
+        tab.w = p.w()
+        tab.h = p.h()
+        x = p.x()
+        y = p.y()
+
+        -- we have to remove the old parent
+        remove_parent_render_widget(tab, p)
+        if_no_tab_swap(p)
+    end
+
+    local child = tabs {
+        x = x, y = y,
         tab
     }
-    self.dragging(dragging)
 
-    return self
+    insert(ROOT.children, child)
+    child.parent(ROOT)
+    ROOT.children(ROOT.children())
+    
+    print(ROOT.children())
+
+
+    child.dragging(dragging)
+
+    return child
+end
+
+type Direction = "left" | "right" | "top" | "bottom" | "center"
+
+--[[
+    Used for docking into another widget
+]]
+local function dock_into_widget(docking: ChildWidget, docks_into: ChildWidget, direction: Direction)
+    local old_parent = docks_into.parent()
+    if not old_parent then return end
+    if direction == "center" then return end
+    warn("dock into", tostring(docking), tostring(docks_into))
+    swap_parent_ancestor(docking)
+    if direction == "left" then
+        -- we have to replace docks_into with our own widget
+        local new_widget = horizontal {
+            x = docks_into.x(), y = docks_into.y(),
+            docking, docks_into
+        }
+        docks_into.parent(old_parent)
+        replace_itself(docks_into, new_widget)
+        docks_into.parent(new_widget)
+
+
+        fix_size(new_widget)
+    elseif direction == "right" then
+        -- we have to replace docks_into with our own widget
+        local new_widget = horizontal {
+            x = docks_into.x(), y = docks_into.y(),
+            docks_into, docking,
+        }
+        
+        docks_into.parent(old_parent)
+        replace_itself(docks_into, new_widget)
+        docks_into.parent(new_widget)
+        fix_size(new_widget)
+    elseif direction == "top" then
+        local new_widget = vertical {
+            x = docks_into.x(), y = docks_into.y(),
+            docking,
+            docks_into,
+        }
+        
+        docks_into.parent(old_parent)
+        replace_itself(docks_into, new_widget)
+        docks_into.parent(new_widget)
+        fix_size(new_widget)
+    elseif direction == "bottom" then
+        local new_widget = vertical {
+            x = docks_into.x(), y = docks_into.y(),
+            docks_into,
+            docking,
+        }
+        
+        docks_into.parent(old_parent)
+        replace_itself(docks_into, new_widget)
+        docks_into.parent(new_widget)
+        fix_size(new_widget)
+    end
+    print(ROOT.children())
+
 end
 
 local enable_ui = source(true)
@@ -696,6 +825,11 @@ local enable_ui = source(true)
 return {
     enable_ui = enable_ui,
     noop = noop,
+    dragging = source(false),
+    hovering_over = source(false :: false | {
+        direction: Direction, 
+        widget: TabsWidget
+    }),
 
     ROOT = ROOT,
     TITLE_SIZE = TITLE_SIZE,
@@ -708,7 +842,7 @@ return {
     horizontal = horizontal,
     vertical = vertical,
 
-    set_parent = set_parent,
-    remove_tab = remove_tab,
+    dock_into_widget = dock_into_widget,
+    drag_out_tab = drag_out_tab,
     change_position = change_position,
 }

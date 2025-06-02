@@ -2,19 +2,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local text = require(ReplicatedStorage.src.components.text)
-local textfield = require(ReplicatedStorage.src.components.textfield)
-local virtualscroller = require(ReplicatedStorage.src.components.virtualscroller)
 local ui_labs = require(script.Parent.Parent.Parent.roblox_packages.ui_labs)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
-local button = require(script.Parent.Parent.components.button)
-local container = require(script.Parent.Parent.components.container)
-local expandable = require(script.Parent.Parent.components.expandable)
 local widget = require(script.Parent.Parent.components.widget)
 local render = require(script.Parent.Parent.components.widget.render)
-local theme = require(script.Parent.Parent.util.theme)
 
 local source = vide.source
-local effect = vide.effect
 
 return ui_labs.CreateVideStory({
 	vide = vide,
@@ -26,7 +19,7 @@ return ui_labs.CreateVideStory({
 		
 		widget.tabs {
 			widget.widget {
-				title = source("1!"),
+				title = source("Widget 1"),
 				w = 200, h = 200,
 				min_w = 150, min_h = 150,
 
@@ -43,13 +36,13 @@ return ui_labs.CreateVideStory({
 			
 			widget.tabs {
 				widget.widget {
-					title = source("1!"),
+					title = source("Widget 2"),
 					w = 200, h = 200,
 					min_w = 150, min_h = 150,
 
 					fn = function()
 						return text {
-							text = "Hello World!"
+							text = "This is a test!"
 						}
 					end
 				},
@@ -57,7 +50,7 @@ return ui_labs.CreateVideStory({
 
 			widget.tabs {
 				widget.widget {
-					title = source("2!"),
+					title = source("Widget 3"),
 					w = 200, h = 200,
 					min_w = 150, min_h = 150,
 

@@ -30,7 +30,6 @@ return function(p: GuiState)
 
 	local function input_ended(input: InputObject)
 		if not enabled() or input ~= input_object() then return end
-		print("END", input.UserInputType)
 		input_object(nil)
 		if p.hold then p.hold(false) end
 		if p.input then p.input(input) end
@@ -38,9 +37,7 @@ return function(p: GuiState)
 	end
 
 	local function input_began(input: InputObject)
-		print("?", input.UserInputType)
 		if not enabled() or input.UserInputState ~= Enum.UserInputState.Begin then return end
-		print("BEGIN", input.UserInputType)
 		input_object(input)
 		if p.hold then p.hold(true) end
 		if p.input then p.input(input) end

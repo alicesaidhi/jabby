@@ -32,7 +32,7 @@ return component(function(p: portal, children)
 	local inherit_layout = p.inherit_layout
 
 	local nearest_gui_base = source(nil :: GuiBase2d?)
-	local nearest_layer_collector = source(nil :: LayerCollector?)
+	local nearest_layer_collector = source(nil :: ScreenGui?)
 
 	local size = source(UDim2.fromScale(1, 1))
 	local position = source(UDim2.fromScale(0, 0))
@@ -48,32 +48,10 @@ return component(function(p: portal, children)
 			position(UDim2.fromOffset(object.AbsolutePosition.X, object.AbsolutePosition.Y))
 		end
 
+		update()
 		cleanup(object:GetPropertyChangedSignal("AbsoluteSize"):Connect(update))
 		cleanup(object:GetPropertyChangedSignal("AbsolutePosition"):Connect(update))
 	end)
-
-	-- creates a container that is mounted to somewhere.
-	cleanup(vide.mount(function()
-		cleanup(create ("Frame" :: "Frame") {
-			Name = `Portal:{layout}`,
-			Parent = nearest_layer_collector,
-			AutoLocalize = false,
-			ZIndex = layout,
-
-			Size = function()
-				return if read(inherit_layout) == true then size()
-				else UDim2.fromScale(1, 1)
-			end,
-			Position = function()
-				return if read(inherit_layout) == true then position()
-				else UDim2.fromScale(0, 0)
-			end,
-
-			BackgroundTransparency = 1,
-
-			children
-		})
-	end))
 
 	-- this is an anchor used to reference what gui base and layer collector to use.
 	return create ("Configuration" :: "Configuration") {
@@ -86,15 +64,39 @@ return component(function(p: portal, children)
 				return
 			end
 			nearest_gui_base(reference:FindFirstAncestorWhichIsA("GuiBase2d"))
-			nearest_layer_collector(reference:FindFirstAncestorWhichIsA("LayerCollector"))
+			nearest_layer_collector(reference:FindFirstAncestorWhichIsA("ScreenGui"))
 		end,
 
 		ref(function(instance: Instance)
 			layout += 1
 			reference(instance)
 			nearest_gui_base(instance:FindFirstAncestorWhichIsA("GuiBase2d"))
-			nearest_layer_collector(instance:FindFirstAncestorWhichIsA("LayerCollector"))
-		end)
+			nearest_layer_collector(instance:FindFirstAncestorWhichIsA("ScreenGui"))
+		end),
+
+		create ("ScreenGui" :: "ScreenGui") {
+			DisplayOrder = 1e8,
+
+			create ("Frame" :: "Frame") {
+				Name = `Portal:{layout}`,
+				AutoLocalize = false,
+				ZIndex = layout,
+
+				Size = function()
+					return if read(inherit_layout) == true then size()
+					else UDim2.fromScale(1, 1)
+				end,
+				Position = function()
+					return if read(inherit_layout) == true then position()
+					else UDim2.fromScale(0, 0)
+				end,
+
+				BackgroundTransparency = 1,
+
+				children
+			}
+
+		}
 	}
 	
 end)
