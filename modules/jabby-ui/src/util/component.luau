@@ -34,7 +34,7 @@ type SpecialProperties = {
     xs: Can<number>?, ys: Can<number>?,
 
     --- zindex
-    z: number?,
+    z: Can<number>?,
     --- automatic size
     auto: Can<auto.Auto>?,
     --- the layout order
@@ -90,7 +90,9 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
         vide.apply(parent)(children)
 
         if props.name then instance.Name = props.name end
-        if props.z then (instance :: GuiObject).ZIndex = props.z end
+        if props.z then effect(function()
+            (instance :: GuiObject).ZIndex = read(props.z)
+        end) end
         if props.order then (instance :: GuiObject).LayoutOrder = props.order end
         if props.anchor then (instance :: GuiObject).AnchorPoint = Vector2.new(props.anchor[1], props.anchor[2]) end
         if props.visible then

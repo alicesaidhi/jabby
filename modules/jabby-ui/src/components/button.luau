@@ -9,7 +9,11 @@ local spring = vide.spring
 
 type Can<T> = T | () -> T
 return component(function(p: {
-	acc: boolean,
+	corner: number?,
+	padding: number?,
+	paddingx: number?,
+
+	acc: boolean?,
 
 	text: Can<string>?,
     size: Can<number>?,
@@ -43,8 +47,8 @@ return component(function(p: {
 		name = "Button",
 
 		flex = { direction = "row", justify = "between", align = "center", pad = 8 },
-		auto = "xy", pad = { p = theme.base_button_padding },
-		corner = theme.base_button_corner,
+		auto = "xy", pad = { x = p.paddingx, p = p.padding or theme.base_button_padding },
+		corner = p.corner or theme.base_button_corner,
 
 		color = spring(if p.acc then theme.acc(depth_acc) else theme.bg(depth_bg), 0.1),
 		stroke = if p.acc then theme.acc(-7) else theme.bg(-1),

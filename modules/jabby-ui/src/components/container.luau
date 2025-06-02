@@ -14,6 +14,7 @@ return component(function(p: {
 	
 	-- stroke properties
 	stroke: Can<Color3>?,
+	stroke_transparency: Can<number>?,
 	thickness: Can<number>?,
 
 	-- corner properties
@@ -70,7 +71,7 @@ return component(function(p: {
 		properties.Active = p.sink
 	end
 
-	if not (p.ws or p.hs) then
+	if not (p.ws or p.hs or p.wr or p.hr) then
 		properties.AnchorPoint = Vector2.new(0.5, 0.5)
 	end
 
@@ -83,6 +84,7 @@ return component(function(p: {
 	if p.stroke then
 		table.insert(properties, create ("UIStroke" :: "UIStroke") {
 			Color = p.stroke,
+			Transparency = p.stroke_transparency,
 			Thickness = p.thickness or 1
 		})
 	end

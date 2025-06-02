@@ -30,6 +30,7 @@ return function(p: GuiState)
 
 	local function input_ended(input: InputObject)
 		if not enabled() or input ~= input_object() then return end
+		print("END", input.UserInputType)
 		input_object(nil)
 		if p.hold then p.hold(false) end
 		if p.input then p.input(input) end
@@ -37,7 +38,9 @@ return function(p: GuiState)
 	end
 
 	local function input_began(input: InputObject)
+		print("?", input.UserInputType)
 		if not enabled() or input.UserInputState ~= Enum.UserInputState.Begin then return end
+		print("BEGIN", input.UserInputType)
 		input_object(input)
 		if p.hold then p.hold(true) end
 		if p.input then p.input(input) end
@@ -45,9 +48,8 @@ return function(p: GuiState)
 		local connection: RBXScriptConnection
 		connection = RunService.Heartbeat:Connect(function(dt)
 			if p.input then p.input(input) end
-			if input.UserInputState == Enum.UserInputState.End then
-				input_ended(input)
-				connection:Disconnect()
+			if input_object() ~= input then
+ 				connection:Disconnect()
 			end
 		end)
 	end
@@ -67,6 +69,7 @@ return function(p: GuiState)
 		assert(instance:IsA("GuiButton"), "instance has no input events")
 
 		cleanup(instance.InputBegan:Connect(input_began))
+		cleanup(UserInputService.InputEnded:Connect(input_ended))
 		if p.input then cleanup(instance.InputChanged:Connect(input_changed)) end
 
 		if p.hover then

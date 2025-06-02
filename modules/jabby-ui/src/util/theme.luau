@@ -42,6 +42,7 @@ return {
     err = theme_generator.compute_sequence(error, 0),
 
     body = source(Font.fromName("BuilderSans")),
+    header = source(Font.fromName("Montserrat")),
     mono = source(Font.fromId(16658246179)),
 
     base_button_padding = conditional(COMPACT, 6, 9),
@@ -58,6 +59,7 @@ return {
 
     sub_size = conditional(COMPACT, 12, 14),
     body_size = conditional(COMPACT, 16, 18),
+    header_size = conditional(COMPACT, 20, 20),
     input_size = conditional(COMPACT, 16, 18),
     
     

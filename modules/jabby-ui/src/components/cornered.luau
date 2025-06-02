@@ -41,7 +41,15 @@ return component(function(p: {
     topleft: Can<number>?,
     topright: Can<number>?,
     bottomleft: Can<number>?,
-    bottomright: Can<number>?
+    bottomright: Can<number>?,
+
+    -- input properties
+    sink: Can<boolean>?,
+	enabled: (() -> boolean)?,
+	hover: ((boolean) -> ())?,
+	hold: ((boolean) -> ())?,
+	input: ((InputObject) -> ())?,
+	clicked: ((InputObject) -> ())?,
 }, children)
 
     local topleft = floor(p.topleft or 0)
@@ -50,6 +58,13 @@ return component(function(p: {
     local bottomright = floor(p.bottomright or 0)
 
     return container {
+        sink = p.sink,
+        enabled = p.enabled,
+        hover = p.hover,
+        hold = p.hold,
+        input = p.input,
+        clicked = p.clicked,
+        
         corner { name = "topleft", anchor = { 0, 0 }, xs = 0, ys = 0, size = topleft or 0, color = p.color },
         corner { name = "topright", anchor = { 1, 0 }, xs = 1, ys = 0, size = topright or 0, color = p.color },
         corner { name = "bottomleft", anchor = { 0, 1 }, xs = 0, ys = 1, size = bottomleft or 0, color = p.color },
