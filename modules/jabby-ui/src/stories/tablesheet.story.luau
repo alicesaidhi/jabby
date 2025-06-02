@@ -41,9 +41,12 @@ return ui_labs.CreateVideStory({
 		tablesheet {
 			ws = 0.8, h = 300,
 
+			enable_sort_key = true,
+			auto_sort = true,
+
 			columns = source {
-				source { "id", "1", "2", '3', '4', '5', '6', '7', '8', '9' },
-				source { "value", 'a', "b", "c", "d", "e", "f", "g", "h", "i" }
+				source { "id", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },
+				source { "value", 'a', "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n" }
 			},
 
 			use_offset = source { 32 },

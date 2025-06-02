@@ -6,13 +6,20 @@ local ui_labs = require(script.Parent.Parent.Parent.roblox_packages.ui_labs)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local widget = require(script.Parent.Parent.components.widget)
 local render = require(script.Parent.Parent.components.widget.render)
+local state = require(script.Parent.Parent.components.widget.state)
 
 local source = vide.source
 
 return ui_labs.CreateVideStory({
 	vide = vide,
-	controls = {}
+	controls = {
+		enable_ui = true
+	}
 }, function(props)
+
+	vide.effect(function()
+		state.enable_ui(props.controls.enable_ui())
+	end)
 
 	local tabs = widget.horizontal {
 		x = 32, y = 32,
@@ -25,6 +32,7 @@ return ui_labs.CreateVideStory({
 
 				fn = function()
 					return text {
+						pad = { x = 8 },
 						text = "Hello World!"
 					}
 				end
@@ -42,6 +50,7 @@ return ui_labs.CreateVideStory({
 
 					fn = function()
 						return text {
+						pad = { x = 8 },
 							text = "This is a test!"
 						}
 					end
@@ -56,6 +65,7 @@ return ui_labs.CreateVideStory({
 
 					fn = function()
 						return text {
+						pad = { x = 8 },
 							text = "yay!"
 						}
 					end

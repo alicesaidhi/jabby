@@ -14,4 +14,7 @@ return {
 	vertical = state.vertical,
 	tabs = state.tabs,
 	root = state.root,
+
+	close = state.close_tab,
+	enable_ui = state.enable_ui
 }

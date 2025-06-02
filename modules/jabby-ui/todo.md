@@ -35,4 +35,4 @@
 - [ ] Scrolling Container
 - [ ] Tree
 - [ ] Radio Button
-- [ ] Dock Widget WITH PROPER DOCKING
+- [X] Dock Widget WITH PROPER DOCKING

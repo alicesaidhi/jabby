@@ -3,6 +3,8 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
+local anim = require(script.Parent.Parent.Parent.util.anim)
+local conditional = require(script.Parent.Parent.Parent.util.conditional)
 local theme = require(script.Parent.Parent.Parent.util.theme)
 local container = require(script.Parent.Parent.container)
 local portal = require(script.Parent.Parent.portal)
@@ -56,6 +58,15 @@ return function(widget: state.TabsWidget)
 
 		end)
 	end
+
+	local is = function(direction: "bottom" | "center" | "left" | "right" | "top")
+		return function()
+			local hover = state.hovering_over()
+			return hover and hover.direction == direction and hover.widget == widget
+		end
+	end
+
+	
 	
 	return portal {
 		inherit_layout = true,
@@ -77,6 +88,9 @@ return function(widget: state.TabsWidget)
 				x = 0, y = 0,
 
 				stroke = theme.bg(-1),
+				color = theme.acc(3),
+				transparency = conditional(is("center"), 0.5, 1),
+
 				detect("center")
 			},
 
@@ -86,6 +100,9 @@ return function(widget: state.TabsWidget)
 				x = -48, y = 0,
 
 				stroke = theme.bg(-1),
+				color = theme.acc(3),
+				transparency = conditional(is("left"), 0.5, 1),
+
 				detect("left")
 			},
 			
@@ -95,6 +112,9 @@ return function(widget: state.TabsWidget)
 				x = 48, y = 0,
 
 				stroke = theme.bg(-1),
+				color = theme.acc(3),
+				transparency = conditional(is("right"), 0.5, 1),
+
 				detect("right")
 			},
 			
@@ -104,6 +124,9 @@ return function(widget: state.TabsWidget)
 				x = 0, y = 48,
 
 				stroke = theme.bg(-1),
+				color = theme.acc(3),
+				transparency = conditional(is("bottom"), 0.5, 1),
+
 				detect("bottom")
 			},
 			
@@ -113,6 +136,9 @@ return function(widget: state.TabsWidget)
 				x = 0, y = -48,
 
 				stroke = theme.bg(-1),
+				color = theme.acc(3),
+				transparency = conditional(is("top"), 0.5, 1),
+
 				detect("top")
 			},
 		}

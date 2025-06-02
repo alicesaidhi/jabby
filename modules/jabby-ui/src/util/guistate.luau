@@ -67,6 +67,9 @@ return function(p: GuiState)
 
 		cleanup(instance.InputBegan:Connect(input_began))
 		cleanup(UserInputService.InputEnded:Connect(input_ended))
+		effect(function()
+			instance.Active = enabled()
+		end)
 		if p.input then cleanup(instance.InputChanged:Connect(input_changed)) end
 
 		if p.hover then

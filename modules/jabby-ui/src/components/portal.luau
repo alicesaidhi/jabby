@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 --[[
 
 portal is used to render a component over other components.
@@ -75,7 +76,10 @@ return component(function(p: portal, children)
 		end),
 
 		create ("ScreenGui" :: "ScreenGui") {
-			DisplayOrder = 1e8,
+			DisplayOrder = function()
+				local layer = nearest_layer_collector()
+				return if not layer or RunService:IsStudio() then 1e8 else layer.DisplayOrder + 1
+			end,
 
 			create ("Frame" :: "Frame") {
 				Name = `Portal:{layout}`,

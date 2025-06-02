@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local anim = require(script.Parent.Parent.Parent.util.anim)
 local cornered = require(script.Parent.Parent.cornered)
 local ignore = require(script.Parent.Parent.ignore)
 local shadow = require(script.Parent.Parent.shadow)
@@ -29,7 +30,9 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
     local can_resize_bottom = source(false)
     local resizing = source(false)
 
-    local old: Vector2? = UserInputService:GetMouseLocation() - Vector2.new(0, TITLEBAR_SIZE)
+    local hovering = source(false)
+
+    local old: Vector2? = Vector2.new(p.x() + 32, p.y() - TITLEBAR_SIZE + 8)
     cleanup(RunService.PreRender:Connect(function(dt)
         if not p.dragging() then return end
         if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -87,6 +90,9 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
                 anchor = { 0.5, 0.5 },
                 z = 10,
                 
+                enabled = function()
+                    return can_resize_bottom() or can_resize_left() or can_resize_right() or can_resize_top()
+                end,
                 input = function(input: InputObject)
                     if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
                     resizing(true)
@@ -144,6 +150,31 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
                 old = UserInputService:GetMouseLocation()
                 p.dragging(Vector2.new(input.Position.X, input.Position.Y))
             end,
+
+            container { grow = 1, shrink = 1 },
+
+            container {
+                w = TITLEBAR_SIZE - 6, h = TITLEBAR_SIZE - 6,
+                flex = {},
+
+                color = anim(function()
+                    return if hovering() then theme.bg(6)()
+                        else theme.bg(3)()
+                end),
+
+                container {
+                    wr = -4, hr = -4,
+
+                    image = "rbxassetid://10747384394"
+                },
+
+                corner = 4,
+
+                hover = hovering :: (boolean) -> (),
+                clicked = function()
+                    state.close_tab(p)
+                end,
+            }
         },
 
         container {

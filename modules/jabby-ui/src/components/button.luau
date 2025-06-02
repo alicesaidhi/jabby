@@ -21,6 +21,7 @@ return component(function(p: {
     truncate: "split" | "end"?,
 
 	enabled: (() -> boolean)?,
+	input: ((InputObject) -> ())?,
 	clicked: ((InputObject) -> ())?
 }, _)
 	local hover = source(false)
@@ -59,6 +60,7 @@ return component(function(p: {
 		sink = enabled,
 		enabled = enabled,
 		clicked = p.clicked,
+		input = p.input,
 
 		if p.text then text {
 			color = function()
