@@ -1,2 +1,4 @@
+*.patch binary
+*.png binary
 # Auto detect text files and perform LF normalization
 * text=auto

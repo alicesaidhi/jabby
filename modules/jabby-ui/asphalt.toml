@@ -1,0 +1,11 @@
+[creator]
+id = 1160098333
+type = "user"
+
+[codegen]
+strip_extensions = true
+
+[inputs.assets]
+path = "assets/**/*"
+exclude_assets = []
+output_path = "src/util/assets"

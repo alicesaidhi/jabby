@@ -1,0 +1,139 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local vide = require(ReplicatedStorage.roblox_packages.vide)
+local anim = require(ReplicatedStorage.src.util.anim)
+local conditional = require(ReplicatedStorage.src.util.conditional)
+local theme = require(ReplicatedStorage.src.util.theme)
+local component = require(script.Parent.Parent.util.component)
+local container = require(script.Parent.container)
+local text = require(script.Parent.text)
+
+local create = vide.create
+local source = vide.source
+local effect = vide.effect
+local changed = vide.changed
+local show = vide.show
+local action = vide.action
+
+type Can<T> = T | () -> T
+return component(function(p: {
+	-- textfield properties
+	text: Can<string>?,
+	placeholder: Can<string>?,
+	multiline: Can<boolean>?,
+	monospace: boolean?,
+
+	-- error state properties
+	error: ((() -> boolean))?,
+	helper_text: (() -> string?)?,
+
+	-- events
+	oninput: ((text: string) -> ())?,
+	enter: ((text: string) -> ())?,
+	focuslost: ((text: string, enter: boolean) -> ())?,
+
+}, children)
+
+	local hover = source(false)
+	local focused = source(false)
+
+	local actual_text = source("")
+
+	local stroke_color = function()
+		return
+			if p.error and p.error() and hover() then theme.err(2)()
+			elseif p.error and p.error() then theme.err(1)()
+			elseif focused() then theme.acc(0)()
+			elseif hover() then theme.bg(2)()
+			else theme.bg(1)()
+	end
+
+	return container {
+		name = "TextField",
+		flex = { direction = "column", justify = "left", pad = 8 },
+		auto = "y",
+
+		hover = hover :: any,
+		clicked = function()
+			focused(true)
+		end,
+
+		container {
+			ws = 1, h = 30, auto = "y",
+			clips = true, pad = { p = 8 },
+			flex = { direction = "row", pad = 8 },
+
+			color = theme.bg(-1),
+
+			thickness = theme.base_textfield_thickness,
+			stroke = anim(stroke_color),
+
+			corner = theme.base_textfield_corner,
+
+			create ("TextBox" :: "TextBox") {
+				Size = UDim2.new(1, 0, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				ClipsDescendants = true,
+				BackgroundTransparency = 1,
+
+				Text = p.text,
+				TextColor3 = theme.bg_fg_high(-3),
+				TextSize = theme.input_size,
+				PlaceholderColor3 = theme.bg_fg_low(-3),
+				PlaceholderText = p.placeholder,
+				FontFace = if p.monospace then theme.mono else theme.body,
+
+				MultiLine = p.multiline,
+
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = conditional(p.multiline, Enum.TextYAlignment.Top, Enum.TextYAlignment.Center),
+
+				Focused = function()
+					focused(true)
+				end,
+
+				FocusLost = function(enter: boolean, input: InputObject)
+					focused(false)
+					if p.focuslost then p.focuslost(actual_text(), enter) end
+					if p.enter and enter then p.enter(actual_text()) end
+				end :: any,
+
+				changed("Text", actual_text :: (string) -> ()),
+				if p.oninput then changed("Text", p.oninput) else nil,
+
+				action(function(instance: Instance)
+					assert(instance:IsA("TextBox"))
+					
+					effect(function()
+						if focused() then
+							instance:CaptureFocus()
+						else
+							instance:ReleaseFocus(false)
+						end
+					end)
+				end),
+				
+				create ("UIFlexItem" :: "UIFlexItem") {
+					FlexMode = Enum.UIFlexMode.Fill
+				},
+			},
+
+			children
+		},
+
+		if p.helper_text then show(p.helper_text, function(value: () -> string)
+			return text {
+				auto = "xy",
+
+				color = function()
+					return if p.error and p.error() then theme.err(0)()
+						else theme.bg_fg_low(0)()
+				end,
+				
+				text = value,
+				size = theme.sub_size,
+			}
+		end) else nil :: any
+
+	}
+end)

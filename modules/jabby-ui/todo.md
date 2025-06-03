@@ -1,0 +1,38 @@
+# Component List
+
+- [x] Container
+- [x] Button
+- [x] Padding
+- [x] Text
+- [x] Gap
+- [x] Divider
+- [x] Portal
+- [x] Checkbox
+- [x] Image
+- [x] Shadow
+- [x] Text Field
+- [x] Resizeable Bar
+- [x] Tables
+- [ ] Accordion
+- [ ] Select
+- [ ] Slider
+- [ ] Switch
+- [ ] Button Group
+- [ ] Chip https://mui.com/material-ui/react-chip/
+- [ ] Tooltip
+- [ ] Backdrop
+- [ ] Dialog
+- [ ] Progress
+- [ ] Breadcrumbs
+- [ ] Virtual Grid
+- [ ] Virtual Scroller
+- [ ] Color Picker
+- [ ] Shadow
+- [ ] Popout
+- [ ] Right Click
+- [ ] Histogram Plot
+- [ ] Line Plot
+- [ ] Scrolling Container
+- [ ] Tree
+- [ ] Radio Button
+- [X] Dock Widget WITH PROPER DOCKING

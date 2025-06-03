@@ -1,0 +1,21 @@
+name = "alicesaidhi/jabby_ui"
+version = "0.1.0"
+includes = ["src/*", "pesde.toml", "!src/stories"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "src/lib.luau"
+build_files = ["src"]
+
+[wally_indices]
+default = "https://github.com/upliftgames/wally-index"
+
+[indices]
+default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]
+vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
+
+[dev_dependencies]
+ui_labs = { wally = "pepeeltoro41/ui-labs", version = "^2.3.8" }
