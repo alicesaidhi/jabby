@@ -1,16 +1,14 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local assets = require(script.Parent.Parent.util.assets.assets)
-local vide = require(ReplicatedStorage.roblox_packages.vide)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local assets = require(script.Parent.Parent.util.assets)
+local component = require(script.Parent.Parent.util.component)
+local conditional = require(script.Parent.Parent.util.conditional)
+local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
 local cornered = require(script.Parent.cornered)
 local ignore = require(script.Parent.ignore)
 local resizable_bar = require(script.Parent.resizable_bar)
 local text = require(script.Parent.text)
 local virtualscroller = require(script.Parent.virtualscroller)
-local component = require(ReplicatedStorage.src.util.component)
-local conditional = require(ReplicatedStorage.src.util.conditional)
-local theme = require(ReplicatedStorage.src.util.theme)
 
 local source = vide.source
 local derive = vide.derive

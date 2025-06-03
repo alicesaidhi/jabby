@@ -1,19 +1,18 @@
 local GuiService = game:GetService("GuiService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
 local anim = require(script.Parent.Parent.Parent.util.anim)
+local theme = require(script.Parent.Parent.Parent.util.theme)
+local container = require(script.Parent.Parent.container)
 local cornered = require(script.Parent.Parent.cornered)
 local ignore = require(script.Parent.Parent.ignore)
 local shadow = require(script.Parent.Parent.shadow)
 local text = require(script.Parent.Parent.text)
 local borders = require(script.Parent.borders)
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local container = require(ReplicatedStorage.src.components.container)
 local state = require(script.Parent.state)
 local widget_container = require(script.Parent.widget_container)
-local theme = require(ReplicatedStorage.src.util.theme)
 
 local source = vide.source
 local cleanup = vide.cleanup

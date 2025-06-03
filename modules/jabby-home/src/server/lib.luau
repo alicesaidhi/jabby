@@ -10,9 +10,7 @@ local registered_applets = jabby_core.active_applets
 return function(applet: jabby_types.JabbyApplet<any>)
 
 	net.get_registered_applets:connect(0):on_invoke(function(sender, _)
-		print("received request")
-		local socket, socket_id = net.add_registered_applet:open_socket(sender)
-
+		-- local socket, socket_id = net.add_registered_applet:open_socket(sender)
 		local applets = {}
 
 		for idx, applet in registered_applets do
@@ -25,7 +23,7 @@ return function(applet: jabby_types.JabbyApplet<any>)
 		end
 		
 		return {
-			socket = socket_id,
+			socket = -1,
 			applets = applets
 		}
 	end)

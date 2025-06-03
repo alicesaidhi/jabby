@@ -1,9 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local auto = require(ReplicatedStorage.src.util.auto)
-local component = require(ReplicatedStorage.src.util.component)
-local theme = require(ReplicatedStorage.src.util.theme)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local auto = require(script.Parent.Parent.util.auto)
+local component = require(script.Parent.Parent.util.component)
+local theme = require(script.Parent.Parent.util.theme)
 
 local create = vide.create
 local read = vide.read
