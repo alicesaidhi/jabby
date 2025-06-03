@@ -6,16 +6,22 @@ version = "0.1.0"
 target = "roblox"
 
 [workspace."alicesaidhi/jabby_core"]
-roblox = "modules/jabby_core"
+roblox = "modules/jabby-core"
+
+[workspace."alicesaidhi/jabby_home"]
+roblox = "modules/jabby-home"
 
 [workspace."alicesaidhi/jabby_net"]
-roblox = "modules/jabby_net"
+roblox = "modules/jabby-net"
 
 [workspace."alicesaidhi/jabby_types"]
-roblox = "modules/jabby_types"
+roblox = "modules/jabby-types"
+
+[workspace."alicesaidhi/jabby_ui"]
+roblox = "modules/jabby-ui"
 
 [workspace."alicesaidhi/jabby_util"]
-roblox = "modules/jabby_util"
+roblox = "modules/jabby-util"
 
 [graph."0x5eal/unzip@0.1.3 luau".pkg_ref]
 ref_ty = "pesde"

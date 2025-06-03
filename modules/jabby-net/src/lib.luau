@@ -393,16 +393,29 @@ local get_event do
 local function create_remotes_location()
 	if REMOTES_LOCATION then return end
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
+	if RunService:IsClient() then return end	
 
 	REMOTES_LOCATION = Instance.new("Folder")
 	REMOTES_LOCATION.Name = "_JABBY_REMOTES"
 	REMOTES_LOCATION.Parent = ReplicatedStorage
 end
 
+local function get_remotes_location()
+	if REMOTES_LOCATION then return end
+	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
+
+	REMOTES_LOCATION = ReplicatedStorage:FindFirstChild("_JABBY_REMOTES")
+	if not REMOTES_LOCATION then create_remotes_location() end
+end
+
+
 local function create_category(namespace: string)
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
-	create_remotes_location()
+	get_remotes_location()
+
+	if not REMOTES_LOCATION then return end
 	if REMOTES_LOCATION:FindFirstChild(namespace) then return end
+	if RunService:IsClient() then return end
 	
 	local folder = Instance.new("Folder")
 	folder.Name = namespace
@@ -412,12 +425,14 @@ end
 local function get_category(namespace: string): Folder?
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return nil end
 	
-	create_remotes_location()
+	get_remotes_location()
 	create_category(namespace)
+	if not REMOTES_LOCATION then return nil end
 	return REMOTES_LOCATION:FindFirstChild(namespace) :: Folder
 end
 
 local function create_event(namespace: string, name: string): EventInstance?
+	if RunService:IsClient() then return nil end
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return nil end
 
 	local remote = Instance.new("Folder")
@@ -461,7 +476,10 @@ end
 local function event_fire<T>(self: Remote<T>, target: Target, value: T)
 	self.typechecker:assert(value)
 	local event = get_event(self.namespace, self.identifier)
-	if not event then return end
+	if not event then 
+		print("no event, deferring", self.namespace, self.identifier)
+		return task.delay(1, event_fire, self, target, value)
+	end
 
 	if target.to == PACKET_TARGET then
 		event.id2id:Fire(PACKET_TARGET, target, value)
@@ -518,7 +536,7 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 	local function process_event(sender: jabby_types.Host, target: Target, packet: T)
 		TARGET_INFO_CHECKER:assert(target)
 
-		if target.to == "server" and target.id == object.id then
+		if target.to == PACKET_TARGET and target.id == object.id then
 			if not self.permissions.process(sender, target, packet, object) then return end
 			
 			object.callback(sender, packet)
@@ -635,6 +653,7 @@ local function function_connect<T, U>(
 	}
 
 	fn_connection.callback = function(sender: Sender, packet: T)
+		print("invoking")
 		fn_connection.queue:add(coroutine.running(), sender, packet)
 		local value = coroutine.yield()
 		return value
