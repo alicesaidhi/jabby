@@ -126,7 +126,7 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
             topleft = 8, topright = 8,
 
             flex = { direction = "row", justify = "left", gap = 8 },
-            pad = { x = 12 },
+            pad = { x = 8 },
 
             color = theme.bg(3),
 

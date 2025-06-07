@@ -176,7 +176,7 @@ return component(function<T>(p: {
                     w = 1, hs = 1, h = ysize,
                     z = 100,
 
-                    color = theme.bg(-7)
+                    color = theme.bg(-4)
                 }
             end)
         },
