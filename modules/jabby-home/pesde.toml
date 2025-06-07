@@ -19,4 +19,5 @@ jabby_types = { workspace = "alicesaidhi/jabby_types" }
 jabby_core = { workspace = "alicesaidhi/jabby_core" }
 jabby_ui = { workspace = "alicesaidhi/jabby_ui" }
 jabby_net = { workspace = "alicesaidhi/jabby_net" }
+vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
 gt = { name = "corecii/greentea", version = "^0.4.11" }

@@ -24,6 +24,7 @@ return component(function(p: {
 	item_size: Can<number>,
 	separator_size: Can<number>?,
 
+	min_index: (() -> number)?,
 	max_items: (() -> number)?,
 }, _)
 
@@ -60,6 +61,8 @@ return component(function(p: {
 		if p.max_items then
 			max_items = p.max_items()
 		end
+
+		total_required = math.min(total_required, max_items)
 
 		batch(function()
 			untrack(function()

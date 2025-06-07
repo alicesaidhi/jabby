@@ -47,6 +47,7 @@ return component(function(p: {
 	return container {
 		name = "Button",
 
+		hs = 0,
 		flex = { direction = "row", justify = "between", align = "center", pad = 8 },
 		auto = "xy", pad = { x = p.paddingx, p = p.padding or theme.base_button_padding },
 		corner = p.corner or theme.base_button_corner,

@@ -432,7 +432,7 @@ local function horizontal(p: {
     local _, self = root(function(destroy)
         local self: HorizontalWidget = {
             kind = "horizontal" :: "horizontal",
-            position = source(p.position or p[1].w() / (p[1].w() + p[2].w())),
+            position = source(if p[1] == nil or p[2] == nil then p.position or 0.5 else p[1].w() / (p[1].w() + p[2].w())),
             parent = source(nil :: ParentWidget?),
             destroy = destroy,
             z = source(0),
@@ -716,7 +716,7 @@ local function dock_into_widget(docking: ChildWidget, docks_into: ChildWidget, d
         swap_parent_ancestor(docking)
         -- we have to replace docks_into with our own widget
         local new_widget = horizontal {
-            x = docks_into.x(), y = docks_into.y(),
+			x = docks_into.x() - docking.w() - DRAGGER_SIZE, y = docks_into.y(),
             position = 0.5,
             docking, docks_into
         }
@@ -738,10 +738,10 @@ local function dock_into_widget(docking: ChildWidget, docks_into: ChildWidget, d
         replace_itself(docks_into, new_widget)
         docks_into.parent(new_widget)
         fix_size(new_widget)
-    elseif direction == "top" then
+	elseif direction == "top" then
         swap_parent_ancestor(docking)
         local new_widget = vertical {
-            x = docks_into.x(), y = docks_into.y(),
+            x = docks_into.x(), y = docks_into.y() - docking.h() - DRAGGER_SIZE,
             position = 0.5,
             docking,
             docks_into,

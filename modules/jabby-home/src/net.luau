@@ -20,13 +20,13 @@ local NETWORK_LAYER = {
 		}
 	),
 
-	add_registered_applet = jabby_net.socket_create(
-		NAMESPACE, "add_registered_applet",
+	communicate_frame_time = jabby_net.socket_create(
+		NAMESPACE, "communicate_frame_time",
 		gt.table {
-			name = gt.string(),
-			description = gt.string(),
-			id = gt.number(),
-			client = gt.isA.ModuleScript()
+			heartbeattime = gt.number(),
+			rendergputime = gt.number(),
+			rendercputime = gt.number(),
+			memory = gt.number()
 		}
 	)
 

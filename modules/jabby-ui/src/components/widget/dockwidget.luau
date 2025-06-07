@@ -31,7 +31,8 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
 
     local hovering = source(false)
 
-    local old: Vector2? = Vector2.new(p.x() + 32, p.y() - TITLEBAR_SIZE + 8)
+    local top, left = GuiService:GetGuiInset()
+    local old: Vector2? = Vector2.new(p.x() + 32, p.y() + top.Y + left.Y - TITLEBAR_SIZE + 8)
     cleanup(RunService.PreRender:Connect(function(dt)
         if not p.dragging() then return end
         if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then

@@ -148,6 +148,7 @@ return component(function(p: {
             for idx, min in use_offset() do
                 -- first update the min size
                 min_sizes()[idx] = min / new.X
+
                 -- then we update the actual size
                 local old_size = get_size(idx)
                 local old_size_offset = old_size * if old.X == 0 then 1 else old.X

@@ -63,6 +63,9 @@ vide = [{ name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "https:/
 ref_ty = "workspace"
 path = "modules/jabby-util"
 
+[graph."alicesaidhi/vide@0.4.1-testing.4 roblox"]
+direct = ["vide", { name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "default" }, "standard"]
+
 [graph."alicesaidhi/vide@0.4.1-testing.4 roblox".pkg_ref]
 ref_ty = "pesde"
 index_url = "https://github.com/daimond113/pesde-index"
