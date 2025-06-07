@@ -197,7 +197,7 @@ return component(function(p: {
 
             indexes(splits, function(value: () -> number, key)
                 return container {
-                    xs = value,
+                    xs = value, --todo: increase the width of the dragger based on viewport size
                     w = 8, hs = 1,
                     anchor = { 0.5, 0 },
 

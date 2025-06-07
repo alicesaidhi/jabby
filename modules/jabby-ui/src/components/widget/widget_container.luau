@@ -87,6 +87,7 @@ function tabs(p: state.TabsWidget, layout: number)
 					},
 
 					input = function(input: InputObject)
+						if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 						if input.UserInputState == Enum.UserInputState.End then stop = false; return end
 						if stop then return end
 						local pos = input.Position
@@ -191,6 +192,7 @@ function tabs(p: state.TabsWidget, layout: number)
 						end,
 
 						input = function(input: InputObject)
+							if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 							if input.UserInputState == Enum.UserInputState.End then stop = false; return end
 							if stop then return end
 							local pos = input.Position

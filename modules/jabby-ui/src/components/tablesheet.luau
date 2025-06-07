@@ -255,6 +255,7 @@ return component(function<T>(p: {
         cornered {
             name = "",
             ws = 1, h = theme.base_table_corner,
+            auto = "y",
 
             bottomleft = theme.base_table_corner,
             bottomright = theme.base_table_corner,

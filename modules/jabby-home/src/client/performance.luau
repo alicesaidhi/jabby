@@ -74,6 +74,12 @@ local function performance(applets: () -> { [jabby_types.Host]: {
 				idx += 1
 			end
 
+			table.move({}, #hosts(), idx, idx, hosts())
+			table.move({}, #memory_usage(), idx, idx, memory_usage())
+			table.move({}, #heartbeat_time(), idx, idx, heartbeat_time())
+			table.move({}, #render_gpu_time(), idx, idx, render_gpu_time())
+			table.move({}, #render_cpu_time(), idx, idx, render_cpu_time())
+
 			hosts(hosts())
 			memory_usage(memory_usage())
 			heartbeat_time(heartbeat_time())

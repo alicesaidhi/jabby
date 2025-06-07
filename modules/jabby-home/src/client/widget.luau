@@ -39,15 +39,15 @@ return function()
 			store(store())
 
 			local socket = net.communicate_frame_time:accept_socket(host, result.value.socket)
-			print(socket:status())
 			task.delay(1, function()
 				print(socket:status(), host)
 			end)
 			socket:on_event(function(packet)
-				memory(packet.memory)
-				heartbeat_time(packet.heartbeattime)
-				render_gpu_time(packet.rendergputime)
-				render_cpu_time(packet.rendercputime)
+				heartbeat_time(buffer.readf32(packet, 0))
+				render_gpu_time(buffer.readf32(packet, 4))
+				render_cpu_time(buffer.readf32(packet, 8))
+				memory(buffer.readf32(packet, 12))
+
 			end)
 
 			open_connections[host] = socket
@@ -59,6 +59,10 @@ return function()
 	end
 	obtain_store_data("server")
 	Players.PlayerAdded:Connect(obtain_store_data)
+	Players.PlayerRemoving:Connect(function(player)
+		store()[player] = nil
+		store(store())
+	end)
 
 	return jabby_ui.widget.root {
 		jabby_ui.widget.horizontal {
