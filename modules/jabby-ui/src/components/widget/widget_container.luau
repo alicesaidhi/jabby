@@ -219,7 +219,7 @@ function horizontal(p: state.HorizontalWidget, layout: number)
 		name = "Horizontal",
 		w = p.w, p.h,
 		anchor = { 0, 0 },
-		flex = { direction = "row", justify = "between" },
+		flex = { direction = "row", align = "fill", justify = "between" },
 		grow = 1, shrink = 1,
 		order = layout,
 
@@ -251,7 +251,7 @@ function vertical(p: state.VerticalWidget, layout: number)
 		w = p.w, p.h,
 		order = layout,
 		anchor = { 0, 0 },
-		flex = { direction = "column", vertical = "between" },
+		flex = { direction = "column", justify = "fill", vertical = "between" },
 		grow = 1, shrink = 1,
 
 		render(p.left, -1),

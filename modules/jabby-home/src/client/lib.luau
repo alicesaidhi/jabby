@@ -9,7 +9,6 @@ return {
 
 	open_client = function()
 		widget()
-		jabby_ui.widget.mount_to(Players.LocalPlayer.PlayerGui)
 	end
 
 }

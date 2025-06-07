@@ -1,3 +1,4 @@
+local jabby_core = require(script.Parent.Parent.Parent.roblox_packages.jabby_core)
 local jabby_types = require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
 local jabby_ui = require(script.Parent.Parent.Parent.roblox_packages.jabby_ui)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
@@ -29,12 +30,16 @@ local function applets_info(applets: () -> { [jabby_types.Host]: { applets: {{ n
 
 					indexes(function()
 						return value().applets
-					end, function(applet: () -> { name: string, description: string, id: number })
+					end, function(applet: () -> { name: string, description: string, id: number, client: ModuleScript })
 						return jabby_ui.button {
 							ws = 1, hs = 0,
 							
 							text = function()
-								return `{applet().name}:{applet().id}`
+								return `{applet().name}`
+							end,
+
+							clicked = function()
+								jabby_core.open_client(applet() :: any, { id = applet().id, to = host })
 							end
 						}
 					end)

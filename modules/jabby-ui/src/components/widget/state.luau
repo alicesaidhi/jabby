@@ -564,6 +564,7 @@ local function root(p: {
         insert(ROOT.children, child)
         child.parent(ROOT)
     end
+    ROOT.children(ROOT.children())
 end
 
 --[[
