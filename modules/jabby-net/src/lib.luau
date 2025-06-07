@@ -542,14 +542,15 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 	}
 
 	local function process_event(sender: jabby_types.Host, target: Target, packet: T)
-		if not TARGET_INFO_CHECKER(target) then print(sender, target, packet) error(target) end
+		TARGET_INFO_CHECKER:assert(target)
 
 		if target.to == PACKET_TARGET and target.id == object.id then
 			if not self.permissions.process(sender, target, packet, object) then return end
 			
 			object.callback(sender, packet)
 		elseif event and target.to ~= "server" and id == -2 then
-			if not self.permissions.redirect(sender, target, packet, object) then return end
+			local perm = self.permissions.redirect(sender, target, packet, object)
+			if not perm then return end
 			event.server:FireClient(target.to, sender, target, packet)
 		end
 	end
@@ -661,7 +662,6 @@ local function function_connect<T, U>(
 	}
 
 	fn_connection.callback = function(sender: Sender, packet: T)
-		print("invoking")
 		fn_connection.queue:add(coroutine.running(), sender, packet)
 		local value = coroutine.yield()
 		return value
@@ -805,19 +805,18 @@ local function socket_open_waiting_socket(
 	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
 	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
 
-	if not map_sender_to_waiting_sockets[socket_id] then print("reject socket", socket._waiting_sockets, sender, target); return false end
-	if map_sender_to_open_sockets[socket_id] then print("reject socket"); return false end
+	if not map_sender_to_waiting_sockets[socket_id] then return false end
+	if map_sender_to_open_sockets[socket_id] then return false end
 
 	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
 	socket._open_sockets[sender] = map_sender_to_open_sockets
 
 	local info = map_sender_to_waiting_sockets[socket_id]
 
-	if info.target ~= target then print("reject socket", info.target, sender); return false end
+	if info.target ~= target then return false end
 
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = info.target	
-	print("opened socket", socket_id)
 	return true
 end
 
@@ -835,7 +834,6 @@ local function socket_close_socket(
 		or map_sender_to_open_sockets[socket_id]
 
 	if not info or (info ~= target and sender ~= target) then return end
-	print("reject socket", debug.traceback());
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = nil	
 end
@@ -845,8 +843,9 @@ local function socket_status<T>(socket: Socket<T>): "open" | "closed" | "waiting
 	local is_open = not not (map_open_sockets[socket.creator] and map_open_sockets[socket.creator][socket.socket_id])
 	local map_waiting_sockets = socket.remote._waiting_sockets
 	local is_waiting = not not (map_waiting_sockets[socket.creator] and map_waiting_sockets[socket.creator][socket.socket_id])
+	local target = socket.target
+	if target ~= "server" and target.Parent ~= Players then return "closed" end
 
-	print(is_open)
 	return if is_open then "open" elseif is_waiting then "waiting" else "closed"
 end
 
@@ -921,7 +920,6 @@ end
 
 local function socket_open<T>(socket: RemoteSocket<T>, target: Sender): (Socket<T>, number)
 	local id = socket_id()
-	
 	socket._request_socket:invoke({ to = "server", id = -1 }, {
 		socket_id = id,
 		target = target
@@ -1012,22 +1010,17 @@ local function socket_create<T>(
 			return target.to == "server" and target.id == -1
 		end
 		
-		talk_socket.permissions.process = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
-			print(target.id)
-			if not opened then return false end
-			return (opened == target.to or opened == sender) and target.id == -1
+		talk_socket.permissions.process = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.id] == target.to or opened_sockets[target.to] and opened_sockets[target.to][data.id] == sender
+			return opened
 		end
 
-		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
-			print(target.id)
-			if not opened then return false end
-			return (opened == target.to or opened == sender) and target.id == -1
+		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.id] == target.to or opened_sockets[target.to] and opened_sockets[target.to][data.id] == sender
+			return opened
 		end
 
 		request_socket:connect(-1):on_invoke(function(sender, data)
-			print("socket has been requested")
 			return socket_create_waiting_socket(socket, sender, data.target, data.socket_id)
 		end)
 		

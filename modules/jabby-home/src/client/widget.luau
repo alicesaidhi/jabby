@@ -7,8 +7,6 @@ local net = require(script.Parent.Parent.net)
 local applets = require(script.Parent.applets)
 local performance = require(script.Parent.performance)
 
-local cleanup = vide.cleanup
-
 return function()
 
 	local store = vide.source({} :: { [jabby_types.Host]: {

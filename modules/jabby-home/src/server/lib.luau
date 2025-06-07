@@ -34,6 +34,7 @@ return function(applet: jabby_types.JabbyApplet<any>)
 
 	RunService.Heartbeat:Connect(function()
 		for socket in active_sockets do
+			if socket:status() == "closed" then active_sockets[socket] = false; continue end
 			socket:send({
 				heartbeattime = Stats.HeartbeatTime,
 				rendergputime = Stats.RenderGPUFrameTime,

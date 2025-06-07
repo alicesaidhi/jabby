@@ -32,7 +32,7 @@ return component(function(p: {
 
         CanvasSize = if p.cws or p.cw or p.chs or p.ch then function()
             return UDim2.new(read(p.cws or 0), read(p.cw or 0), read(p.chs or 0), read(p.ch or 0))
-        end else nil,
+        end else UDim2.new(),
         AutomaticCanvasSize = if p.cauto then function()
             return auto(read(p.cauto))
         end else nil,
