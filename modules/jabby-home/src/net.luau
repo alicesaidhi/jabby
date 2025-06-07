@@ -8,30 +8,19 @@ local NETWORK_LAYER = {
 	get_registered_applets = jabby_net.function_create(
 		NAMESPACE, "get_registered_applets",
 		gt.none(),
-		gt.table {
-			socket = gt.number(),
-
-			applets = gt.array {
-				name = gt.string(),
-				description = gt.string(),
-				id = gt.number(),
-				client = gt.isA.ModuleScript()
-			}
+		gt.array {
+			name = gt.string(),
+			description = gt.string(),
+			id = gt.number(),
+			client = gt.isA.ModuleScript()
 		}
 	),
 
 	get_performance_socket = jabby_net.function_create(
-		NAMESPACE, "get_registered_applets",
+		NAMESPACE, "get_performance_socket",
 		gt.none(),
 		gt.table {
 			socket = gt.number(),
-
-			applets = gt.array {
-				name = gt.string(),
-				description = gt.string(),
-				id = gt.number(),
-				client = gt.isA.ModuleScript()
-			}
 		}
 	),
 	communicate_frame_time = jabby_net.socket_create(

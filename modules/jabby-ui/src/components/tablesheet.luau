@@ -13,6 +13,7 @@ local virtualscroller = require(script.Parent.virtualscroller)
 local source = vide.source
 local derive = vide.derive
 local indexes = vide.indexes
+local changed = vide.changed
 local show = vide.show
 
 type Can<T> = T | () -> T
@@ -162,6 +163,8 @@ return component(function<T>(p: {
         }
     end
 
+    local ysize = source(0)
+
     return container {
         name = "Table",
         flex = { justify = "fill" },
@@ -170,7 +173,7 @@ return component(function<T>(p: {
             indexes(splits, function(split: () -> number, idx)
                 return container {
                     xs = split,
-                    w = 1, hs = 1, h = -32,
+                    w = 1, hs = 1, h = ysize,
                     z = 100,
 
                     color = theme.bg(-7)
@@ -261,6 +264,10 @@ return component(function<T>(p: {
             bottomright = theme.base_table_corner,
 
             color = theme.bg(1),
+
+            changed("AbsoluteSize", function(size: Vector2)
+                ysize(-size.Y)
+            end),
 
             children
         }

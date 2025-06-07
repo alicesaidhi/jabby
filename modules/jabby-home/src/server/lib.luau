@@ -14,9 +14,6 @@ return function(applet: jabby_types.JabbyApplet<any>)
 	local active_sockets = {}
 
 	net.get_registered_applets:connect(0):on_invoke(function(sender, _)
-		local socket, socket_id = net.communicate_frame_time:open_socket(sender)
-		active_sockets[socket] = true
-
 		local applets = {}
 
 		for idx, applet in registered_applets do
@@ -28,9 +25,15 @@ return function(applet: jabby_types.JabbyApplet<any>)
 			}
 		end
 		
+		return applets
+	end)
+
+	net.get_performance_socket:connect(0):on_invoke(function(sender, _)
+		local socket, socket_id = net.communicate_frame_time:open_socket(sender)
+		active_sockets[socket] = true
+
 		return {
 			socket = socket_id,
-			applets = applets
 		}
 	end)
 
@@ -50,7 +53,12 @@ return function(applet: jabby_types.JabbyApplet<any>)
 
 		if acccumulate > SEND_EVERY then
 			for socket in active_sockets do
-				if socket:status() == "closed" then active_sockets[socket] = false; continue end
+				if socket:status() == "closed" then
+					active_sockets[socket] = nil
+					continue
+				end
+				print(socket:status(), socket.creator, socket.target)
+
 				local b = buffer.create(16)
 				buffer.writef32(b, 0, average_heartbeat / counter)
 				buffer.writef32(b, 4, render_gpu_frame_time / counter)
