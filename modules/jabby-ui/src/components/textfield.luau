@@ -1,3 +1,5 @@
+local TextService = game:GetService("TextService")
+
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local anim = require(script.Parent.Parent.util.anim)
 local component = require(script.Parent.Parent.util.component)
@@ -26,6 +28,9 @@ return component(function(p: {
 	helper_text: (() -> string?)?,
 
 	-- events
+	cursor_position_2d: ((Vector2) -> ())?, -- this value is the actual raw 2d position on screen
+	cursor_position: ((number) -> ())?,
+
 	oninput: ((text: string) -> ())?,
 	enter: ((text: string) -> ())?,
 	focuslost: ((text: string, enter: boolean) -> ())?,
@@ -36,6 +41,8 @@ return component(function(p: {
 	local focused = source(false)
 
 	local actual_text = source("")
+	local absolute_size = source(Vector2.zero)
+	local absolute_position = source(Vector2.zero)
 
 	local stroke_color = function()
 		return
@@ -44,6 +51,22 @@ return component(function(p: {
 			elseif focused() then theme.acc(0)()
 			elseif hover() then theme.bg(2)()
 			else theme.bg(1)()
+	end
+
+	local function compute_raw_2d_text_position(pos: number)
+		assert(p.cursor_position_2d)
+		local text = actual_text()
+		local bounds = Instance.new("GetTextBoundsParams")
+		bounds.Font = if p.monospace then theme.mono() else theme.body()
+		bounds.Size = theme.input_size()
+		bounds.Text = string.sub(text, 1, pos)
+		bounds.Width = if p.multiline then absolute_size().X else 0
+
+		local result = TextService:GetTextBoundsAsync(bounds)
+		--todo: make this work properly for cursor positions on a non-multiline textbox.
+		-- current issue is that when roblox starts scrolling the text, the cursor goes off-screen.
+		-- try using the story and typing a lot of text.
+		p.cursor_position_2d(absolute_position() + result)
 	end
 
 	return container {
@@ -97,8 +120,14 @@ return component(function(p: {
 				end :: any,
 
 				changed("Text", actual_text :: (string) -> ()),
+				if p.cursor_position then changed("CursorPosition", p.cursor_position) else nil,
+				if p.cursor_position_2d then changed("CursorPosition", compute_raw_2d_text_position) else nil,
+				if p.cursor_position_2d then changed("AbsoluteSize", absolute_size) else nil,
+				if p.cursor_position_2d then changed("AbsolutePosition", absolute_position) else nil,
+
 				if p.oninput then changed("Text", p.oninput) else nil,
 
+				-- creates an effect that will focus on the textbox
 				action(function(instance: Instance)
 					assert(instance:IsA("TextBox"))
 					

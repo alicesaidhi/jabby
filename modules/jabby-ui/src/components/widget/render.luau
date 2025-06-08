@@ -13,7 +13,7 @@ local TITLEBAR_SIZE = 32
 
 return function()
 
-	if not RunService:IsStudio() then
+	if not RunService:IsRunning() then
 		cleanup(UserInputService.InputEnded:Connect(function(input)
 			-- if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 			local x, y = input.Position.X, input.Position.Y
