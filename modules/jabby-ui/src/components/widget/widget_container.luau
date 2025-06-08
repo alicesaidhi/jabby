@@ -1,3 +1,4 @@
+local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 
 local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
@@ -18,7 +19,7 @@ local untrack = vide.untrack
 
 local RIBBON_SIZE = state.RIBBON_SIZE
 local DRAGGER_SIZE = state.DRAGGER_SIZE
-local DRAG_UNTIL_POP = 32
+local DRAG_UNTIL_POP = 80
 
 local render, horizontal, vertical, tabs
 
@@ -86,6 +87,7 @@ function tabs(p: state.TabsWidget, layout: number)
 					},
 
 					input = function(input: InputObject)
+						if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 						if input.UserInputState == Enum.UserInputState.End then stop = false; return end
 						if stop then return end
 						local pos = input.Position
@@ -190,6 +192,7 @@ function tabs(p: state.TabsWidget, layout: number)
 						end,
 
 						input = function(input: InputObject)
+							if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 							if input.UserInputState == Enum.UserInputState.End then stop = false; return end
 							if stop then return end
 							local pos = input.Position
@@ -218,7 +221,7 @@ function horizontal(p: state.HorizontalWidget, layout: number)
 		name = "Horizontal",
 		w = p.w, p.h,
 		anchor = { 0, 0 },
-		flex = { direction = "row", justify = "between", align = "fill" },
+		flex = { direction = "row", align = "fill", justify = "between" },
 		grow = 1, shrink = 1,
 		order = layout,
 

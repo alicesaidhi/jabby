@@ -1,9 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local auto = require(ReplicatedStorage.src.util.auto)
-local component = require(ReplicatedStorage.src.util.component)
-local theme = require(ReplicatedStorage.src.util.theme)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local auto = require(script.Parent.Parent.util.auto)
+local component = require(script.Parent.Parent.util.component)
+local theme = require(script.Parent.Parent.util.theme)
 
 local create = vide.create
 local read = vide.read
@@ -34,7 +32,7 @@ return component(function(p: {
 
         CanvasSize = if p.cws or p.cw or p.chs or p.ch then function()
             return UDim2.new(read(p.cws or 0), read(p.cw or 0), read(p.chs or 0), read(p.ch or 0))
-        end else nil,
+        end else UDim2.new(),
         AutomaticCanvasSize = if p.cauto then function()
             return auto(read(p.cauto))
         end else nil,

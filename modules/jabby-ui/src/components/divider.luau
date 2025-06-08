@@ -1,6 +1,4 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local theme = require(ReplicatedStorage.src.util.theme)
+local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
 
 return function()

@@ -1,19 +1,18 @@
 local GuiService = game:GetService("GuiService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
 local anim = require(script.Parent.Parent.Parent.util.anim)
+local theme = require(script.Parent.Parent.Parent.util.theme)
+local container = require(script.Parent.Parent.container)
 local cornered = require(script.Parent.Parent.cornered)
 local ignore = require(script.Parent.Parent.ignore)
 local shadow = require(script.Parent.Parent.shadow)
 local text = require(script.Parent.Parent.text)
 local borders = require(script.Parent.borders)
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local container = require(ReplicatedStorage.src.components.container)
 local state = require(script.Parent.state)
 local widget_container = require(script.Parent.widget_container)
-local theme = require(ReplicatedStorage.src.util.theme)
 
 local source = vide.source
 local cleanup = vide.cleanup
@@ -32,7 +31,8 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
 
     local hovering = source(false)
 
-    local old: Vector2? = Vector2.new(p.x() + 32, p.y() - TITLEBAR_SIZE + 8)
+    local top, left = GuiService:GetGuiInset()
+    local old: Vector2? = Vector2.new(p.x() + 32, p.y() + top.Y + left.Y - TITLEBAR_SIZE + 8)
     cleanup(RunService.PreRender:Connect(function(dt)
         if not p.dragging() then return end
         if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -126,7 +126,7 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
             topleft = 8, topright = 8,
 
             flex = { direction = "row", justify = "left", gap = 8 },
-            pad = { x = 12 },
+            pad = { x = 8 },
 
             color = theme.bg(3),
 

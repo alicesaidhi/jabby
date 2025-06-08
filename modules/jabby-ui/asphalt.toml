@@ -8,4 +8,4 @@ strip_extensions = true
 [inputs.assets]
 path = "assets/**/*"
 exclude_assets = []
-output_path = "src/util/assets"
+output_path = "src/util/"

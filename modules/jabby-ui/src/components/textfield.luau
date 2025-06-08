@@ -1,10 +1,8 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local anim = require(ReplicatedStorage.src.util.anim)
-local conditional = require(ReplicatedStorage.src.util.conditional)
-local theme = require(ReplicatedStorage.src.util.theme)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local anim = require(script.Parent.Parent.util.anim)
 local component = require(script.Parent.Parent.util.component)
+local conditional = require(script.Parent.Parent.util.conditional)
+local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
 local text = require(script.Parent.text)
 

@@ -311,6 +311,7 @@ export type Socket<T> = {
 	read socket_id: number,
 	read target: Sender,
 	read creator: Sender,
+	read is_creator: boolean,
 
 	read _talk_remote: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
 	read _talk_receive: RemoteConnection<typeof(SOCKET_SEND(newproxy() :: T))>,
@@ -393,16 +394,29 @@ local get_event do
 local function create_remotes_location()
 	if REMOTES_LOCATION then return end
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
+	if RunService:IsClient() then return end	
 
 	REMOTES_LOCATION = Instance.new("Folder")
 	REMOTES_LOCATION.Name = "_JABBY_REMOTES"
 	REMOTES_LOCATION.Parent = ReplicatedStorage
 end
 
+local function get_remotes_location()
+	if REMOTES_LOCATION then return end
+	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
+
+	REMOTES_LOCATION = ReplicatedStorage:FindFirstChild("_JABBY_REMOTES")
+	if not REMOTES_LOCATION then create_remotes_location() end
+end
+
+
 local function create_category(namespace: string)
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return end
-	create_remotes_location()
+	get_remotes_location()
+
+	if not REMOTES_LOCATION then return end
 	if REMOTES_LOCATION:FindFirstChild(namespace) then return end
+	if RunService:IsClient() then return end
 	
 	local folder = Instance.new("Folder")
 	folder.Name = namespace
@@ -412,12 +426,14 @@ end
 local function get_category(namespace: string): Folder?
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return nil end
 	
-	create_remotes_location()
+	get_remotes_location()
 	create_category(namespace)
+	if not REMOTES_LOCATION then return nil end
 	return REMOTES_LOCATION:FindFirstChild(namespace) :: Folder
 end
 
 local function create_event(namespace: string, name: string): EventInstance?
+	if RunService:IsClient() then return nil end
 	if SHOULD_NOT_CREATE_REMOTE_EVENTS then return nil end
 
 	local remote = Instance.new("Folder")
@@ -461,12 +477,22 @@ end
 local function event_fire<T>(self: Remote<T>, target: Target, value: T)
 	self.typechecker:assert(value)
 	local event = get_event(self.namespace, self.identifier)
-	if not event then return end
+	if not event then 
+		print("no event, deferring", self.namespace, self.identifier)
+		task.delay(1, event_fire, self, target, value)
+		while not event do
+			task.wait(1)
+			event = get_event(self.namespace, self.identifier)
+		end
+	end
+	assert(event)
 
+	if not TARGET_INFO_CHECKER(target) then error(target) end
+	
 	if target.to == PACKET_TARGET then
 		event.id2id:Fire(PACKET_TARGET, target, value)
 	elseif target.to ~= "server" and PACKET_TARGET == "server" then
-		event.server:FireClient(target.to, "server", value)
+		event.server:FireClient(target.to, "server", target, value)
 	else
 		event.server:FireServer(target, value)
 	end
@@ -518,13 +544,14 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 	local function process_event(sender: jabby_types.Host, target: Target, packet: T)
 		TARGET_INFO_CHECKER:assert(target)
 
-		if target.to == "server" and target.id == object.id then
+		if target.to == PACKET_TARGET and target.id == object.id then
 			if not self.permissions.process(sender, target, packet, object) then return end
 			
 			object.callback(sender, packet)
 		elseif event and target.to ~= "server" and id == -2 then
-			if not self.permissions.redirect(sender, target, packet, object) then return end
-			event.server:FireClient(target.to, target, packet)
+			local perm = self.permissions.redirect(sender, target, packet, object)
+			if not perm then return end
+			event.server:FireClient(target.to, sender, target, packet)
 		end
 	end
 	
@@ -772,6 +799,7 @@ end
 local function socket_open_waiting_socket(
 	socket: RemoteSocket<any>,
 	sender: Sender,
+	target: Sender,
 	socket_id: number
 ): boolean
 	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
@@ -785,7 +813,7 @@ local function socket_open_waiting_socket(
 
 	local info = map_sender_to_waiting_sockets[socket_id]
 
-	if info.target ~= sender then return false end
+	if info.target ~= target then return false end
 
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = info.target	
@@ -806,7 +834,6 @@ local function socket_close_socket(
 		or map_sender_to_open_sockets[socket_id]
 
 	if not info or (info ~= target and sender ~= target) then return end
-
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = nil	
 end
@@ -816,6 +843,8 @@ local function socket_status<T>(socket: Socket<T>): "open" | "closed" | "waiting
 	local is_open = not not (map_open_sockets[socket.creator] and map_open_sockets[socket.creator][socket.socket_id])
 	local map_waiting_sockets = socket.remote._waiting_sockets
 	local is_waiting = not not (map_waiting_sockets[socket.creator] and map_waiting_sockets[socket.creator][socket.socket_id])
+	local target = socket.target
+	if target ~= "server" and target.Parent ~= Players then return "closed" end
 
 	return if is_open then "open" elseif is_waiting then "waiting" else "closed"
 end
@@ -828,7 +857,7 @@ end
 
 local function socket_send<T>(socket: Socket<T>, value: T)
 	socket._talk_remote:fire(
-		{ to = socket.target, id = if socket.creator == socket.target then 1 else 0 },
+		{ to = socket.target, id = if socket.is_creator then 1 else 0 },
 		{ id = socket.socket_id, data = value }
 	)
 end
@@ -867,6 +896,7 @@ local function socket_create_connected_socket<T>(
 		socket_id = socket_id,
 		target = target,
 		creator = creator,
+		is_creator = is_creator,
 
 		_talk_remote = socket._talk_socket,
 		_talk_receive = nil :: any,
@@ -890,7 +920,11 @@ end
 
 local function socket_open<T>(socket: RemoteSocket<T>, target: Sender): (Socket<T>, number)
 	local id = socket_id()
-	
+	socket._request_socket:invoke({ to = "server", id = -1 }, {
+		socket_id = id,
+		target = target
+	})
+
 	socket_create_waiting_socket(socket, PACKET_TARGET, target, id)
 	return socket_create_connected_socket(socket, PACKET_TARGET, target, true, id), id
 end
@@ -905,7 +939,7 @@ local function socket_accept<T>(socket: RemoteSocket<T>, from: Sender, id: numbe
 
 	result:after(function(result)
 		if result.ok and result.value then
-			socket_open_waiting_socket(socket, from, id)
+			socket_open_waiting_socket(socket, from, PACKET_TARGET, id)
 		else
 			socket_close_socket(socket, from, from, id)
 		end
@@ -965,7 +999,7 @@ local function socket_create<T>(
 		end
 
 		request_socket.invoke_event.permissions.process = function(_, target: Target)
-			return target.to == "server" and target.id == -1
+			return target.id == -1
 		end
 
 		request_socket.invoke_event.permissions.process = function(_, target: Target)
@@ -976,16 +1010,14 @@ local function socket_create<T>(
 			return target.to == "server" and target.id == -1
 		end
 		
-		talk_socket.permissions.process = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
-			if not opened then return false end
-			return (opened == target.to or opened == sender) and target.id == -1
+		talk_socket.permissions.process = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.id] == target.to or opened_sockets[target.to] and opened_sockets[target.to][data.id] == sender
+			return opened
 		end
 
-		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: Socket<any>)
-			local opened = opened_sockets[sender] and opened_sockets[sender][data.socket_id] or opened_sockets[target.to] and opened_sockets[target.to][data.socket_id]
-			if not opened then return false end
-			return (opened == target.to or opened == sender) and target.id == -1
+		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
+			local opened = opened_sockets[sender] and opened_sockets[sender][data.id] == target.to or opened_sockets[target.to] and opened_sockets[target.to][data.id] == sender
+			return opened
 		end
 
 		request_socket:connect(-1):on_invoke(function(sender, data)
@@ -993,7 +1025,7 @@ local function socket_create<T>(
 		end)
 		
 		accept_socket:connect(-1):on_invoke(function(sender, data)
-			return socket_open_waiting_socket(socket, data.target, data.socket_id)
+			return socket_open_waiting_socket(socket, data.target, sender, data.socket_id)
 		end)
 
 		close_socket:connect(-1):on_event(function(sender, data: typeof(SOCKET_INFO))

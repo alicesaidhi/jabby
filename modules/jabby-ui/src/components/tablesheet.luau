@@ -1,20 +1,19 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local assets = require(script.Parent.Parent.util.assets.assets)
-local vide = require(ReplicatedStorage.roblox_packages.vide)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local assets = require(script.Parent.Parent.util.assets)
+local component = require(script.Parent.Parent.util.component)
+local conditional = require(script.Parent.Parent.util.conditional)
+local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
 local cornered = require(script.Parent.cornered)
 local ignore = require(script.Parent.ignore)
 local resizable_bar = require(script.Parent.resizable_bar)
 local text = require(script.Parent.text)
 local virtualscroller = require(script.Parent.virtualscroller)
-local component = require(ReplicatedStorage.src.util.component)
-local conditional = require(ReplicatedStorage.src.util.conditional)
-local theme = require(ReplicatedStorage.src.util.theme)
 
 local source = vide.source
 local derive = vide.derive
 local indexes = vide.indexes
+local changed = vide.changed
 local show = vide.show
 
 type Can<T> = T | () -> T
@@ -65,20 +64,18 @@ return component(function<T>(p: {
             local entries = {}
 
             for i = 2, #sort_by_column do
-                entries[i -] = i
+                entries[i - 1] = i
             end
             
             if sort_direction() == "ascending" then
                 table.sort(entries, function(a, b): boolean
-                    return sort_by_column[a] < sort_by_column[b]
+                    return sort_by_column[a] > sort_by_column[b]
                 end)
             else
                 table.sort(entries, function(a, b): boolean
-                    return sort_by_column[a] > sort_by_column[b]
+                    return sort_by_column[a] < sort_by_column[b]
                 end)
             end
-
-            print(#entries)
 
             return entries
         end
@@ -117,7 +114,7 @@ return component(function<T>(p: {
                 return if is_last() then theme.base_table_corner() else 0
             end,
 
-            pad = { p = 8 },
+            pad = { x = 8 },
             flex = { direction = "row", justify = "left", align = "center", pad = 4 },
 
             hold = hold :: (boolean) -> (),
@@ -126,15 +123,15 @@ return component(function<T>(p: {
             enabled = source(p.enable_sort_key or false),
             clicked = function()
                 if sort_column() == idx then
-                    if sort_direction() == "ascending" then
-                        set_sort_direction("descending")
-                    elseif sort_direction() == "descending" then
+                    if sort_direction() == "descending" then
                         set_sort_direction("ascending")
+                    elseif sort_direction() == "ascending" then
                         set_sort_column(0)
+                        set_sort_direction("descending")
                     end
                 else
-                    set_sort_direction("ascending")
                     set_sort_column(idx)
+                    set_sort_direction("descending")
                 end
             end,
 
@@ -155,8 +152,8 @@ return component(function<T>(p: {
                     end
                 }
             end),
-
-            text {
+            
+            if p.header then p.header(p.columns()[idx]()[1], idx, 1) else text {
                 text = function()
                     return tostring(p.columns()[idx]()[1])
                 end,
@@ -166,6 +163,8 @@ return component(function<T>(p: {
         }
     end
 
+    local ysize = source(0)
+
     return container {
         name = "Table",
         flex = { justify = "fill" },
@@ -174,10 +173,10 @@ return component(function<T>(p: {
             indexes(splits, function(split: () -> number, idx)
                 return container {
                     xs = split,
-                    w = 1, hs = 1, h = -32,
+                    w = 1, hs = 1, h = ysize,
                     z = 100,
 
-                    color = theme.bg(-7)
+                    color = theme.bg(-4)
                 }
             end)
         },
@@ -209,6 +208,7 @@ return component(function<T>(p: {
             grow = 1, shrink = 1,
             color = theme.bg(-3),
 
+            min_items = 1,
             max_items = function()
                 return #p.columns()[1]() - 1
             end,
@@ -224,7 +224,17 @@ return component(function<T>(p: {
                     return row() + 1
                 end
 
+                local function actual_row()
+                    if p.auto_sort ~= true or p.enable_sort_key ~= true or sort_column() == 0 then
+                        return row_one()
+                    else
+                        local row = columns()[row()]
+                        return row
+                    end
+                end
+
                 return container {
+                    { Name = actual_row },
                     ws = 1, hs = 1,
                     color = conditional(is_even, theme.bg(0), theme.bg(-1)),
                     flex = { direction = "row" },
@@ -235,13 +245,8 @@ return component(function<T>(p: {
                             ws = size, hs = 1,
 
                             p.field(function()
-                                if p.auto_sort ~= true or p.enable_sort_key ~= true or sort_column() == 0 then
-                                    return p.columns()[column]()[row_one()]
-                                else
-                                    local row = columns()[row()]
-                                    return p.columns()[column]()[row]
-                                end
-                            end, column, row_one)
+                                return p.columns()[column]()[math.max(2, actual_row())]
+                            end, column, actual_row)
                         }
                     end)
 
@@ -253,15 +258,19 @@ return component(function<T>(p: {
         cornered {
             name = "",
             ws = 1, h = theme.base_table_corner,
+            auto = "y",
 
             bottomleft = theme.base_table_corner,
             bottomright = theme.base_table_corner,
 
             color = theme.bg(1),
 
+            changed("AbsoluteSize", function(size: Vector2)
+                ysize(-size.Y)
+            end),
+
             children
         }
 
     }
-
 end)

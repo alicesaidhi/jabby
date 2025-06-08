@@ -1,6 +1,4 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local vide = require(ReplicatedStorage.roblox_packages.vide)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local read = vide.read
 

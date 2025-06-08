@@ -48,6 +48,7 @@ export type JabbyApplet<Configuration> = {
 	read description: string,
 	read configuration: Configuration,
 	read unique_id: number,
+	read client: ModuleScript
 }
 
 --[=[
@@ -61,7 +62,7 @@ to initiate the applet.
 --[=[
 @within JabbyAppletInterface
 @prop name string
-The name of the applet you're registering
+The name of the applet you're registering. This must be unique.
 ]=]
 
 --[=[
@@ -75,6 +76,15 @@ Describes the applet on what it does.
 @prop registered (data: JabbyApplet<Configuration>) -> ()
 Called when the applet is registered with some data describing the applet.
 ]=]
+
+--[=[
+@within JabbyAppletInterface
+@prop client
+Refers to a ModuleScript responsible for building the client UI. This module
+should be replicated to the client and respect the JabbyClientAppletInterface.
+
+Note that this will be sent over a remote.
+]=]
 export type JabbyAppletInterface<Configuration> = {
 	read name: string,
 	read description: string,
@@ -82,7 +92,37 @@ export type JabbyAppletInterface<Configuration> = {
 	-- When an applet is instantiated by the user, it calls the registered callback
 	-- which will be run on the server (note that this is not the actual roblox server)
 	read registered: (self: JabbyApplet<Configuration>) -> (),
+
+	read client: ModuleScript
 }
+
+export type Target = {
+	read to: Host,
+	read id: number,
+}
+
+--[=[
+@class JabbyClientAppletInterface
+
+The ModuleScript provided by JabbyAppletInterface.client should return this
+interface.
+]=]
+
+--[=[
+@within JabbyClientAppletInterface
+@prop open_client (target: Target) -> { destory: () -> () }
+
+This is called by the client when an applet needs to be opened. It receives the
+target that it has to communicate with.
+]=]
+export type JabbyClientAppletInterface = {
+	
+	read open_client: (target: Target) -> {
+		destroy: () -> ()
+	}
+
+}
+
 
 -- The host of an applet.
 export type Host = "server" | Player

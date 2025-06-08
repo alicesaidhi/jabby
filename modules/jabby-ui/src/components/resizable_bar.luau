@@ -1,9 +1,8 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
+local component = require(script.Parent.Parent.util.component)
 local container = require(script.Parent.container)
-local vide = require(ReplicatedStorage.roblox_packages.vide)
-local component = require(ReplicatedStorage.src.util.component)
 
 local source = vide.source
 local effect = vide.effect
@@ -149,6 +148,7 @@ return component(function(p: {
             for idx, min in use_offset() do
                 -- first update the min size
                 min_sizes()[idx] = min / new.X
+
                 -- then we update the actual size
                 local old_size = get_size(idx)
                 local old_size_offset = old_size * if old.X == 0 then 1 else old.X
@@ -197,7 +197,7 @@ return component(function(p: {
 
             indexes(splits, function(value: () -> number, key)
                 return container {
-                    xs = value,
+                    xs = value, --todo: increase the width of the dragger based on viewport size
                     w = 8, hs = 1,
                     anchor = { 0.5, 0 },
 

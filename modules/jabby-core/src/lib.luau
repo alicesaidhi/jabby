@@ -30,7 +30,8 @@ local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 		name = applet.name,
 		description = applet.description,
 		configuration = config,
-		unique_id = vm_counter()
+		unique_id = vm_counter(),
+		client = applet.client
 	}
 
 	active_applets[applet_data.unique_id] = applet_data
@@ -39,6 +40,20 @@ local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 
 	return applet_data
 end
+
+--[=[
+Opens a new client for a specific target
+
+@within jabby_core
+@param applet JabbyAppletInterface<T>
+@param target Target
+@return JabbyApplet
+]=]
+local function open_client(applet: JabbyAppletInterface<any> | JabbyApplet<any>, target: jabby_types.Target)
+	local client: jabby_types.JabbyClientAppletInterface = (require :: any)(applet.client)
+	return client.open_client(target)
+end
+
 
 --[=[
 @within jabby_core
@@ -51,5 +66,6 @@ return {
 	active_applets = active_applets,
 	vm_id = vm_id,
 
-	register_applet = register_applet
+	register_applet = register_applet,
+	open_client = open_client
 }

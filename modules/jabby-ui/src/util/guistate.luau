@@ -33,7 +33,7 @@ return function(p: GuiState)
 		input_object(nil)
 		if p.hold then p.hold(false) end
 		if p.input then p.input(input) end
-		if p.clicked then p.clicked(input) end
+		if p.clicked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then p.clicked(input) end
 	end
 
 	local function input_began(input: InputObject)
