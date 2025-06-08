@@ -57,7 +57,6 @@ return function(applet: jabby_types.JabbyApplet<any>)
 					active_sockets[socket] = nil
 					continue
 				end
-				print(socket:status(), socket.creator, socket.target)
 
 				local b = buffer.create(16)
 				buffer.writef32(b, 0, average_heartbeat / counter)
