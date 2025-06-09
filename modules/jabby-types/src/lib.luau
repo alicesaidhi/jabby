@@ -79,7 +79,7 @@ Called when the applet is registered with some data describing the applet.
 
 --[=[
 @within JabbyAppletInterface
-@prop client
+@prop client ModuleScript
 Refers to a ModuleScript responsible for building the client UI. This module
 should be replicated to the client and respect the JabbyClientAppletInterface.
 

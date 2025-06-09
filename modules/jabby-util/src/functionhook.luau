@@ -31,10 +31,10 @@ local function find_swap_pop<T>(list: {T}, value: T)
 	list[#list] = nil
 end
 
---[=[
+--[[
 Hooks a method on the given table, replacing it for it's own. Any calls to this
 method will first call the hook, before calling the method.
-]=]
+]]
 local function hook_onto(t: any, key: string, hook: (...any) -> ())
 
 	local hash = `{t}:{key}`

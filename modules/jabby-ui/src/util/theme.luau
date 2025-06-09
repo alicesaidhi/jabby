@@ -1,4 +1,4 @@
---[=[
+--[[
 NOTES FOR STYLING:
 
 - strokes are theme.bg(-7)
@@ -10,7 +10,7 @@ NOTES FOR STYLING:
 - accent is foreground
 
 
-]=]
+]]
 
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local conditional = require(script.Parent.conditional)

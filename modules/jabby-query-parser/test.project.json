@@ -1,0 +1,35 @@
+{
+	"name": "jabby-query-parser",
+  	"emitLegacyScripts": true,
+	"tree": {
+		"$className": "DataModel",
+
+		"Workspace": {
+			"$properties": {
+				"SignalBehavior": "Immediate"
+			}
+		},
+
+		"ReplicatedStorage": {
+			"roblox_packages": {
+				"$path": "roblox_packages"
+			},
+			"src": {
+				"$path": "src"
+			}
+		},
+
+		"ServerScriptService": {
+			"$properties": {
+				"LoadStringEnabled": true
+			}
+		},
+
+		"TestService": {
+			"$properties": {
+				"ExecuteWithStudioRun": true
+			},
+			"$path": "test"
+		}
+	}
+}

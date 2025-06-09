@@ -626,10 +626,10 @@ local function swap_parent_ancestor(self: ChildWidget)
     replace_itself(parent, other_widget)
 end
 
---[=[
+--[[
     Given a tab widget, if the widget has 0 tabs, swap parent ancestor and
     destroy the tab widget.
-]=]
+]]
 local function if_no_tab_swap(self: TabsWidget)
     if #self.tabs() == 0 then
         swap_parent_ancestor(self)
