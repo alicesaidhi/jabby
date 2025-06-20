@@ -14,6 +14,7 @@ local effect = vide.effect
 local changed = vide.changed
 local show = vide.show
 local action = vide.action
+local read = vide.read
 
 type Can<T> = T | () -> T
 return component(function(p: {
@@ -22,6 +23,8 @@ return component(function(p: {
 	placeholder: Can<string>?,
 	multiline: Can<boolean>?,
 	monospace: boolean?,
+
+	size: Can<number>?,
 
 	-- error state properties
 	error: ((() -> boolean))?,
@@ -50,7 +53,7 @@ return component(function(p: {
 			elseif p.error and p.error() then theme.err(1)()
 			elseif focused() then theme.acc(0)()
 			elseif hover() then theme.bg(2)()
-			else theme.bg(1)()
+			else theme.bg(-2)()
 	end
 
 	local function compute_raw_2d_text_position(pos: number)
@@ -80,8 +83,10 @@ return component(function(p: {
 		end,
 
 		container {
-			ws = 1, h = 30, auto = "y",
-			clips = true, pad = { p = 8 },
+			ws = 1, h = function()
+				return read(p.size or theme.input_size) + 10
+			end, auto = "y",
+			clips = true, pad = { p = 5 },
 			flex = { direction = "row", pad = 8 },
 
 			color = theme.bg(-1),
@@ -99,7 +104,7 @@ return component(function(p: {
 
 				Text = p.text,
 				TextColor3 = theme.bg_fg_high(-3),
-				TextSize = theme.input_size,
+				TextSize = p.size or theme.input_size,
 				PlaceholderColor3 = theme.bg_fg_low(-3),
 				PlaceholderText = p.placeholder,
 				FontFace = if p.monospace then theme.mono else theme.body,

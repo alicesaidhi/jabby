@@ -31,7 +31,7 @@ return component(function<T>(p: {
     sort_direction: (() -> "ascending" | "descending")?,
     set_sort_direction: (("ascending" | "descending") -> ())?,
 
-    header: (value: () -> T, column: number, row: number) -> string,
+    header: (value: () -> T, column: number, row: number) -> Instance,
     field: (value: () -> T, column: number, row: () -> number) -> Instance,
     element_size: Can<number>?
 }, children)
@@ -106,7 +106,7 @@ return component(function<T>(p: {
             ws = 1, hs = 1,
 
             color = theme.bg(depth_bg),
-            
+
             topleft = function()
                 return if is_first() then theme.base_table_corner() else 0
             end,
@@ -114,7 +114,7 @@ return component(function<T>(p: {
                 return if is_last() then theme.base_table_corner() else 0
             end,
 
-            pad = { x = 8 },
+            pad = { x = conditional(theme.compact, 6, 8) },
             flex = { direction = "row", justify = "left", align = "center", pad = 4 },
 
             hold = hold :: (boolean) -> (),
@@ -154,8 +154,10 @@ return component(function<T>(p: {
             end),
             
             if p.header then p.header(p.columns()[idx]()[1], idx, 1) else text {
+                xalign = "left",
                 text = function()
-                    return tostring(p.columns()[idx]()[1])
+                    local column = p.columns()[idx]
+                    return tostring(column and column()[1])
                 end,
 
                 weight = 700,
@@ -168,12 +170,16 @@ return component(function<T>(p: {
     return container {
         name = "Table",
         flex = { justify = "fill" },
+        
+        stroke = theme.bg(-4),
+        thickness = 1,
+        corner = theme.base_table_corner,
 
         ignore {
             indexes(splits, function(split: () -> number, idx)
                 return container {
                     xs = split,
-                    w = 1, hs = 1, h = ysize,
+                    w = 1, hr = ysize,
                     z = 100,
 
                     color = theme.bg(-4)
@@ -184,7 +190,7 @@ return component(function<T>(p: {
         container {
             name = "Resizable",
 
-            ws = 1, h = 32,
+            ws = 1, h = conditional(theme.compact, 24, 32),
             flex = {},
 
             resizable_bar {
@@ -264,7 +270,7 @@ return component(function<T>(p: {
             bottomright = theme.base_table_corner,
 
             color = theme.bg(1),
-
+            
             changed("AbsoluteSize", function(size: Vector2)
                 ysize(-size.Y)
             end),

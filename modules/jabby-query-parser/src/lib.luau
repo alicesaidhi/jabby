@@ -36,17 +36,6 @@ Specify tag by prefixing a term with `#`.
 ]=]
 
 --[=[
-@within JabbyQueryParser
-@interface FeatureFlags
-
-]=]
-export type FeatureFlags = {
-	enable_relationships: boolean,
-	enable_excludes: boolean,
-	enable_wildcard: boolean
-}
-
---[=[
 @class Term
 A term specifies a 
 ]=]
@@ -203,7 +192,11 @@ export type QueryResult = {
 	read terms: Separated<QueryTerm>
 }
 
-export type ParseResult = { result: QueryResult?, issues: { string } }
+export type Issue = {
+	why: string,
+	span: vector
+}
+export type ParseResult = { result: QueryResult?, issues: { Issue } }
 
 local function char(c: string): number return string.byte(c) :: number end
 
@@ -212,7 +205,7 @@ local function parse(input: buffer): ParseResult
 	local pos = 0
 	local line = 0
 	local len = buffer.len(input)
-	local issues: { string } = {}
+	local issues: { Issue } = {}
 
 	local function peek(): number
 		if pos == len then return 0 end
@@ -232,7 +225,7 @@ local function parse(input: buffer): ParseResult
 
 	local function eof(msg: string)
 		if pos >= len then
-			table.insert(issues, msg)
+			table.insert(issues, { why = msg, span = vector.create(pos, pos) })
 			error({
 				result = nil,
 				issues = issues
@@ -476,7 +469,7 @@ local function parse(input: buffer): ParseResult
 		local kind = token.kind
 
 		if kind == "identifier" or kind == "number" or kind == "string" then
-			return kind
+			return token.text
 		elseif token.kind == "error" then
 			return "error '" .. token.text .. "'"
 		else
@@ -486,11 +479,11 @@ local function parse(input: buffer): ParseResult
 
 	local function fatal(message: string, span: vector?): never
 		local report = {
-			message = message,
+			why = message,
 			span = span or current_token.span,
 		}
 
-		table.insert(issues, `{report.message} from {report.span.x} to {report.span.y}`)
+		table.insert(issues, report)
 		return error({
 			result = nil,
 			issues = issues
@@ -499,11 +492,11 @@ local function parse(input: buffer): ParseResult
 	
 	local function nonfatal(message: string, span: vector?): false
 		local report = {
-			message = message,
+			why = message,
 			span = span or current_token.span,
 		}
 
-		table.insert(issues, `{report.message} from {report.span.x} to {report.span.y}`)
+		table.insert(issues, report)
 		return false
 	end
 
@@ -710,24 +703,38 @@ local function parse(input: buffer): ParseResult
 	end
 end
 
+--[=[
+@within JabbyQueryParser
+@interface FeatureFlags
+
+]=]
+export type FeatureOptions = {
+	enable_relationships: boolean?,
+	enable_excludes: boolean?,
+	enable_wildcard: boolean?,
+	-- enables only having excludes in your component
+	enable_only_excludes: boolean?
+}
+
+
 type Result = {
 	result: QueryResult?,
 	values: { include: { Term }, exclude: { Term }, view: { Term } }?,
-	issues: { string }
+	issues: { Issue }
 }
 
 local function process(input: string, options: {
 	is_component: ((string) -> boolean)?,
 	is_id: ((number) -> boolean)?,
 	
-	features: FeatureFlags
+	features: FeatureOptions
 }): Result
 	local b = buffer.fromstring(input)
 	local result = parse(b)
 	assert(result.result)
 
 	local function throw(msg: string, where: vector)
-		table.insert(result.issues, `{msg} from {where.x} to {where.y}`)
+		table.insert(result.issues, { why = msg, span = where })
 	end
 
 	local function check_name_term(term: Term_Named)
@@ -813,12 +820,19 @@ local function process(input: string, options: {
 			table.insert(include, term.term)
 		elseif term.kind == "view" then
 			check_term(term.term)
-			table.insert(include, term.term)
+			
 			table.insert(view, term.term)
+			table.insert(include, term.term)
 		end
 	end
 
-	return {
+	if options.features.enable_only_excludes ~= true then
+		if #include == 0 and #exclude ~= 0 then
+			throw("cannot exclude without including compoennts", vector.create(1, #input))
+		end
+	end
+
+	local output = {
 		result = result.result,
 		issues = result.issues,
 		values = {
@@ -827,6 +841,12 @@ local function process(input: string, options: {
 			view = view
 		}
 	}
+
+	if #result.issues > 0 then
+		error(output)
+	else
+		return output
+	end
 end
 
 return {

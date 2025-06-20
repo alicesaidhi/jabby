@@ -1,0 +1,29 @@
+{
+	"name": "jabby-ecs-registry-ecr",
+  	"emitLegacyScripts": true,
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"roblox_packages": {
+				"$path": "roblox_packages"
+			},
+			"src": {
+				"$path": "src"
+			}
+		},
+
+		"ServerScriptService": {
+			"$properties": {
+				"LoadStringEnabled": true
+			}
+		},
+
+		"TestService": {
+			"$properties": {
+				"ExecuteWithStudioRun": true
+			},
+			"$path": "test"
+		}
+	}
+}

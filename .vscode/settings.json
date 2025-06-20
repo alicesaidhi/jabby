@@ -1,5 +1,5 @@
 {
-	"luau-lsp.sourcemap.rojoProjectFile": "default.project.json",
+	"luau-lsp.sourcemap.rojoProjectFile": "test.project.json",
 	"luau-lsp.completion.imports.requireStyle": "alwaysRelative",
 	"luau-lsp.fflags.enableNewSolver": true,
 	"files.exclude": {

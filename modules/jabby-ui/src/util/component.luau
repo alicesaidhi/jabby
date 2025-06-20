@@ -168,7 +168,7 @@ local function component<Object, Properties>(constructor: (Properties, never) ->
                     else nil
             }
             
-            item.Parent = parent
+            item.Parent = instance
         end
 
         if props.pad then

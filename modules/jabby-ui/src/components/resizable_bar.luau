@@ -123,6 +123,7 @@ return component(function(p: {
                 local new_size = math.max(size + left_to_move, min_size)
                 local difference = new_size - size
 
+                if splits()[i] == nil then continue end
                 splits()[i] = splits()[i] + difference
                 --assert((new_size + difference) == get_size(i - 1))
                 left_to_move -= difference

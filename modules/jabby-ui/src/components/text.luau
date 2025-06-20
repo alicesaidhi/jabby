@@ -25,6 +25,7 @@ return component(function(p: {
     text: Can<string>,
     size: Can<number>?,
     font: Can<Font>?,
+    wraps: Can<boolean>?,
     truncate: "split" | "end"?,
     
     xalign: "left" | "center" | "right"?,
@@ -46,6 +47,7 @@ return component(function(p: {
         TextColor3 = p.color or if p.acc then theme.acc_fg_high(0) else theme.bg_fg_high(0),
         TextTransparency = p.transparency,
         TextSize = p.size or theme.body_size,
+        TextWrapped = p.wraps,
         TextTruncate = if p.truncate == "split" then Enum.TextTruncate.SplitWord
             elseif p.truncate == "end" then Enum.TextTruncate.AtEnd
             else Enum.TextTruncate.None,
