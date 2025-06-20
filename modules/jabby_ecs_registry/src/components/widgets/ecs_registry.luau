@@ -159,12 +159,12 @@ local function ecs_registry(target: jabby_types.Target)
 	end)
 	
 	return jabby_ui.container {
-		ws = 1, hs = 1, pad = { p = 8 },
-		flex = { align = "between", pad = 8 },
+		ws = 1, hs = 1,
+		flex = { align = "between", pad = 4 },
 
 		jabby_ui.container {
 			name = "Input",
-			ws = 1, auto = "y",
+			ws = 1, auto = "y", pad = { p = 8 },
 			flex = { justify = "between", pad = 4 },
 			
 			jabby_ui.textfield {
@@ -199,6 +199,7 @@ local function ecs_registry(target: jabby_types.Target)
 
 		jabby_ui.tablesheet({
 			ws = 1, grow = 1, shrink = 1,
+			disable_top_corners = true,
 
 			min_sizes = source { 24 },
 			use_offset = source { 32 } :: () -> { number },

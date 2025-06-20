@@ -21,6 +21,7 @@ return component(function<T>(p: {
     min_sizes: (() -> { number })?,
     use_offset: (() -> { number })?,
     suggested_sizes: { number }?,
+    disable_top_corners: boolean,
 
     columns: () -> { () -> { T } },
 
@@ -83,11 +84,11 @@ return component(function<T>(p: {
 
     local function field(idx: number)
         local is_first = function()
-            return idx == 1
+            return idx == 1 and p.disable_top_corners ~= true
         end
 
         local is_last = function()
-            return idx == column_count()
+            return idx == column_count() and p.disable_top_corners ~= true
         end
 
         local hover = source(false)
@@ -173,7 +174,7 @@ return component(function<T>(p: {
         
         stroke = theme.bg(-4),
         thickness = 1,
-        corner = theme.base_table_corner,
+        corner = if p.disable_top_corners then 0 else theme.base_table_corner,
 
         ignore {
             indexes(splits, function(split: () -> number, idx)

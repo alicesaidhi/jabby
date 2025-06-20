@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 
 local jabby_types = require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
 local jabby_ui = require(script.Parent.Parent.Parent.roblox_packages.jabby_ui)
+local jabby_util = require(script.Parent.Parent.Parent.roblox_packages.jabby_util)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local net = require(script.Parent.Parent.net)
 
@@ -145,8 +146,8 @@ local function performance()
 						xalign = "left",
 						text = function(): string
 							return if column == 1 then value() or ""
-								elseif column == 2 then convert_units("B", value() or 0)
-								else convert_units("s", value() or 0)
+								elseif column == 2 then jabby_util.convert_scale("B", value() or 0)
+								else jabby_util.convert_scale("s", value() or 0)
 						end
 					}
 				}

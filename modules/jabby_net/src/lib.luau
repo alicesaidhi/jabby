@@ -1062,15 +1062,15 @@ local function socket_create<T>(
 		
 		talk_socket.permissions.process = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
 			local opened =
-				opened_sockets[sender] and opened_sockets[sender][data.id].sender == target.to
-				or opened_sockets[target.to] and opened_sockets[target.to][data.id].sender == sender
+				opened_sockets[sender] and opened_sockets[sender][data.id] and opened_sockets[sender][data.id].sender == target.to
+				or opened_sockets[target.to] and opened_sockets[target.to][data.id] and opened_sockets[target.to][data.id].sender == sender
 			return opened
 		end
 
 		talk_socket.permissions.redirect = function(sender: Sender, target: Target, data: typeof(SOCKET_SEND(newproxy())))
 			local opened =
-				opened_sockets[sender] and opened_sockets[sender][data.id].sender == target.to
-				or opened_sockets[target.to] and opened_sockets[target.to][data.id].sender == sender
+				opened_sockets[sender] and opened_sockets[sender][data.id] and opened_sockets[sender][data.id].sender == target.to
+				or opened_sockets[target.to] and opened_sockets[target.to][data.id] and opened_sockets[target.to][data.id].sender == sender
 			return opened
 		end
 

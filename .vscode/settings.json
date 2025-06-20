@@ -10,7 +10,8 @@
 		"**/.DS_Store": true,
 		"**/Thumbs.db": true,
 
-		"*_packages": false
+		"modules/_foreign_*": true,
+		"*_packages": false,
 	},
 	"markdownlint.config": {
 		"no-inline-html": {

@@ -4,7 +4,7 @@
 # New tools can be added by running `rokit add <tool>` in a terminal.
 
 [tools]
-rojo = "rojo-rbx/rojo@7.4.4"
+rojo = "rojo-rbx/rojo@7.5.1"
 pesde = "daimond113/pesde@0.7.0-rc.3+registry.0.2.3-rc.2"
-lune = "lune-org/lune@0.8.9"
+lune = "lune-org/lune@0.9.4"
 asphalt = "jacktabscode/asphalt@1.0.0-pre.10"

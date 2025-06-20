@@ -13,7 +13,7 @@ jabby_types = ["alicesaidhi/jabby_types@0.1.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_core@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-core"
+path = "modules/jabby_core"
 
 [graph."alicesaidhi/jabby_core@0.1.0 roblox".pkg_ref.dependencies]
 jabby_types = [{ workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
@@ -33,7 +33,7 @@ vide = ["alicesaidhi/vide@0.4.1-testing.4 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ecs_registry@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-ecs-registry"
+path = "modules/jabby_ecs_registry"
 
 [graph."alicesaidhi/jabby_ecs_registry@0.1.0 roblox".pkg_ref.dependencies]
 gt = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
@@ -58,7 +58,7 @@ vide = ["alicesaidhi/vide@0.4.1-testing.4 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_home@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-home"
+path = "modules/jabby_home"
 
 [graph."alicesaidhi/jabby_home@0.1.0 roblox".pkg_ref.dependencies]
 gt = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
@@ -75,7 +75,7 @@ jabby_util = ["alicesaidhi/jabby_util@0.1.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_net@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-net"
+path = "modules/jabby_net"
 
 [graph."alicesaidhi/jabby_net@0.1.0 roblox".pkg_ref.dependencies]
 gt = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
@@ -90,7 +90,7 @@ direct = ["jabby_query_parser", { workspace = "alicesaidhi/jabby_query_parser", 
 
 [graph."alicesaidhi/jabby_query_parser@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-query-parser"
+path = "modules/jabby_query_parser"
 
 [graph."alicesaidhi/jabby_query_parser@0.1.0 roblox".pkg_ref.dependencies]
 gt = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "dev"]
@@ -102,7 +102,7 @@ direct = ["jabby_types", { workspace = "alicesaidhi/jabby_types", version = "^" 
 
 [graph."alicesaidhi/jabby_types@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-types"
+path = "modules/jabby_types"
 
 [graph."alicesaidhi/jabby_ui@0.1.0 roblox"]
 direct = ["jabby_ui", { workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
@@ -112,7 +112,7 @@ vide = ["alicesaidhi/vide@0.4.1-testing.4 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ui@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-ui"
+path = "modules/jabby_ui"
 
 [graph."alicesaidhi/jabby_ui@0.1.0 roblox".pkg_ref.dependencies]
 ui_labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = "^2.3.8", index = "https://github.com/upliftgames/wally-index" }, "dev"]
@@ -123,14 +123,14 @@ direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" },
 
 [graph."alicesaidhi/jabby_util@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/jabby-util"
+path = "modules/jabby_util"
 
 [graph."alicesaidhi/lua_preview_notation@0.1.0 roblox"]
 direct = ["lua_preview_notation", { workspace = "alicesaidhi/lua_preview_notation", version = "^" }, "standard"]
 
 [graph."alicesaidhi/lua_preview_notation@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
-path = "modules/lua-preview-notation"
+path = "modules/lua_preview_notation"
 
 [graph."alicesaidhi/vide@0.4.1-testing.4 roblox"]
 direct = ["vide", { name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "default" }, "standard"]

@@ -3,6 +3,8 @@ return function(new_value: unknown, max_chars: number)
 
 	if typeof(new_value) == "string" then
 		str = string.format("%q", new_value)
+	elseif typeof(new_value) == "number" then
+		str = string.format("%.3f", new_value)
 	elseif typeof(new_value) == "table" then
 		local temp_n = 0
 		local temp_b = {}
