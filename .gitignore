@@ -15,4 +15,6 @@ sourcemap.json
 /docs/node_modules/
 /docs/.vitepress/cache
 
+/modules/_foreign_*
+
 .env

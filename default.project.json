@@ -1,5 +1,16 @@
+
 {
+	"name": "jabby",
+	"globIgnorePaths": [ "modules/*/test.project.json", "**/.pesde", "modules/*/test", "**/__tests__" ],
+	"emitLegacyScripts": false,
+
 	"tree": {
-		"$path": "src"
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"packages": {
+				"$path": "modules/"
+			}
+		}
 	}
-} 
+}

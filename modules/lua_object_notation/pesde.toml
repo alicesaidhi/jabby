@@ -1,0 +1,14 @@
+name = "alicesaidhi/lua_object_notation"
+version = "0.1.0"
+includes = ["src/*", "pesde.toml"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "lib.luau"
+build_files = ["src"]
+
+[indices]
+default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]

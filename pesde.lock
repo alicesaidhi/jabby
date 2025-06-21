@@ -6,22 +6,37 @@ version = "0.1.0"
 target = "roblox"
 
 [workspace."alicesaidhi/jabby_core"]
-roblox = "modules/jabby-core"
+roblox = "modules/jabby_core"
+
+[workspace."alicesaidhi/jabby_ecs_registry"]
+roblox = "modules/jabby_ecs_registry"
+
+[workspace."alicesaidhi/jabby_ecs_registry_ecr"]
+roblox = "modules/jabby_ecs_registry_ecr"
 
 [workspace."alicesaidhi/jabby_home"]
-roblox = "modules/jabby-home"
+roblox = "modules/jabby_home"
 
 [workspace."alicesaidhi/jabby_net"]
-roblox = "modules/jabby-net"
+roblox = "modules/jabby_net"
+
+[workspace."alicesaidhi/jabby_query_parser"]
+roblox = "modules/jabby_query_parser"
 
 [workspace."alicesaidhi/jabby_types"]
-roblox = "modules/jabby-types"
+roblox = "modules/jabby_types"
 
 [workspace."alicesaidhi/jabby_ui"]
-roblox = "modules/jabby-ui"
+roblox = "modules/jabby_ui"
 
 [workspace."alicesaidhi/jabby_util"]
-roblox = "modules/jabby-util"
+roblox = "modules/jabby_util"
+
+[workspace."alicesaidhi/lua_object_notation"]
+roblox = "modules/lua_object_notation"
+
+[workspace."alicesaidhi/lua_preview_notation"]
+roblox = "modules/lua_preview_notation"
 
 [graph."0x5eal/unzip@0.1.3 luau".pkg_ref]
 ref_ty = "pesde"
