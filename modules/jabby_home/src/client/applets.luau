@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local jabby_core = require(script.Parent.Parent.Parent.roblox_packages.jabby_core)
 local jabby_types = require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
@@ -33,8 +34,18 @@ local function applets_info()
 		obtain_store_data(player)
 	end
 
+	local n = 0
+	cleanup(RunService.Heartbeat:Connect(function(dt)
+		n += dt
+		if n < 10 then return end
+		n = 0
+
+		for _, player in Players:GetPlayers() do
+			obtain_store_data(player)
+		end
+	end))
+
 	obtain_store_data("server")
-	cleanup(Players.PlayerAdded:Connect(obtain_store_data))
 	cleanup(Players.PlayerRemoving:Connect(function(player)
 		store()[player] = nil
 		store(store())

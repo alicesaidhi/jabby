@@ -127,7 +127,6 @@ return function(applet: jabby_types.JabbyApplet<{
 					ok = false :: false,
 					issues = result.issues
 				})
-				print("resolved")
 			else
 				assert(result.values)
 				local view, view_names = get_component_info(result.values.view)

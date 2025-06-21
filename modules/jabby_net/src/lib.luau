@@ -375,8 +375,8 @@ export type RemoteSocket<T> = {
 
 	read _EVENT: T,
 
-	read _request_socket: RemoteFn<typeof(SOCKET_INFO), boolean>,
-	read _accept_socket: RemoteFn<typeof(SOCKET_INFO), boolean>,
+	read _request_socket: RemoteFn<typeof(SOCKET_INFO), number | false>,
+	read _accept_socket: RemoteFn<typeof(SOCKET_INFO), number | false>,
 	read _close_socket: Remote<typeof(SOCKET_INFO)>,
 	read _talk_socket: Remote<typeof(SOCKET_SEND(newproxy() :: T))>,
 
@@ -563,6 +563,7 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 		elseif event and target.to ~= "server" and id == -2 then
 			local perm = self.permissions.redirect(sender, target, packet, object)
 			if not perm then return end
+			print("redirecting fire", target.to, sender, self.identifier, debug.traceback())
 			event.server:FireClient(target.to, sender, target, packet)
 		end
 	end
@@ -571,8 +572,8 @@ local function event_connect<T>(self: Remote<T>, id: number): RemoteConnection<T
 		table.insert(events, event.server.OnServerEvent:Connect(process_event))
 		table.insert(events, event.id2id.Event:Connect(process_event))
 	elseif event then
-		event.server.OnClientEvent:Connect(process_event)
-		event.id2id.Event:Connect(process_event)
+		table.insert(events, event.server.OnClientEvent:Connect(process_event))
+		table.insert(events, event.id2id.Event:Connect(process_event))
 	end
 
 	return object
@@ -792,7 +793,6 @@ local function function_create<T, U>(
 		end
 	end)
 
-	if RunService:IsServer() then function_connect(self, -2) end
 	CACHED_FUNCTIONS[key] = self
 	return self
 end
@@ -805,7 +805,7 @@ local function socket_create_waiting_socket(
 ): boolean
 	local map_sender_to_waiting_sockets = socket._waiting_sockets[requester] or {} :: never
 	if map_sender_to_waiting_sockets[socket_id] then return false end
-	if #map_sender_to_waiting_sockets > 10 then return false end
+	-- if #map_sender_to_waiting_sockets > 10 then return false end
 	
 	map_sender_to_waiting_sockets[socket_id] = {
 		target = target,
@@ -819,22 +819,22 @@ end
 
 local function socket_open_waiting_socket(
 	socket: RemoteSocket<any>,
-	sender: Sender,
+	requester: Sender,
 	target: Sender,
 	socket_id: number
 ): boolean
-	local map_sender_to_waiting_sockets = socket._waiting_sockets[sender] or {} :: never
-	local map_sender_to_open_sockets = socket._open_sockets[sender] or {} :: never
+	local map_sender_to_waiting_sockets = socket._waiting_sockets[requester] or {} :: never
+	local map_sender_to_open_sockets = socket._open_sockets[requester] or {} :: never
 
-	if not map_sender_to_waiting_sockets[socket_id] then return false end
-	if map_sender_to_open_sockets[socket_id] then return false end
+	if not map_sender_to_waiting_sockets[socket_id] then print("not in map"); return false end
+	if map_sender_to_open_sockets[socket_id] then print("not in map"); return false end
 
-	socket._waiting_sockets[sender] = map_sender_to_waiting_sockets
-	socket._open_sockets[sender] = map_sender_to_open_sockets
+	socket._waiting_sockets[requester] = map_sender_to_waiting_sockets
+	socket._open_sockets[requester] = map_sender_to_open_sockets
 
 	local info = map_sender_to_waiting_sockets[socket_id]
 
-	if info.target ~= target then return false end
+	if info.target ~= target then print("not target"); return false end
 
 	map_sender_to_waiting_sockets[socket_id] = nil
 	map_sender_to_open_sockets[socket_id] = { sender = info.target, on_close = info.on_close }
@@ -980,7 +980,7 @@ end
 local function socket_accept<T>(socket: RemoteSocket<T>, from: Sender, id: number): Socket<T>
 	socket_create_waiting_socket(socket, from, PACKET_TARGET, id)
 
-	local result = socket._accept_socket:invoke({ to = "server", id = -1 }, {
+	local result = socket._accept_socket:invoke({ to = from, id = -1 }, {
 		socket_id = id,
 		target = from
 	})
@@ -1001,8 +1001,8 @@ local function socket_create<T>(
 	identifier: string,
 	gt_send: T
 ): RemoteSocket<T>
-	local request_socket = function_create(namespace, `{identifier}_CREATE_SOCKET`, SOCKET_INFO, gt.bool())
-	local accept_socket = function_create(namespace, `{identifier}_ACCEPT_SOCKET`, SOCKET_INFO, gt.bool())
+	local request_socket = function_create(namespace, `{identifier}_CREATE_SOCKET`, SOCKET_INFO, gt.union(gt.literal(false :: false), gt.number()))
+	local accept_socket = function_create(namespace, `{identifier}_ACCEPT_SOCKET`, SOCKET_INFO, gt.union(gt.literal(false :: false), gt.number()))
 	local close_socket = event_create(namespace, `{identifier}_CLOSE_SOCKET`, SOCKET_INFO)
 	local talk_socket = event_create(namespace, `{identifier}_TALK_SOCKET`, SOCKET_SEND(gt_send) )
 
@@ -1035,12 +1035,21 @@ local function socket_create<T>(
 			return false
 		end
 
-		accept_socket.invoke_event.permissions.redirect = function()
-			return false
+		accept_socket.invoke_event.permissions.redirect = function(sender, target, data)
+			if target.to ~= data.value.target then return false end
+			if not waiting_sockets[target.to] then return false end
+			if not waiting_sockets[target.to][data.value.socket_id] then return false end
+			if waiting_sockets[target.to][data.value.socket_id].target ~= sender then return false end
+			return true
 		end
 
-		accept_socket.result_event.permissions.redirect = function()
-			return false
+		accept_socket.result_event.permissions.redirect = function(sender: Sender, target: Target, data)
+			if not waiting_sockets[sender] then return false end
+			if not waiting_sockets[sender][data.value] then return false end
+			if waiting_sockets[sender][data.value].target ~= target.to then return false end
+			if not data.value then return true end
+			socket_open_waiting_socket(socket, sender, target.to, data.value)
+			return true
 		end
 
 		close_socket.permissions.redirect = function(sender, target, data)
@@ -1071,15 +1080,18 @@ local function socket_create<T>(
 			local opened =
 				opened_sockets[sender] and opened_sockets[sender][data.id] and opened_sockets[sender][data.id].sender == target.to
 				or opened_sockets[target.to] and opened_sockets[target.to][data.id] and opened_sockets[target.to][data.id].sender == sender
+			-- print(opened)
 			return opened
 		end
 
-		request_socket:connect(-1):on_invoke(function(sender, data)
-			return socket_create_waiting_socket(socket, sender, data.target, data.socket_id)
-		end)
-		
-		accept_socket:connect(-1):on_invoke(function(sender, data)
-			return socket_open_waiting_socket(socket, data.target, sender, data.socket_id)
+		request_socket:connect(-1):on_invoke(function(sender, data): false | number
+			if socket_create_waiting_socket(socket, sender, data.target, data.socket_id) then
+				print("created socket")
+				return data.socket_id
+			else
+				print("denied socket")
+				return false :: false
+			end
 		end)
 
 	-- 	-- closes sockets if the player left
@@ -1101,6 +1113,14 @@ local function socket_create<T>(
 
 	-- 	end)
 	end
+		
+	accept_socket:connect(-1):on_invoke(function(sender, data): false | number
+		if socket_open_waiting_socket(socket, PACKET_TARGET, sender, data.socket_id) then
+			return data.socket_id
+		else
+			return false :: false
+		end
+	end)
 
 	close_socket:connect(-1):on_event(function(sender, data: typeof(SOCKET_INFO))
 		socket_close_socket(socket, data.target, sender, data.socket_id)	
