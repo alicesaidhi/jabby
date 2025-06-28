@@ -42,6 +42,8 @@ return function(applet: jabby_types.JabbyApplet<{
 		for id, name in name_query:iter() do
 			if name == value then return id end
 		end
+
+		if value == "*" then return jecs.Wildcard end
 		return nil
 	end
 	
@@ -61,6 +63,8 @@ return function(applet: jabby_types.JabbyApplet<{
 			local left = get_component_name_from_id(jecs.ECS_PAIR_FIRST(id))
 			local right = get_component_name_from_id(jecs.ECS_PAIR_SECOND(id))
 			return `({left}, {right})`
+		elseif id == jecs.Wildcard then
+			return "*"
 		else
 			return world:get(id, jecs.Name) or `${id}`
 		end
@@ -83,6 +87,21 @@ return function(applet: jabby_types.JabbyApplet<{
 
 				components[idx] = get_component(text)
 				component_names[idx] = text
+			elseif component.kind == "relationship" then
+				assert(component.tokens.value)
+				assert(component.tokens.value.left)
+				assert(component.tokens.value.right)
+				assert(component.tokens.value.left.token)
+				assert(component.tokens.value.right.token)
+
+				local left = get_component(component.tokens.value.left.token.text)
+				local right = get_component(component.tokens.value.right.token.text)
+
+				assert(left, `no component named {component.tokens.value.left.token.text}`)
+				assert(right, `no component named {component.tokens.value.right.token.text}`)
+
+				components[idx] = jecs.pair(left, right)
+				component_names[idx] = get_component_name_from_id(jecs.pair(left, right))
 			end
 		end
 
