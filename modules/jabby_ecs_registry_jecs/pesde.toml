@@ -1,4 +1,4 @@
-name = "alicesaidhi/jabby_home"
+name = "alicesaidhi/jabby_ecs_registry_jecs"
 version = "0.1.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
@@ -17,8 +17,12 @@ default = "https://github.com/daimond113/pesde-index"
 [dependencies]
 jabby_types = { workspace = "alicesaidhi/jabby_types" }
 jabby_core = { workspace = "alicesaidhi/jabby_core" }
-jabby_util = { workspace = "alicesaidhi/jabby_util" }
 jabby_ui = { workspace = "alicesaidhi/jabby_ui" }
-jabby_net = { workspace = "alicesaidhi/jabby_net" }
+jabby_home = { workspace = "alicesaidhi/jabby_home" }
+jabby_ecs_registry = { workspace = "alicesaidhi/jabby_ecs_registry" }
+jabby_query_parser = { workspace = "alicesaidhi/jabby_query_parser" }
+jabby_util = { workspace = "alicesaidhi/jabby_util" }
+lua_preview_notation = { workspace = "alicesaidhi/lua_preview_notation" }
 vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
 gt = { name = "corecii/greentea", version = "^0.4.11" }
+jecs = { wally = "ukendio/jecs", version = "^0.7.2" }

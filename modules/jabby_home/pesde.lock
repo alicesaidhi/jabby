@@ -59,6 +59,9 @@ path = "modules/jabby_ui"
 ui_labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = "^2.3.8", index = "https://github.com/upliftgames/wally-index" }, "dev"]
 vide = [{ name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "https://github.com/daimond113/pesde-index" }, "standard"]
 
+[graph."alicesaidhi/jabby_util@0.1.0 roblox"]
+direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
+
 [graph."alicesaidhi/jabby_util@0.1.0 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_util"
