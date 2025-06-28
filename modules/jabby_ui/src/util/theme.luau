@@ -42,6 +42,7 @@ return {
     err = theme_generator.compute_sequence(error, 0),
 
     body = source(Font.fromName("BuilderSans")),
+    alt_font = source(Font.fromName("SourceSansPro")),
     header = source(Font.fromName("Montserrat")),
     mono = source(Font.fromId(16658246179)),
 

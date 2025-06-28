@@ -12,6 +12,7 @@ return component(function(p: {
 	corner: number?,
 	padding: number?,
 	paddingx: number?,
+	stroke: boolean?,
 
 	acc: boolean?,
 
@@ -53,7 +54,7 @@ return component(function(p: {
 		corner = p.corner or theme.base_button_corner,
 
 		color = spring(if p.acc then theme.acc(depth_acc) else theme.bg(depth_bg), 0.1),
-		stroke = if p.acc then theme.acc(-7) else theme.bg(-1),
+		stroke = if p.stroke ~= false then if p.acc then theme.acc(-7) else theme.bg(-1) else nil,
 		thickness = theme.base_button_thickness,
 
 		hover = hover, --FIXME: luau bug

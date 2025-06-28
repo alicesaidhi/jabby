@@ -221,6 +221,20 @@ local function ecs_registry(target: jabby_types.Target)
 							local v = value()
 							return tostring(if v == nil then "" else value())
 						end
+					},
+
+					jabby_ui.context_menu {
+						{ kind = "action", text = "Edit Entity", clicked = function()
+							print("hello")
+						end },
+						
+						{ kind = "action", text = "Edit Component", clicked = function()
+							print("hello")
+						end },
+							
+						{ kind = "action", text = "Track Entity", clicked = function()
+							print("hello")
+						end },
 					}
 				}
 			end,

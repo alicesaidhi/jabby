@@ -1,6 +1,7 @@
 local button = require(script.Parent.components.button)
 local checkbox = require(script.Parent.components.checkbox)
 local container = require(script.Parent.components.container)
+local context_menu = require(script.Parent.components.context_menu)
 local cornered = require(script.Parent.components.cornered)
 local divider = require(script.Parent.components.divider)
 local expandable = require(script.Parent.components.expandable)
@@ -48,6 +49,7 @@ return {
     text = text,
     textfield = textfield,
     virtualscroller = virtualscroller,
+    context_menu = context_menu,
 
     theme = theme,
     assets = assets,

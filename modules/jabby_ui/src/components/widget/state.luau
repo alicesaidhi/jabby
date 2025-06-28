@@ -347,8 +347,8 @@ local function tabs(p: {
             z = source(0),
             dragging = source(nil :: Vector2?),
             
-            x = source(p.x or 0),
-            y = source(p.y or 0),
+            x = source(p.x or 100),
+            y = source(p.y or 100),
             
             w = function() return 0 end,
             h = function() return 0 end,
@@ -438,8 +438,8 @@ local function horizontal(p: {
             z = source(0),
             dragging = source(nil :: Vector2?),
             
-            x = source(p.x or 0),
-            y = source(p.y or 0),
+            x = source(p.x or 100),
+            y = source(p.y or 100),
 
             w = source(p[1].w() + p[2].w() + DRAGGER_SIZE),
             h = source(math.max(p[1].h(), p[2].h())),
@@ -509,8 +509,8 @@ local function vertical(p: {
             z = source(0),
             dragging = source(nil :: Vector2?),
             
-            x = source(p.x or 0),
-            y = source(p.y or 0),
+            x = source(p.x or 100),
+            y = source(p.y or 100),
             
             w = source(math.max(p[1].w(), p[2].w())),
             h = source(p[1].h() + p[2].h() + DRAGGER_SIZE),
