@@ -713,7 +713,8 @@ export type FeatureOptions = {
 	enable_excludes: boolean?,
 	enable_wildcard: boolean?,
 	-- enables only having excludes in your component
-	enable_only_excludes: boolean?
+	enable_only_excludes: boolean?,
+	disable_merge_include_view: boolean?,
 }
 
 
@@ -822,7 +823,9 @@ local function process(input: string, options: {
 			check_term(term.term)
 			
 			table.insert(view, term.term)
-			table.insert(include, term.term)
+			if not options.features.disable_merge_include_view then
+				table.insert(include, term.term)
+			end
 		end
 	end
 
