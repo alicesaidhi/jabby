@@ -33,7 +33,7 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
 
     local top, left = GuiService:GetGuiInset()
     local old: Vector2? = Vector2.new(p.x() + 32, p.y() + top.Y + left.Y - TITLEBAR_SIZE + 8)
-    cleanup(RunService.PreRender:Connect(function(dt)
+    cleanup(RunService.Heartbeat:Connect(function(dt)
         if not p.dragging() then return end
         if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
             local hover = state.hovering_over()
@@ -147,6 +147,7 @@ return function(p: state.VerticalWidget | state.TabsWidget | state.HorizontalWid
 
             input = function(input: InputObject)
                 if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                if p.dragging() then return end
                 old = UserInputService:GetMouseLocation()
                 p.dragging(Vector2.new(input.Position.X, input.Position.Y))
             end,
