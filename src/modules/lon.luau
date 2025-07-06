@@ -586,7 +586,7 @@ local lon_vars = {
 	end,
 
 	game = game,
-	workspace = workspace,
+	workspace = workspace
 
 }
 
@@ -642,6 +642,8 @@ do
 	local tbs = 0
 	local enable_newlines = true
 	local line_length = 0
+	
+	local temp_input = buffer.create(1024)
 
 	local cyclic_buffer = {}
 
@@ -725,7 +727,67 @@ do
 		end
 	end
 
-	local function display(value: Displayable)
+	local display
+	local fatal_if_bad = false
+
+	local function to_path(new: boolean, ...: unknown)
+		local original = fatal_if_bad
+		fatal_if_bad = true
+
+		if new then
+			local input = {}
+			local len = select("#", ...)
+
+			local old_pos = pos
+			local old_tbs = tbs
+			local old_buf = buf
+			buf = temp_input
+
+			for i = len, 2, -1 do
+				pos = 0
+				tbs = 0
+
+				local d = len - i
+				display(select(i, ...))
+
+				input[d] = buffer.readstring(temp_input, 0, pos)
+			end
+
+			pos = old_pos
+			tbs = old_tbs
+			buf = old_buf
+
+			fatal_if_bad = original
+			return `new({table.concat(input, ", ")})`
+		else
+			local input = {}
+			local len = select("#", ...)
+
+			local old_pos = pos
+			local old_tbs = tbs
+			local old_buf = buf
+			buf = temp_input
+
+			for i = len, 1, -1 do
+				pos = 0
+				tbs = 0
+
+				local d = len - i
+				display(select(i, ...))
+				input[d + 1] = `[{buffer.readstring(temp_input, 0, pos)}]`
+			end
+
+			pos = old_pos
+			tbs = old_tbs
+			buf = old_buf
+			table.insert(input, 1, "old")
+
+			fatal_if_bad = original
+			return table.concat(input)
+		end
+	end
+
+	function display(value: Displayable, ...: unknown)
 		if max_size < pos then return end
 		if type(value) == "number" then
 			write_str(tostring(value))
@@ -748,7 +810,10 @@ do
 					write_str(index)
 				else
 					write_char(char("["))
+					local original = fatal_if_bad
+					fatal_if_bad = true
 					display(index)
+					fatal_if_bad = original
 					write_char(char("]"))
 				end
 
@@ -756,7 +821,7 @@ do
 				write_char(char("="))
 				write_char(char(" "))
 				
-				display(value)
+				display(value, index, ...)
 				write_char(char(","))
 			end
 
@@ -764,7 +829,11 @@ do
 			write_line()
 			write_char(char("}"))
 		elseif type(value) == "table" and cyclic_buffer[value] then
-			display_string(`*cyclic reference detected at {tbs}*`)
+			if fatal_if_bad then 
+				write_str("*cannot display table due to cyclic dependency*")
+			else
+				write_str(to_path(true, ...))
+			end
 		elseif type(value) == "nil" then
 			write_str("nil")
 		-- ROBLOX DEVIATION START
@@ -900,27 +969,26 @@ do
 				RespectCanCollide = value.RespectCanCollide,
 			})
 			write_char(char(")"))
-		elseif typeof(value) == "Instance" then
-			write_str("game.")
-			display_string(value:GetFullName())
+		elseif typeof(value) == "Instance" and not fatal_if_bad then
+			write_str(to_path(false, ...))
+		elseif typeof(value) == "Instance" and fatal_if_bad then
+			write_str(value:GetFullName())
 		-- ROBLOX DEVIATION END
 		else
-			write_str(typeof(value))
-			write_char(char("("))
-			write_str(tostring(value))
-			write_char(char(")"))
-			warn(`unable to encode datatype "{typeof(value)}" into lua object notation`)
+			write_str(to_path(false, ...))
 		end
 	end
 
-	output = function(value: Displayable, newlines: boolean?)
+	output = function(value: Displayable, newlines: boolean?, preview: boolean?)
 		enable_newlines = if newlines ~= nil then newlines else true
 
 		pos = 0
 		tbs = 0
 
 		table.clear(cyclic_buffer)
+		if preview then fatal_if_bad = true end
 		display(value)
+		fatal_if_bad = false
 		return buffer.readstring(buf, 0, pos)
 	end
 end
@@ -930,7 +998,46 @@ return {
 	parse = parse,
 	compile = function(node: Node, variables: {[string]: any})
 		setmetatable(lon_vars, {__index = variables or nil})
-		return compile(node)
+		local mt = { symbol = "new" }
+		local should_recurse = false
+
+		lon_vars.new = function(...)
+			should_recurse = true
+			local symbol = setmetatable({ we_left_something = true, ... }, mt)
+			return symbol
+		end
+
+		local nodes = compile(node)
+
+		local function find(input: { unknown })
+			local v = nodes
+			for _, key in ipairs(input) do
+				v = v[key]
+				if v == nil then return nil end
+			end
+			return v
+		end
+
+		-- recurse through nodes
+		local checked = {}
+		local function recurse(value: unknown)
+			for k, v in pairs(value) do -- use pairs so we explicitly iterate over keys and values
+				if typeof(v) == "table" and getmetatable(v) == mt then
+					value[k] = find(v)
+				elseif typeof(v) == "table" and checked[v] then
+					continue
+				elseif typeof(v) == "table" then
+					checked[v] = true
+					recurse(v)
+				end
+			end
+		end
+
+		if should_recurse and typeof(nodes) == "table" then
+			recurse(nodes)
+		end
+
+		return nodes
 	end,
 	output = output
 
