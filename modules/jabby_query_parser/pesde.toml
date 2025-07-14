@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_query_parser"
-version = "0.1.0"
+version = "0.1.0-test.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 
@@ -17,6 +17,6 @@ default = "https://github.com/daimond113/pesde-index"
 [dev_dependencies]
 jest = { wally = "jsdotlua/jest", version = "^3.10.0" }
 jest_globals = { wally = "jsdotlua/jest-globals", version = "^3.10.0" }
-gt = { name = "corecii/greentea", version = "^0.4.11" }
+gt = { wally = "corecii/greentea", version = "^0.4.11" }
 
 [dependencies]

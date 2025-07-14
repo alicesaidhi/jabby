@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_ecs_registry_jecs"
-version = "0.1.0"
+version = "0.1.0-test.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 

@@ -2,29 +2,35 @@
 # It is not intended for manual editing.
 format = 2
 name = "alicesaidhi/jabby_net"
-version = "0.1.0"
+version = "0.1.0-test.0"
 target = "roblox"
 
-[graph."alicesaidhi/jabby_types@0.1.0 roblox"]
+[graph."alicesaidhi/jabby_types@0.1.0-test.0 roblox"]
 direct = ["jabby_types", { workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
 
-[graph."alicesaidhi/jabby_types@0.1.0 roblox".pkg_ref]
+[graph."alicesaidhi/jabby_types@0.1.0-test.0 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_types"
 
-[graph."alicesaidhi/jabby_util@0.1.0 roblox"]
+[graph."alicesaidhi/jabby_util@0.1.0-test.0 roblox"]
 direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
 
-[graph."alicesaidhi/jabby_util@0.1.0 roblox".pkg_ref]
+[graph."alicesaidhi/jabby_util@0.1.0-test.0 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_util"
 
-[graph."corecii/greentea@0.4.11 roblox"]
-direct = ["gt", { name = "corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
+[graph."wally#corecii/greentea@0.4.11 roblox"]
+direct = ["gt", { wally = "wally#corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
 
-[graph."corecii/greentea@0.4.11 roblox".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/daimond113/pesde-index"
+[graph."wally#corecii/greentea@0.4.11 roblox".pkg_ref]
+ref_ty = "wally"
+index_url = "https://github.com/UpliftGames/wally-index"
+
+[graph."wally#corecii/greentea@0.4.11 roblox".pkg_ref.dependencies]
+_jest-roblox-shared = [{ wally = "wally#jsdotlua/jest-roblox-shared", version = ">=3.6.1-rc.2, <4.0.0", index = "https://github.com/UpliftGames/wally-index" }, "dev"]
+Jest = [{ wally = "wally#jsdotlua/jest", version = ">=3.6.1-rc.2, <4.0.0", index = "https://github.com/UpliftGames/wally-index" }, "dev"]
+JestGlobals = [{ wally = "wally#jsdotlua/jest-globals", version = ">=3.6.1-rc.2, <4.0.0", index = "https://github.com/UpliftGames/wally-index" }, "dev"]
+RegExp = [{ wally = "wally#jsdotlua/luau-regexp", version = ">=0.2.1, <0.3.0", index = "https://github.com/UpliftGames/wally-index" }, "dev"]
 
 [graph."wally#evaera/promise@4.0.0 roblox"]
 direct = ["promise", { wally = "wally#evaera/promise", version = "^4.0.0", index = "default" }, "dev"]

@@ -1,0 +1,21 @@
+name = "alicesaidhi/jabby"
+version = "0.4.0-test.0"
+includes = ["src/*", "pesde.toml"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "src/lib.luau"
+build_files = ["src"]
+
+[wally_indices]
+default = "https://github.com/UpliftGames/wally-index"
+
+[indices]
+default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]
+jabby_core = { workspace = "alicesaidhi/jabby_core" }
+jabby_ecs_registry_jecs = { workspace = "alicesaidhi/jabby_ecs_registry_jecs" }
+jabby_home = { workspace = "alicesaidhi/jabby_home" }
+jabby_net = { workspace = "alicesaidhi/jabby_net" }

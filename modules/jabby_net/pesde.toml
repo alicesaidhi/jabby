@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_net"
-version = "0.1.0"
+version = "0.1.0-test.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 
@@ -22,4 +22,4 @@ promise = { wally = "evaera/promise", version = "^4.0.0" }
 [dependencies]
 jabby_types = { workspace = "alicesaidhi/jabby_types" }
 jabby_util = { workspace = "alicesaidhi/jabby_util" }
-gt = { name = "corecii/greentea", version = "^0.4.11" }
+gt = { wally = "corecii/greentea", version = "^0.4.11" }

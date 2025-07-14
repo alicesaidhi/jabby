@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_ecs_registry"
-version = "0.1.0"
+version = "0.1.0-test.0"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 
@@ -20,6 +20,6 @@ jabby_core = { workspace = "alicesaidhi/jabby_core" }
 jabby_ui = { workspace = "alicesaidhi/jabby_ui" }
 jabby_net = { workspace = "alicesaidhi/jabby_net" }
 jabby_query_parser = { workspace = "alicesaidhi/jabby_query_parser"}
-vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
-gt = { name = "corecii/greentea", version = "^0.4.11" }
+vide = { wally = "centau/vide", version = "0.3.1" }
+gt = { wally = "corecii/greentea", version = "^0.4.11" }
 jabby_util = { workspace = "alicesaidhi/jabby_util" }

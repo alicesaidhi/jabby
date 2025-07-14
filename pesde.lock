@@ -2,8 +2,11 @@
 # It is not intended for manual editing.
 format = 2
 name = "alicesaidhi/jabby"
-version = "0.1.0"
+version = "0.1.0-test.0"
 target = "roblox"
+
+[workspace."alicesaidhi/jabby"]
+roblox = "modules/jabby"
 
 [workspace."alicesaidhi/jabby_core"]
 roblox = "modules/jabby_core"
