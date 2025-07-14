@@ -98,7 +98,7 @@ local function lex(source: string): Stream
 	end
 
 	local function is_digit(char: string)
-		return not not (char == "." or string.match(char, "%d"))
+		return not not (string.match(char, "%d"))
 	end
 	
 	local function is_start_identifier(char: string)
@@ -106,7 +106,7 @@ local function lex(source: string): Stream
 	end
 
 	local function is_identifier(char: string)
-		return not not string.match(char, "[%a_:]")
+		return not not string.match(char, "[%a_:%.]")
 	end
 	
 	local function is_op_char(char: string)

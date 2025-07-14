@@ -10,6 +10,7 @@ type Context = {
 	host: Player | "server",
 	vm: number,
 	id: number,
+	inspect_id: number,
 	entity: number,
 
 	keys: vide.Source<{[string]: string}>,
@@ -20,15 +21,11 @@ type Context = {
 
 }
 
-local function generate_random_query_id()
-	return math.random(2 ^ 31 - 1)
-end
-
 return function(context: Context)
 
 	local inspect_entity_update = queue(remotes.inspect_entity_update)
 	
-	local current_inspectid = generate_random_query_id()
+	local current_inspectid = context.inspect_id
 	local outgoing = {
 		host = context.host,
 		to_vm = context.vm,

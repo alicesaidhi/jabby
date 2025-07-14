@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local pebble = require(script.Parent.Parent.Parent.Parent.Parent.pebble)
 local vide = require(script.Parent.Parent.Parent.Parent.Parent.vide)
+local remotes = require(script.Parent.Parent.Parent.Parent.modules.remotes)
 local add_component = require(script.Parent.add_component)
 local editor = require(script.Parent.editor)
 
@@ -18,6 +19,7 @@ type props = {
 	vm: number,
 	id: number,
 	entity: number,
+	inspect_id: number,
 
 	components: vide.Source<{[string]: string}>,
 	changes: vide.Source<{[string]: string}>,
@@ -35,6 +37,10 @@ RunService.PreRender:Connect(function()
 end)
 
 return function(props: props)
+	local outgoing = {
+		host = props.host,
+		to_vm = props.vm,
+	}
 
 	local live_updates = props.live_updates
 	local changes = props.changes
@@ -69,6 +75,27 @@ return function(props: props)
 		return value == "nil"
 	end
 
+	local function edit_component(component: string)
+		remotes.get_component:fire(outgoing, props.inspect_id, component)
+		editing(component)
+		
+		text("waiting...")
+	end
+
+	vide.cleanup(remotes.return_component:connect(function(from, inspect, component, value)
+		if props.host ~= from.host then return end
+		if props.inspect_id ~= inspect then return end
+		
+		local current_value = props.changes()[component]
+
+		if current_value then
+			text(current_value)
+		else
+			text(value)
+		end
+		
+	end))
+
 	return pebble.widget {
 		title = `Entity #{props.entity}`,
 		subtitle = `host: {props.host} vm: {props.vm} id: {props.id}`,
@@ -94,8 +121,7 @@ return function(props: props)
 			},
 			
 			add_component {
-				components = props.components,
-				editing = editing,
+				editing = edit_component,
 				text = text,
 				changes = changes,
 				adding = adding
@@ -205,14 +231,7 @@ return function(props: props)
 							corner = false,
 	
 							activated = function()
-								editing(key)
-								local current_value = props.changes()[key]
-	
-								if current_value then
-									text(current_value)
-								else
-									text(value())
-								end
+								edit_component(key)
 							end,
 					
 							create "UIListLayout" {

@@ -19,6 +19,10 @@ type props = {
 	entity: number,
 }
 
+local function generate_random_query_id()
+	return math.random(2 ^ 31 - 1)
+end
+
 function overview_entity.mount(props: props, destroy: () -> ())
 
 	local keys = source({})
@@ -26,6 +30,7 @@ function overview_entity.mount(props: props, destroy: () -> ())
 	local enable_live_updates = source(true)
 	local apply_changes = source(false)
 	local deleting = source(false)
+	local inspect_id = generate_random_query_id()
 
 	-- check if the query and columns are properly
 	local app_loop = loop (
@@ -34,6 +39,7 @@ function overview_entity.mount(props: props, destroy: () -> ())
 			host = props.host,
 			vm = props.vm,
 			id = props.id,
+			inspect_id = inspect_id,
 			entity = tonumber(props.entity),
 
 			keys = keys,
@@ -55,6 +61,7 @@ function overview_entity.mount(props: props, destroy: () -> ())
 		host = props.host,
 		vm = props.vm,
 		id = props.id,
+		inspect_id = inspect_id,
 		entity = props.entity,
 
 		components = keys,

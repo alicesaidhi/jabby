@@ -7,7 +7,6 @@ local source = vide.source
 local show = vide.show
 
 type props = {
-	components: () -> {[string]: string},
 	changes: vide.Source<{[string]: string}>,
 	editing: vide.Source<false | string>,
 	adding: vide.Source<false | string>,
@@ -70,9 +69,6 @@ return function(props: props)
 						text = "Edit",
 						activated = function()
 							adding(false)
-							text(
-								props.components()[component_edit_text()] or ""
-							)
 							editing(component_edit_text())
 						end,
 						disabled = function()

@@ -222,6 +222,27 @@ return {
 		net.create_event("inspect_entity") ::
 		types.NetEvent<number, number, number>,
 
+	--[=[
+	Gets the component of an entity
+	
+	inspect: number
+	component: string
+	]=]
+	get_component =
+		net.create_event("get_entity_component") ::
+		types.NetEvent<number, string>,
+		
+	--[=[
+	Returns the component of an entity
+	
+	inspect: number
+	component: string
+	value: string
+	]=]
+	return_component =
+		net.create_event("return_entity_component") ::
+		types.NetEvent<number, string, string>,
+
 	--[[
 	Delete entity
 	

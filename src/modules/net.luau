@@ -150,7 +150,7 @@ local function create_event<T...>(name: string, unreliable: boolean?, do_not_blo
 		end,
 
 		connect = function(_, callback: (types.IncomingConnector, T...) -> ())
-			on_event_fire:connect(callback :: any)
+			return on_event_fire:connect(callback :: any)
 		end
 	}
 

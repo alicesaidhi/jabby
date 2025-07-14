@@ -86,6 +86,7 @@ return function()
 	local update_entity = queue(remotes.update_entity)
 	local delete_entity = queue(remotes.delete_entity)
 
+	local get_entity_component = queue(remotes.get_component)
 	local validate_entity = queue(remotes.validate_entity_component)
 
 	local inspectors = {}
@@ -149,6 +150,28 @@ return function()
 			local inspect_data = inspectors[inspect_id]
 			if not inspect_data then continue end
 			inspect_data.paused = settings.paused
+		end
+
+		for incoming, inspect_id, component in get_entity_component:iter() do
+			if not traffic_check.check_no_wl(incoming.host) then continue end
+			local inspect_data = inspectors[inspect_id]
+			local world_data = inspect_data.world
+			local world = world_data.world
+			local entity = inspect_data.entity
+			local to = reverse_connector(incoming)
+
+			local map_components = {}
+			for id, name in world:query(jecs.Name):iter() do
+				map_components[name] = id
+			end
+
+			local ok, component = pcall(get_component, component, map_components)
+			
+			if component and ok then
+				remotes.return_component:fire(to, inspect_id, component, lon.output(world:get(entity, component), true, false))
+			else
+				remotes.return_component:fire(to, inspect_id, component, "nil")
+			end
 		end
 
 		for incoming, inspect_id, changes in update_entity:iter() do
@@ -221,7 +244,6 @@ return function()
 
 			local function is_tag(id: jecs.Entity<any>)
 				return jecs.is_tag(world, id)
-
 			end
 
 			for _, component in components do
@@ -247,7 +269,7 @@ return function()
 					if new_value == TAG then "tag"
 					--todo: figure out a better way to say that you are not allowed to store nil in a component
 					elseif new_value == BAD_VALUE then "nil (not allowed)"
-					else lon.output(new_value, true)
+					else lon.output(new_value, true, true)
 				)
 			end
 
