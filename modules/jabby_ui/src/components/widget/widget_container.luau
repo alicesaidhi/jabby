@@ -219,7 +219,7 @@ end
 function horizontal(p: state.HorizontalWidget, layout: number)
 	return container {
 		name = "Horizontal",
-		w = p.w, p.h,
+		w = p.w, h = p.h,
 		anchor = { 0, 0 },
 		flex = { direction = "row", align = "fill", justify = "between" },
 		grow = 1, shrink = 1,
@@ -250,7 +250,7 @@ end
 function vertical(p: state.VerticalWidget, layout: number)
 	return container {
 		name = "Vertical",
-		w = p.w, p.h,
+		w = p.w, h = p.h,
 		order = layout,
 		anchor = { 0, 0 },
 		flex = { direction = "column", justify = "fill", vertical = "between" },
@@ -264,7 +264,7 @@ function vertical(p: state.VerticalWidget, layout: number)
 
 			input = function(input: InputObject)
 				if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-				local new = UserInputService:GetMouseLocation()
+				local new = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
 				
 				local y = p.y()
 				local size = p.h()

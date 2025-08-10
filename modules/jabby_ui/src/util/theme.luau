@@ -23,45 +23,54 @@ local CONTRAST_HIGH = 0.65
 
 local background = source(vector.create(0.2512, 0.01, 0.6))
 local accent = source(vector.create(0.405, 0.21, 0.71))
+
+local success = source(vector.create(0.681, 0.118, 0.411))
+local warn = source(vector.create(0.681, 0.132, 0.23))
 local error = source(vector.create(0.4, 0.11, 0.04))
 
 local COMPACT = source(false)
 
 return {
-    background = background,
-    accent = accent,
-    compact = COMPACT,
-    
-    bg_fg_low = theme_generator.compute_sequence(background, CONTRAST_LOW),
-    bg_fg_high = theme_generator.compute_sequence(background, CONTRAST_HIGH),
-    acc_fg_low = theme_generator.compute_sequence(accent, CONTRAST_LOW),
-    acc_fg_high = theme_generator.compute_sequence(accent, CONTRAST_HIGH),
+	background = background,
+	accent = accent,
+	compact = COMPACT,
+	success = success,
+	warn = warn,
+	error = error,
+	
+	bg_fg_low = theme_generator.compute_sequence(background, CONTRAST_LOW),
+	bg_fg_high = theme_generator.compute_sequence(background, CONTRAST_HIGH),
+	acc_fg_low = theme_generator.compute_sequence(accent, CONTRAST_LOW),
+	acc_fg_high = theme_generator.compute_sequence(accent, CONTRAST_HIGH),
 
-    bg = theme_generator.compute_sequence(background, 0),
-    acc = theme_generator.compute_sequence(accent, 0),
-    err = theme_generator.compute_sequence(error, 0),
+	bg = theme_generator.compute_sequence(background, 0),
+	acc = theme_generator.compute_sequence(accent, 0),
+	
+	suc = theme_generator.compute_sequence(success, 0),
+	wrn = theme_generator.compute_sequence(warn, 0),
+	err = theme_generator.compute_sequence(error, 0),
 
-    body = source(Font.fromName("BuilderSans")),
-    alt_font = source(Font.fromName("SourceSansPro")),
-    header = source(Font.fromName("Montserrat")),
-    mono = source(Font.fromId(16658246179)),
+	body = source(Font.fromName("BuilderSans")),
+	alt_font = source(Font.fromName("SourceSansPro")),
+	header = source(Font.fromName("Montserrat")),
+	mono = source(Font.fromId(16658246179)),
 
-    base_button_padding = conditional(COMPACT, 6, 9),
-    base_button_corner = conditional(COMPACT, 5, 8),
-    base_textfield_corner = conditional(COMPACT, 5, 8),
-    base_table_corner = conditional(COMPACT, 8, 8),
+	base_button_padding = conditional(COMPACT, 6, 9),
+	base_button_corner = conditional(COMPACT, 5, 8),
+	base_textfield_corner = conditional(COMPACT, 5, 8),
+	base_table_corner = conditional(COMPACT, 8, 8),
 
-    base_checkbox_thickness = conditional(COMPACT, 1, 1),
-    base_button_thickness = conditional(COMPACT, 1, 2),
-    base_textfield_thickness = conditional(COMPACT, 1, 2),
-    base_scrollbar_thickness = conditional(COMPACT, 4, 6),
+	base_checkbox_thickness = conditional(COMPACT, 1, 1),
+	base_button_thickness = conditional(COMPACT, 1, 2),
+	base_textfield_thickness = conditional(COMPACT, 1, 2),
+	base_scrollbar_thickness = conditional(COMPACT, 4, 6),
 
-    table_element_size = conditional(COMPACT, 20, 28),
+	table_element_size = conditional(COMPACT, 20, 28),
 
-    sub_size = conditional(COMPACT, 12, 14),
-    body_size = conditional(COMPACT, 16, 18),
-    header_size = conditional(COMPACT, 20, 20),
-    input_size = conditional(COMPACT, 16, 18),
-    
-    
+	sub_size = conditional(COMPACT, 12, 14),
+	body_size = conditional(COMPACT, 16, 18),
+	header_size = conditional(COMPACT, 20, 20),
+	input_size = conditional(COMPACT, 16, 18),
+	
+	
 }

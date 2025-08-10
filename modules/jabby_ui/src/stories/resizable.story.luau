@@ -22,36 +22,36 @@ return ui_labs.CreateVideStory({
 	local accent = props.controls.accent
 	local enabled = props.controls.enabled
 
-    local function field(idx: number)
-        local s = source(0)
-        return container {
-            ws = 1, hs = 1,
-            flex = {},
+	local function field(idx: number)
+		local s = source(0)
+		return container {
+			ws = 1, hs = 1,
+			flex = {},
 
-            color = theme.bg(10),
-            stroke = theme.bg(-3),
+			color = theme.bg(10),
+			stroke = theme.bg(-3),
 
-            vide.changed("AbsoluteSize", function(size)
-                s(size.X)
-            end),
+			vide.changed("AbsoluteSize", function(size)
+				s(size.X)
+			end),
 
-            text {
-                text = s
-            }
-        }
-    end
+			text {
+				text = s
+			}
+		}
+	end
 
 	return container {
 		ws = 1, hs = 1,
 		flex = { justify = "center", align = "center" },
 		
 		resizeable_bar {
-            ws = 0.8, h = 50,
-            fields = source {
-                field, field, field, field
-            },
-            use_offset = source {nil,  100 }
-        }
+			ws = 0.8, h = 50,
+			fields = source {
+				field, field, field, field
+			},
+			use_offset = source {nil,  100 }
+		}
 	}
 
 end)

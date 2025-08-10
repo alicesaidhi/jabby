@@ -35,7 +35,7 @@ return function(p: GuiState)
 		if p.hold then p.hold(false) end
 		if p.input then p.input(input) end
 		if p.rightclick and (input.UserInputType == Enum.UserInputType.MouseButton2) then p.rightclick(input) end
-		if p.clicked and p.hover() and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then p.clicked(input) end
+		if p.clicked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then p.clicked(input) end
 	end
 
 	local function input_began(input: InputObject)

@@ -7,9 +7,9 @@ export type Result<T, E = string> = {
 }
 
 local mt = {
-    __tostring = function(self)
-        return if self.ok then `Result<{tostring(self.value)}>` else tostring(self.why)
-    end
+	__tostring = function(self)
+		return if self.ok then `Result<{tostring(self.value)}>` else tostring(self.why)
+	end
 }
 
 local function safe<T, U...>(fn: (U...) -> T, ...: U...): Result<T>
@@ -43,5 +43,5 @@ end
 return {
 	safe = safe,
 	fail = fail,
-    ok = ok
+	ok = ok
 }

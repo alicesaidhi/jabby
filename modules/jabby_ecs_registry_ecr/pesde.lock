@@ -127,6 +127,13 @@ direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" },
 ref_ty = "workspace"
 path = "modules/jabby_util"
 
+[graph."alicesaidhi/lua_object_notation@0.1.0 roblox"]
+direct = ["lua_object_notation", { workspace = "alicesaidhi/lua_object_notation", version = "^" }, "standard"]
+
+[graph."alicesaidhi/lua_object_notation@0.1.0 roblox".pkg_ref]
+ref_ty = "workspace"
+path = "modules/lua_object_notation"
+
 [graph."alicesaidhi/lua_preview_notation@0.1.0 roblox"]
 direct = ["lua_preview_notation", { workspace = "alicesaidhi/lua_preview_notation", version = "^" }, "standard"]
 

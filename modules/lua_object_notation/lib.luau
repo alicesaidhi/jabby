@@ -837,154 +837,158 @@ do
 		elseif type(value) == "nil" then
 			write_str("nil")
 		-- ROBLOX DEVIATION START
-		-- elseif typeof(value) == "BrickColor" then
-		-- 	write_str("BrickColor.new(")
-		-- 	write_str(value.Name)
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "CFrame" then
-		-- 	if value.Rotation == CFrame.new() then
-		-- 		write_str("CFrame.new(")
-		-- 		display(value.X)
-		-- 		write_str(", ")
-		-- 		display(value.Y)
-		-- 		write_str(", ")
-		-- 		display(value.Z)
-		-- 		write_char(char(")"))
-		-- 	else
-		-- 		write_str("CFrame.fromMatrix(")
-		-- 		display(value.Position)
-		-- 		write_str(",\n")
-		-- 		display(value.XVector)
-		-- 		write_str(",\n")
-		-- 		display(value.YVector)
-		-- 		write_str(",\n")
-		-- 		display(value.ZVector)
-		-- 		write_str(",\n")
-		-- 	end
-		-- elseif typeof(value) == "EnumItem" then
-		-- 	write_str(tostring(value))
-		-- elseif typeof(value) == "Enum" then
-		-- 	write_str("Enum.")
-		-- 	write_str(tostring(value))
-		-- elseif typeof(value) == "Enums" then
-		-- 	write_str("Enum")
-		-- elseif typeof(value) == "Color3" then
-		-- 	write_str("Color3.fromHex(")
-		-- 	display_string(value:ToHex())
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "Vector3" then
-		-- 	write_str("Vector3.new(")
-		-- 	write_str(tostring(value))
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "Vector2" then
-		-- 	write_str("Vector2.new(")
-		-- 	write_str(tostring(value))
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "NumberSequence" then
-		-- 	write_str("NumberSequence.new(")
-		-- 	if #value.Keypoints == 2 then
-		-- 		write_low_prec_float(value.Keypoints[1].Value)
-		-- 		write_str(", ")
-		-- 		write_low_prec_float(value.Keypoints[2].Value)
-		-- 	else
-		-- 		display(value.Keypoints)
-		-- 	end
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "NumberSequenceKeypoint" then
-		-- 	write_str("NumberSequenceKeypoint.new(")
-		-- 	write_low_prec_float(value.Time)
-		-- 	write_str(", ")
-		-- 	write_low_prec_float(value.Value)
-		-- 	if value.Envelope > 0 then
-		-- 		write_str(", ")
-		-- 		write_low_prec_float(value.Envelope)
-		-- 	end
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "NumberRange" then
-		-- 	write_str("NumberRange.new(")
-		-- 	write_low_prec_float(value.Min)
-		-- 	if value.Min ~= value.Max then
-		-- 		write_str(", ")
-		-- 		write_low_prec_float(value.Max)
-		-- 	end
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "ColorSequence" then
-		-- 	write_str("ColorSequence.new(")
-		-- 	if #value.Keypoints == 2 then
-		-- 		display(value.Keypoints[1].Value)
-		-- 		write_str(", ")
-		-- 		display(value.Keypoints[2].Value)
-		-- 	else
-		-- 		display(value.Keypoints)
-		-- 	end
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "ColorSequenceKeypoint" then
-		-- 	write_str("ColorSequenceKeypoint.new(")
-		-- 	write_low_prec_float(value.Time)
-		-- 	write_str(", ")
-		-- 	display(value.Value)
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "RaycastResult" then
-		-- 	--note: since a RaycastResult can't be created, we convert it into a table
-		-- 	display {
-		-- 		Instance = value.Instance,
-		-- 		Material = value.Material,
-		-- 		Normal = value.Normal,
-		-- 		Position = value.Position,
-		-- 		Distance = value.Distance
-		-- 	}
-		-- elseif typeof(value) == "Region3" then
-		-- 	local pos, size = value.CFrame.Position, value.Size
-		-- 	local min = pos - size / 2
-		-- 	local max = pos + size / 2
-		-- 	write_str("Region3.new(")
-		-- 	display(min)
-		-- 	write_str(", ")
-		-- 	display(max)
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "Rect" then
-		-- 	write_str("Rect.new(")
-		-- 	write_low_prec_float(value.Min.X)
-		-- 	write_str(", ")
-		-- 	write_low_prec_float(value.Min.Y)
-		-- 	write_str(", ")
-		-- 	write_low_prec_float(value.Max.X)
-		-- 	write_str(", ")
-		-- 	write_low_prec_float(value.Max.Y)
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "OverlapParams" then
-		-- 	write_str("OverlapParams(")
-		-- 	display({
-		-- 		CollisionGroup = value.CollisionGroup,
-		-- 		FilterType = value.FilterType,
-		-- 		MaxParts = value.MaxParts,
-		-- 		RespectCanCollide = value.RespectCanCollide,
-		-- 	})
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "RaycastParams" then
-		-- 	write_str("RaycastParams(")
-		-- 	display({
-		-- 		CollisionGroup = value.CollisionGroup,
-		-- 		FilterType = value.FilterType,
-		-- 		RespectCanCollide = value.RespectCanCollide,
-		-- 	})
-		-- 	write_char(char(")"))
-		-- elseif typeof(value) == "Instance" then
-		-- 	write_str(to_path(false, ...))
+		elseif typeof(value) == "BrickColor" then
+			write_str("BrickColor.new(")
+			write_str(value.Name)
+			write_char(char(")"))
+		elseif typeof(value) == "CFrame" then
+			if value.Rotation == CFrame.new() then
+				write_str("CFrame.new(")
+				display(value.X)
+				write_str(", ")
+				display(value.Y)
+				write_str(", ")
+				display(value.Z)
+				write_char(char(")"))
+			else
+				write_str("CFrame.fromMatrix(")
+				display(value.Position)
+				write_str(",\n")
+				display(value.XVector)
+				write_str(",\n")
+				display(value.YVector)
+				write_str(",\n")
+				display(value.ZVector)
+				write_str(",\n")
+			end
+		elseif typeof(value) == "EnumItem" then
+			write_str(tostring(value))
+		elseif typeof(value) == "Enum" then
+			write_str("Enum.")
+			write_str(tostring(value))
+		elseif typeof(value) == "Enums" then
+			write_str("Enum")
+		elseif typeof(value) == "Color3" then
+			write_str("Color3.fromHex(")
+			display_string(value:ToHex())
+			write_char(char(")"))
+		elseif typeof(value) == "Vector3" then
+			write_str("Vector3.new(")
+			write_str(tostring(value))
+			write_char(char(")"))
+		elseif typeof(value) == "Vector2" then
+			write_str("Vector2.new(")
+			write_str(tostring(value))
+			write_char(char(")"))
+		elseif typeof(value) == "NumberSequence" then
+			write_str("NumberSequence.new(")
+			if #value.Keypoints == 2 then
+				write_low_prec_float(value.Keypoints[1].Value)
+				write_str(", ")
+				write_low_prec_float(value.Keypoints[2].Value)
+			else
+				display(value.Keypoints)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "NumberSequenceKeypoint" then
+			write_str("NumberSequenceKeypoint.new(")
+			write_low_prec_float(value.Time)
+			write_str(", ")
+			write_low_prec_float(value.Value)
+			if value.Envelope > 0 then
+				write_str(", ")
+				write_low_prec_float(value.Envelope)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "NumberRange" then
+			write_str("NumberRange.new(")
+			write_low_prec_float(value.Min)
+			if value.Min ~= value.Max then
+				write_str(", ")
+				write_low_prec_float(value.Max)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "ColorSequence" then
+			write_str("ColorSequence.new(")
+			if #value.Keypoints == 2 then
+				display(value.Keypoints[1].Value)
+				write_str(", ")
+				display(value.Keypoints[2].Value)
+			else
+				display(value.Keypoints)
+			end
+			write_char(char(")"))
+		elseif typeof(value) == "ColorSequenceKeypoint" then
+			write_str("ColorSequenceKeypoint.new(")
+			write_low_prec_float(value.Time)
+			write_str(", ")
+			display(value.Value)
+			write_char(char(")"))
+		elseif typeof(value) == "RaycastResult" then
+			--note: since a RaycastResult can't be created, we convert it into a table
+			display {
+				Instance = value.Instance,
+				Material = value.Material,
+				Normal = value.Normal,
+				Position = value.Position,
+				Distance = value.Distance
+			}
+		elseif typeof(value) == "Region3" then
+			local pos, size = value.CFrame.Position, value.Size
+			local min = pos - size / 2
+			local max = pos + size / 2
+			write_str("Region3.new(")
+			display(min)
+			write_str(", ")
+			display(max)
+			write_char(char(")"))
+		elseif typeof(value) == "Rect" then
+			write_str("Rect.new(")
+			write_low_prec_float(value.Min.X)
+			write_str(", ")
+			write_low_prec_float(value.Min.Y)
+			write_str(", ")
+			write_low_prec_float(value.Max.X)
+			write_str(", ")
+			write_low_prec_float(value.Max.Y)
+			write_char(char(")"))
+		elseif typeof(value) == "OverlapParams" then
+			write_str("OverlapParams(")
+			display({
+				CollisionGroup = value.CollisionGroup,
+				FilterType = value.FilterType,
+				MaxParts = value.MaxParts,
+				RespectCanCollide = value.RespectCanCollide,
+			})
+			write_char(char(")"))
+		elseif typeof(value) == "RaycastParams" then
+			write_str("RaycastParams(")
+			display({
+				CollisionGroup = value.CollisionGroup,
+				FilterType = value.FilterType,
+				RespectCanCollide = value.RespectCanCollide,
+			})
+			write_char(char(")"))
+		elseif typeof(value) == "Instance" and not fatal_if_bad then
+			write_str(to_path(false, ...))
+		elseif typeof(value) == "Instance" and fatal_if_bad then
+			write_str(value:GetFullName())
 		-- ROBLOX DEVIATION END
 		else
 			write_str(to_path(false, ...))
 		end
 	end
 
-	output = function(value: Displayable, newlines: boolean?)
+	output = function(value: Displayable, newlines: boolean?, preview: boolean?)
 		enable_newlines = if newlines ~= nil then newlines else true
 
 		pos = 0
 		tbs = 0
 
 		table.clear(cyclic_buffer)
+		if preview then fatal_if_bad = true end
 		display(value)
+		fatal_if_bad = false
 		return buffer.readstring(buf, 0, pos)
 	end
 end

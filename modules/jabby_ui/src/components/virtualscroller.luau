@@ -16,7 +16,7 @@ return component(function(p: {
 	color: Can<Color3>?,
 	transparency: Can<number>?,
 
-    --- streams in items. when index is -1, should expect to be unused
+	--- streams in items. when index is -1, should expect to be unused
 	item: (index: () -> number) -> Instance,
 	--- streams in separators. when index is -1, should expect to be unused
 	separator: ((index: () -> number) -> Instance)?,
@@ -28,7 +28,7 @@ return component(function(p: {
 	max_items: (() -> number)?,
 }, _)
 
-    local items = source({} :: {vide.Source<number>})
+	local items = source({} :: {vide.Source<number>})
 
 	local absolute_size = source(Vector2.zero)
 	local canvas_position = source(Vector2.zero)
@@ -44,11 +44,11 @@ return component(function(p: {
 	effect(function(previous_position: Vector2?)
 		local absolute_size = absolute_size()
 		local actual_canvas_position = canvas_position()
-        local canvas_position = actual_canvas_position
-        local canvas_velocity = actual_canvas_position - (previous_position or actual_canvas_position)
-        local item_size = read(p.item_size)
-        local separator_size = read(p.separator_size or 0)
-        canvas_position = canvas_position + canvas_velocity
+		local canvas_position = actual_canvas_position
+		local canvas_velocity = actual_canvas_position - (previous_position or actual_canvas_position)
+		local item_size = read(p.item_size)
+		local separator_size = read(p.separator_size or 0)
+		canvas_position = canvas_position + canvas_velocity
 
 		local child_size = item_size + separator_size
 		local total_required = math.ceil(absolute_size.Y / child_size) + OVERFLOW
@@ -125,19 +125,19 @@ return component(function(p: {
 			end)
 		end)
 
-        return actual_canvas_position
+		return actual_canvas_position
 	end)
 
-    return scroll_container {
+	return scroll_container {
 
 		color = p.color,
 		transparency = p.transparency,
 
-        ch = function()
-            local item_size = read(p.item_size)
-            local separator_size = read(p.separator_size or 0)
+		ch = function()
+			local item_size = read(p.item_size)
+			local separator_size = read(p.separator_size or 0)
 
-            if p.max_items then
+			if p.max_items then
 				return p.max_items() * (item_size + separator_size)
 			else
 				local absolute_size = absolute_size()
@@ -146,42 +146,42 @@ return component(function(p: {
 				local max_index = math.ceil((canvas_position.Y + absolute_size.Y) / child_size) + OVERFLOW
 				return max_index * child_size
 			end
-        end,
+		end,
 
-        values(items, function(index: () -> number)
-            return container {
-                ws = 1, h = function()
-                    return read(item_size) + read(separator_size or 0)
-                end,
+		values(items, function(index: () -> number)
+			return container {
+				ws = 1, h = function()
+					return read(item_size) + read(separator_size or 0)
+				end,
 
-                y = function()
-                    if index() == -1 then return -1000 end
-                    
-                    local item_size = read(p.item_size)
-                    local separator_size = read(p.separator_size or 0)
-                    return (item_size + separator_size) * (index() - 1)
-                end,
+				y = function()
+					if index() == -1 then return -1000 end
+					
+					local item_size = read(p.item_size)
+					local separator_size = read(p.separator_size or 0)
+					return (item_size + separator_size) * (index() - 1)
+				end,
 
-                container {
-                    name = "Item",
-                    ws = 1, hs = 1,
+				container {
+					name = "Item",
+					ws = 1, hs = 1,
 
-                    item(index)
-                },
+					item(index)
+				},
 
-                if separator then container {
-                    name = "Separator",
-                    ws = 1, hs = 1,
+				if separator then container {
+					name = "Separator",
+					ws = 1, hs = 1,
 
-                    separator(index)
-                } else nil
-            }
+					separator(index)
+				} else nil
+			}
 
-        end),
+		end),
 
 		changed("AbsoluteSize", absolute_size),
 		changed("CanvasPosition", canvas_position),
 
-    }
+	}
 
 end)

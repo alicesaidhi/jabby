@@ -34,7 +34,7 @@ return component(function(p: {
 	clips: Can<boolean>?,
 
 	-- input properties
-    sink: Can<boolean>?,
+	sink: Can<boolean>?,
 	enabled: (() -> boolean)?,
 	hover: ((boolean) -> ())?,
 	hold: ((boolean) -> ())?,
@@ -62,10 +62,10 @@ return component(function(p: {
 		}
 	else
 		properties = {
-            BackgroundColor3 = p.color,
-            BackgroundTransparency = p.transparency or if p.color then 0 else 1,
+			BackgroundColor3 = p.color,
+			BackgroundTransparency = p.transparency or if p.color then 0 else 1,
 			ClipsDescendants = p.clips,
-        }
+		}
 	end
 
 	if p.sink ~= nil then

@@ -1,8 +1,8 @@
 --!strict
 -- Oklab C implementation provided by Björn Ottosson:
---     https://bottosson.github.io/posts/gamutclipping/
+--	 https://bottosson.github.io/posts/gamutclipping/
 -- Luau port and Roblox/Lch extensions by Elttob:
---     https://elttob.uk/
+--	 https://elttob.uk/
 -- Licensed under MIT
 
 local TAU = 2 * math.pi
@@ -102,7 +102,7 @@ function Oklab.compute_max_saturation(
 		local m_dS2 = 6 * k_m * k_m * m_
 		local s_dS2 = 6 * k_s * k_s * s_
 
-		local f  = wl * l     + wm * m     + ws * s
+		local f  = wl * l	 + wm * m	 + ws * s
 		local f1 = wl * l_dS  + wm * m_dS  + ws * s_dS
 		local f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2
 

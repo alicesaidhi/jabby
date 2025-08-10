@@ -17,7 +17,7 @@ local switch = vide.switch
 local read = vide.read
 
 type Can<T> = T | () -> T
-type Action = { kind: "action", text: string, image: string?, enabled: (() -> boolean)?, clicked: (InputObject) -> () }
+type Action = { kind: "action", text: string, image: string?, enabled: (() -> boolean)?, clicked: () -> () }
 -- type Expandable = { kind: "expand", text: string, image: string?, [number]: Action }
 type Group = { kind: "group", [number]: Action }
 
@@ -89,15 +89,12 @@ local function group(p: Group)
 
 end
 return function(p: { Action | Group } | () -> { Action | Group })
-
 	local enabled = source(false :: false | Vector3)
 	local hovering = source(false)
 
 	return {
 
-		portal {
-			inherit_layout = true,
-
+		ignore {
 			container {
 				ws = 1, hs = 1,
 
@@ -105,6 +102,10 @@ return function(p: { Action | Group } | () -> { Action | Group })
 					enabled(input.Position)
 				end
 			},
+		},
+		
+		portal {
+			inherit_layout = true,
 
 			show(enabled, function(pos: () -> Vector3)
 				enabled_global = enabled
