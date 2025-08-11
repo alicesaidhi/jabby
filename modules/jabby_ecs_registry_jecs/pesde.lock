@@ -148,9 +148,9 @@ direct = ["gt", { name = "corecii/greentea", version = "^0.4.11", index = "defau
 ref_ty = "pesde"
 index_url = "https://github.com/daimond113/pesde-index"
 
-[graph."wally#ukendio/jecs@0.7.2 roblox"]
-direct = ["jecs", { wally = "wally#ukendio/jecs", version = "^0.7.2", index = "default" }, "standard"]
+[graph."wally#ukendio/jecs@0.9.0-rc.10 roblox"]
+direct = ["jecs", { wally = "wally#ukendio/jecs", version = "^0.9.0-rc.10", index = "default" }, "standard"]
 
-[graph."wally#ukendio/jecs@0.7.2 roblox".pkg_ref]
+[graph."wally#ukendio/jecs@0.9.0-rc.10 roblox".pkg_ref]
 ref_ty = "wally"
 index_url = "https://github.com/UpliftGames/wally-index"
