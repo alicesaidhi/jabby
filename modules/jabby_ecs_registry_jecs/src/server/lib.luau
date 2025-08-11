@@ -155,7 +155,7 @@ return function(applet: jabby_types.JabbyApplet<{
 		end
 
 		local component, names = get_component_info(terms)
-		if #names > 0 then error("can only get one component") end
+		if #names ~= 1 then error("can only get one component") end
 		return component[1], names[1]
 	end
 	
@@ -348,7 +348,7 @@ return function(applet: jabby_types.JabbyApplet<{
 
 	local function get_new_update_entity(target: "server" | Player, id: string): (EntityInfo?)
 		-- check if the entity can be converted into something usable
-		local entity = tonumber(id) :: any
+		local entity = tonumber(id) :: any 
 		if not entity then return nil end
 		
 		local update_entity_components = net.update_entity_components:open_socket(target)
@@ -376,7 +376,7 @@ return function(applet: jabby_types.JabbyApplet<{
 			data.live_updates = packet.live_updates
 			if packet.refresh then should_update = true end
 		end
-
+ 
 		-- ecr
 		if not should_update then return end
 		for component in data.components do
@@ -451,6 +451,8 @@ return function(applet: jabby_types.JabbyApplet<{
 				continue
 			end
 
+			local e: jecs.Entity = e :: any
+
 			local ctype = get_entity_from_name(value.component)
 			if not ctype then
 				resolve { exists = false, is_valid = false }
@@ -466,7 +468,8 @@ return function(applet: jabby_types.JabbyApplet<{
 				resolve {
 					exists = false :: false,
 					is_valid = true,
-					is_tag = jecs.is_tag(world, ctype)
+					is_tag = jecs.is_tag(world, ctype),
+					name = get_component_name_from_id(ctype)
 				}
 				continue
 			end
@@ -476,14 +479,16 @@ return function(applet: jabby_types.JabbyApplet<{
 				resolve {
 					exists = true :: true,
 					component = nil,
-					is_tag = true :: true
+					is_tag = true :: true,
+					name = get_component_name_from_id(ctype)
 				}
 				continue
 			else
 				resolve {
 					exists = true,
 					component = lua_object_notation.output(component_value, true, false),
-					is_tag = false
+					is_tag = false,
+					name = get_component_name_from_id(ctype)
 				}
 				continue
 			end

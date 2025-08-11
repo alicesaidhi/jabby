@@ -401,34 +401,34 @@ local function entity_editor(p: props)
 							task.defer(component_addition_text, "")
 
 							if result.value.is_tag then
-								edited_data()[text] = {
+								edited_data()[result.value.name] = {
 									tag = true,
 									value = nil
 								}
 								edited_data(edited_data())
-								scroll_to(text)
+								scroll_to(result.value.name)
 								return
 							end
 
-							editing(text)
-							scroll_to(text)
+							editing(result.value.name)
+							scroll_to(result.value.name)
 							return
 						elseif result.value.is_valid then
 							task.defer(component_addition_text, "")
 
 							if result.value.is_tag then
-								edited_data()[text] = {
+								edited_data()[result.value.name] = {
 									tag = true,
 									value = nil
 								}
 								edited_data(edited_data())
-								scroll_to(text)
+								scroll_to(result.value.name)
 								return
 							end
 							
-							editing_component(text)
-							editing(text)
-							scroll_to(text)
+							editing_component(result.value.name)
+							editing(result.value.name)
+							scroll_to(result.value.name)
 							return
 						end
 					end

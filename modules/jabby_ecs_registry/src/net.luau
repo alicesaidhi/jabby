@@ -107,16 +107,19 @@ local NETWORK_LAYER = {
 			{
 				exists = gt.literal(false :: false),
 				is_valid = gt.literal(true :: true), -- implies that the entity and component is valid
-				is_tag = gt.bool()
+				is_tag = gt.bool(),
+				name = gt.string(),
 			},
 			{
 				exists = gt.literal(true :: true),
 				component = gt.string(),
 				is_tag = gt.literal(false :: false),
+				name = gt.string(),
 			},
 			{
 				exists = gt.literal(true :: true),
 				is_tag = gt.literal(true :: true),
+				name = gt.string(),
 			}
 		)
 	),

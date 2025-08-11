@@ -421,7 +421,12 @@ return function(applet: jabby_types.JabbyApplet<{
 
 			local component = get_component_from_name(value.component)
 			if not applet.configuration.world:has(e, component) then
-				resolve { exists = false :: false, is_valid = true, is_tag = ecr.is_tag(component) }
+				resolve {
+					exists = false :: false,
+					is_valid = true,
+					is_tag = ecr.is_tag(component),
+					name = get_component_name_from_id(id)
+				}
 				continue
 			end
 
@@ -430,14 +435,16 @@ return function(applet: jabby_types.JabbyApplet<{
 				resolve {
 					exists = true :: true,
 					component = nil,
-					is_tag = true :: true
+					is_tag = true :: true,
+					name = get_component_name_from_id(id)
 				}
 				continue
 			else
 				resolve {
 					exists = true,
 					component = lua_object_notation.output(component_value, true, false),
-					is_tag = false
+					is_tag = false,
+					name = get_component_name_from_id(id)
 				}
 				continue
 			end
