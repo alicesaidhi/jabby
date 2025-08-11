@@ -115,13 +115,13 @@ return function(applet: jabby_types.JabbyApplet<{
 				local text = component.token.text
 
 				components[idx] = tonumber(text) :: any
-				component_names[idx] = get_component_name_from_id(id)
+				component_names[idx] = get_component_name_from_id(tonumber(text))
 			elseif component.kind == "named" then
 				assert(component.token, "no component text available")
 				local text = component.token.text
 
 				components[idx] = get_component(text)
-				component_names[idx] = text
+				component_names[idx] = get_component_name_from_id(get_component(text))
 			elseif component.kind == "relationship" then
 				assert(component.tokens.value)
 				assert(component.tokens.value.left)
