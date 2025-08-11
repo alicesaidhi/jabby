@@ -11,9 +11,9 @@ local AUTO_MAP = {
 
 
 return function(auto: Auto): Enum.AutomaticSize
-    if typeof(auto) == "string" then
-        return AUTO_MAP[auto]
-    else
-        return Enum.AutomaticSize.None
-    end
+	if typeof(auto) == "string" then
+		return AUTO_MAP[auto]
+	else
+		return Enum.AutomaticSize.None
+	end
 end

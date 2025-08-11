@@ -16,8 +16,8 @@ Applets inside jabby each have a unique number within that client. The networkin
 
 ```luau
 type TargetInfo = {
-    to: Player | "server",
-    id: number
+	to: Player | "server",
+	id: number
 }
 ```
 

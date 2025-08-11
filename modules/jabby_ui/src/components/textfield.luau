@@ -6,6 +6,7 @@ local component = require(script.Parent.Parent.util.component)
 local conditional = require(script.Parent.Parent.util.conditional)
 local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
+local pad = require(script.Parent.pad)
 local text = require(script.Parent.text)
 
 local create = vide.create
@@ -23,8 +24,11 @@ return component(function(p: {
 	placeholder: Can<string>?,
 	multiline: Can<boolean>?,
 	monospace: boolean?,
+	nocorner: boolean?,
+	editable: Can<boolean>?,
 
 	size: Can<number>?,
+	focused: (() -> boolean)?,
 
 	-- error state properties
 	error: ((() -> boolean))?,
@@ -72,9 +76,13 @@ return component(function(p: {
 		p.cursor_position_2d(absolute_position() + result)
 	end
 
+	effect(function()
+		if p.focused then task.delay(0, focused, read(p.focused)) end
+	end)
+	
 	return container {
 		name = "TextField",
-		flex = { direction = "column", justify = "left", pad = 8 },
+		flex = { direction = "column", justify = "left", pad = 6 },
 		auto = "y",
 
 		hover = hover :: any,
@@ -84,9 +92,9 @@ return component(function(p: {
 
 		container {
 			ws = 1, h = function()
-				return read(p.size or theme.input_size) + 10
+				return read(p.size or theme.input_size) + 6
 			end, auto = "y",
-			clips = true, pad = { p = 5 },
+			clips = true,
 			flex = { direction = "row", pad = 8 },
 
 			color = theme.bg(-1),
@@ -94,7 +102,7 @@ return component(function(p: {
 			thickness = theme.base_textfield_thickness,
 			stroke = anim(stroke_color),
 
-			corner = theme.base_textfield_corner,
+			corner = if p.nocorner then nil else theme.base_textfield_corner,
 
 			create ("TextBox" :: "TextBox") {
 				Size = UDim2.new(1, 0, 0, 0),
@@ -103,11 +111,18 @@ return component(function(p: {
 				BackgroundTransparency = 1,
 
 				Text = p.text,
-				TextColor3 = theme.bg_fg_high(-3),
+				TextColor3 = function()
+					if read(if p.editable == nil then true else p.editable) then
+						return theme.bg_fg_high(3)()
+					else
+						return theme.bg_fg_high(-3)()
+					end
+				end,
 				TextSize = p.size or theme.input_size,
 				PlaceholderColor3 = theme.bg_fg_low(-3),
 				PlaceholderText = p.placeholder,
 				FontFace = if p.monospace then theme.mono else theme.body,
+				TextEditable = p.editable,
 
 				MultiLine = p.multiline,
 
@@ -132,12 +147,15 @@ return component(function(p: {
 
 				if p.oninput then changed("Text", p.oninput) else nil,
 
+				pad { x = 5, y = 3 },
+
 				-- creates an effect that will focus on the textbox
 				action(function(instance: Instance)
 					assert(instance:IsA("TextBox"))
 					
 					effect(function()
 						if focused() then
+							print("capture")
 							instance:CaptureFocus()
 						else
 							instance:ReleaseFocus(false)

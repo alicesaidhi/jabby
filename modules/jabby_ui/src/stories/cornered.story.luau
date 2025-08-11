@@ -10,9 +10,9 @@ return ui_labs.CreateVideStory({
 	vide = vide,
 	controls = {
 		topleft = 16,
-        topright = 16,
-        bottomleft = 16,
-        bottomright = 16
+		topright = 16,
+		bottomleft = 16,
+		bottomright = 16
 	}
 }, function(props)
 
@@ -21,15 +21,15 @@ return ui_labs.CreateVideStory({
 		flex = { justify = "center", align = "center" },
 		
 		cornered {
-            w = 500, h = 500,
+			w = 500, h = 500,
 
-            topleft = props.controls.topleft,
-            topright = props.controls.topright,
-            bottomleft = props.controls.bottomleft,
-            bottomright = props.controls.bottomright,
+			topleft = props.controls.topleft,
+			topright = props.controls.topright,
+			bottomleft = props.controls.bottomleft,
+			bottomright = props.controls.bottomright,
 
-            color = Color3.new(1, 1, 1)
-        }
+			color = Color3.new(1, 1, 1)
+		}
 	}
 
 end)

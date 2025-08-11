@@ -20,6 +20,7 @@
 	},
 
 	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
 	"editor.rulers": [
 		80,
 		120

@@ -76,6 +76,95 @@ local NETWORK_LAYER = {
 		}
 	),
 
+	-- entity editing
+	
+	get_entity_info = jabby_net.function_create(
+		NAMESPACE, "get_entity_info",
+		gt.table {
+			entity = gt.any(),
+		},
+		gt.union({
+			is_valid = gt.literal(true :: true),
+			allow_entity_editing = gt.bool(),
+			update_entity_components = gt.number(),
+			update_tracking_settings = gt.number()
+		}, {
+			is_valid = gt.literal(false :: false),
+		})
+	),
+
+	get_entity_component = jabby_net.function_create(
+		NAMESPACE, "get_entity_component",
+		gt.table {
+			entity = gt.any(),
+			component = gt.string()
+		},
+		gt.union(
+			{
+				exists = gt.literal(false :: false),
+				is_valid = gt.literal(false :: false), -- implies that the entity and component is valid
+			},
+			{
+				exists = gt.literal(false :: false),
+				is_valid = gt.literal(true :: true), -- implies that the entity and component is valid
+				is_tag = gt.bool(),
+				name = gt.string(),
+			},
+			{
+				exists = gt.literal(true :: true),
+				component = gt.string(),
+				is_tag = gt.literal(false :: false),
+				name = gt.string(),
+			},
+			{
+				exists = gt.literal(true :: true),
+				is_tag = gt.literal(true :: true),
+				name = gt.string(),
+			}
+		)
+	),
+ 
+	edit_entity = jabby_net.function_create(
+		NAMESPACE, "edit_entity",
+		gt.table {
+			entity = gt.any(),
+			components = gt.dictionary(gt.string(), gt.union(
+				{
+					value = gt.literal(nil),
+					tag = gt.literal(nil),
+				},
+				{
+					value = gt.string(),
+					tag = gt.literal(nil)
+				},
+				{
+					value = gt.literal(nil),
+					tag = gt.bool()
+				}
+			))
+		},
+		gt.table {
+			ok = gt.bool()
+		}
+	),
+	
+	update_tracking_settings = jabby_net.socket_create(
+		NAMESPACE, "update_tracking_settings",
+		gt.table {
+			live_updates = gt.bool(),
+			refresh = gt.bool()
+		}
+	),
+
+	update_entity_components = jabby_net.socket_create(
+		NAMESPACE, "update_entity_component",
+		gt.table {
+			component = gt.string(),
+			value = gt.opt(gt.string()),
+			tag = gt.bool()
+		}
+	)
+
 }
 
 return NETWORK_LAYER

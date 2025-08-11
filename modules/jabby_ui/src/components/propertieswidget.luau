@@ -34,7 +34,9 @@ return component(function<T>(p: {
 
 	header: (value: () -> T, column: number, row: number) -> Instance,
 	field: (value: () -> T, column: number, row: () -> number) -> Instance,
-	element_size: Can<number>?
+	element_size: Can<number>?,
+
+	final: Instance
 }, children)
 
 	local sort_column = p.sort_column :: never or source(0)
@@ -52,9 +54,9 @@ return component(function<T>(p: {
 		if p.auto_sort ~= true or p.enable_sort_key ~= true or sort_column() == 0 then
 			local columns = p.columns()
 			local sort_by_column = columns[1]()
-			local entries = table.create(#columns, 1)
+			local entries = {}
 
-			for i = 1, #sort_by_column do
+			for i = 1, #sort_by_column - 1 do
 				entries[i] = i
 			end
 
@@ -72,7 +74,7 @@ return component(function<T>(p: {
 				table.sort(entries, function(a, b): boolean
 					return sort_by_column[a] > sort_by_column[b]
 				end)
-			else
+			elseif sort_direction() == "descending" then
 				table.sort(entries, function(a, b): boolean
 					return sort_by_column[a] < sort_by_column[b]
 				end)
@@ -171,113 +173,115 @@ return component(function<T>(p: {
 	return container {
 		name = "Table",
 		flex = { justify = "fill" },
+		ws = 1, hs = 0,
 		
 		stroke = theme.bg(-4),
 		thickness = 1,
 		corner = if p.disable_top_corners then 0 else theme.base_table_corner,
-
-		ignore {
-			indexes(splits, function(split: () -> number, idx)
-				return container {
-					xs = split,
-					w = 1, hr = ysize,
-					z = 100,
-
-					color = theme.bg(-4)
-				}
-			end)
-		},
+		auto = "y",
 
 		container {
-			name = "Resizable",
-
-			ws = 1, h = conditional(theme.compact, 24, 32),
+			name = "Properties",
+			ws = 1, auto = "y",
 			flex = {},
 
-			resizable_bar {
-				ws = 1, hs = 1,
+			ignore {
+				indexes(splits, function(split: () -> number, idx)
+					return container {
+						xs = split,
+						w = 1, hs = 1,
+						z = 100,
 
-				min_sizes = p.min_sizes,
-				use_offset = p.use_offset,
+						color = theme.bg(-4)
+					}
+				end)
+			},
 
-				sizes = sizes,
-				fields = function()
-					return table.create(column_count(), field)
-				end,
-				splits = splits,
-			}
-		},
+			container {
+				name = "Resizable",
 
-		virtualscroller {
-			name = "Contents",
+				ws = 1, h = conditional(theme.compact, 24, 32),
+				flex = {},
 
-			ws = 1,
-			grow = 1, shrink = 1,
-			color = theme.bg(-3),
-
-			min_items = 1,
-			max_items = function()
-				return #p.columns()[1]() - 1
-			end,
-
-			item_size = p.element_size or theme.table_element_size,
-
-			item = function(row: () -> number)
-				local function is_even()
-					return row() % 2 == 1
-				end
-
-				local row_one = function()
-					return row() + 1
-				end
-
-				local function actual_row()
-					if p.auto_sort ~= true or p.enable_sort_key ~= true or sort_column() == 0 then
-						return row_one()
-					else
-						local row = columns()[row()]
-						return row
-					end
-				end
-
-				return container {
-					{ Name = actual_row },
+				resizable_bar {
 					ws = 1, hs = 1,
-					color = conditional(is_even, theme.bg(0), theme.bg(-1)),
-					flex = { direction = "row" },
 
-					indexes(sizes, function(size: () -> number, column: number)
-						return container {
-							name = `{column}`,
-							ws = size, hs = 1,
+					min_sizes = p.min_sizes,
+					use_offset = p.use_offset,
 
-							p.field(function()
-								return p.columns()[column]()[math.max(2, actual_row())]
-							end, column, actual_row)
-						}
-					end)
-
+					sizes = sizes,
+					fields = function()
+						return table.create(column_count(), field)
+					end,
+					splits = splits,
 				}
-			end,
+			},
 
+			container {
+				name = "Contents",
+
+				ws = 1, auto = "y",
+				color = theme.bg(-3),
+				flex = { align = "top", justify = "left" },
+
+				vide.indexes(columns, function(row: () -> number, idx)
+					local function is_even()
+						return row() % 2 == 1
+					end
+
+					local row_one = function()
+						return row() + 1
+					end
+
+					local function actual_row()
+						if p.auto_sort ~= true or p.enable_sort_key ~= true or sort_column() == 0 then
+							return row_one()
+						else
+							local row = columns()[row()]
+							return row
+						end
+					end
+
+					return container {
+						{ Name = actual_row },
+						ws = 1, auto = "y",
+						color = conditional(is_even, theme.bg(0), theme.bg(-1)),
+						flex = { direction = "row", align = "top", justify = "left" },
+
+						indexes(sizes, function(size: () -> number, column: number)
+							return container {
+								name = `{column}`,
+								ws = size, auto = "y",
+
+								p.field(function()
+									return p.columns()[column]()[math.max(2, actual_row())]
+								end, column, actual_row)
+							}
+						end)
+
+					}
+				end)
+			},
 		},
 
-		cornered {
-			name = "",
-			ws = 1, h = theme.base_table_corner,
-			auto = "y",
+		p.final,
 
-			bottomleft = theme.base_table_corner,
-			bottomright = theme.base_table_corner,
+		-- cornered {
+		--	 name = "",
+		--	 ws = 1, h = theme.base_table_corner,
+		--	 auto = "y",
 
-			color = theme.bg(1),
+		--	 bottomleft = theme.base_table_corner,
+		--	 bottomright = theme.base_table_corner,
+
+		--	 color = theme.bg(1),
 			
-			changed("AbsoluteSize", function(size: Vector2)
-				ysize(-size.Y)
-			end),
+		--	 changed("AbsoluteSize", function(size: Vector2)
+		--		 ysize(-size.Y)
+		--	 end),
 
-			children
-		}
+		--	 children
+		-- }
 
 	}
 end)

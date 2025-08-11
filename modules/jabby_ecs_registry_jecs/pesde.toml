@@ -25,4 +25,4 @@ jabby_util = { workspace = "alicesaidhi/jabby_util" }
 lua_preview_notation = { workspace = "alicesaidhi/lua_preview_notation" }
 vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
 gt = { name = "corecii/greentea", version = "^0.4.11" }
-jecs = { wally = "ukendio/jecs", version = "^0.7.2" }
+jecs = { wally = "ukendio/jecs", version = "^0.9.0-rc.10" }

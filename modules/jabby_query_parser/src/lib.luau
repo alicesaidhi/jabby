@@ -852,7 +852,43 @@ local function process(input: string, options: {
 	end
 end
 
+local function into_string<T>(options: {
+	get_relationship: ((T) -> (T?, T?))?,
+	is_exclude: ((T) -> boolean)?,
+	get_name: ((T) -> string?)?
+}, ...: T)
+
+	local get_relationship = options.get_relationship
+	local is_exclude = options.is_exclude
+	local get_name = options.get_name
+	local entities = {}
+
+	local function to_named(input: T): string
+		local left, right
+		
+		if get_relationship then
+			left, right = get_relationship(input)
+		end
+		
+		if left and right then
+			local pair = `({to_named(left)}, {to_named(right)})`
+			return if is_exclude and is_exclude(input) then `!{pair}` else pair
+		end
+
+		local name = get_name and get_name(input) or `${input}`
+		return if is_exclude and is_exclude(input) then `!{name}` else name
+	end
+
+	for i = 1, select("#", ...) do
+		local value = select(i, ...)
+		entities[i] = to_named(value)
+	end
+
+	return table.concat(entities, ", ")
+end
+
 return {
 	parse = parse,
-	values = process
+	values = process,
+	into_string = into_string
 }

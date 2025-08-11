@@ -2,6 +2,7 @@ local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
 local theme = require(script.Parent.Parent.util.theme)
 local container = require(script.Parent.container)
+local pad = require(script.Parent.pad)
 local text = require(script.Parent.text)
 
 local source = vide.source
@@ -10,15 +11,15 @@ local spring = vide.spring
 type Can<T> = T | () -> T
 return component(function(p: {
 	corner: number?,
-	padding: number?,
-	paddingx: number?,
+	pad: pad.Pad?,
+	stroke: boolean?,
 
 	acc: boolean?,
 
 	text: Can<string>?,
-    size: Can<number>?,
-    font: Can<Font>?,
-    truncate: "split" | "end"?,
+	size: Can<number>?,
+	font: Can<Font>?,
+	truncate: "split" | "end"?,
 
 	enabled: (() -> boolean)?,
 	input: ((InputObject) -> ())?,
@@ -48,12 +49,11 @@ return component(function(p: {
 		name = "Button",
 
 		hs = 0,
-		flex = { direction = "row", justify = "between", align = "center", pad = 8 },
-		auto = "xy", pad = { x = p.paddingx, p = p.padding or theme.base_button_padding },
+		auto = "xy", pad = p.pad or { p = theme.base_button_padding, y = 8 },
 		corner = p.corner or theme.base_button_corner,
 
 		color = spring(if p.acc then theme.acc(depth_acc) else theme.bg(depth_bg), 0.1),
-		stroke = if p.acc then theme.acc(-7) else theme.bg(-1),
+		stroke = if p.stroke ~= false then if p.acc then theme.acc(-7) else theme.bg(-1) else nil,
 		thickness = theme.base_button_thickness,
 
 		hover = hover, --FIXME: luau bug
@@ -64,6 +64,9 @@ return component(function(p: {
 		input = p.input,
 
 		if p.text then text {
+			auto = "xy",
+			xs = 0.5, ys = 0.5,
+			anchor = { 0.5, 0.5 },
 			color = function()
 				return if enabled and not enabled() then
 					if p.acc then theme.acc_fg_low(3)()

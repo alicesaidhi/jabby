@@ -3,6 +3,7 @@ local ui_labs = require(script.Parent.Parent.Parent.roblox_packages.ui_labs)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local button = require(script.Parent.Parent.components.button)
 local container = require(script.Parent.Parent.components.container)
+local context_menu = require(script.Parent.Parent.components.context_menu)
 local theme = require(script.Parent.Parent.util.theme)
 
 local show = vide.show
@@ -45,7 +46,25 @@ return ui_labs.CreateVideStory({
 					print("mrow!")
 				end,
 
-				text = "A quick brown fox jumped over the lazy dog!"
+				text = "A quick brown fox jumped over the lazy dog!",
+				
+				context_menu {
+					{ kind = "action", text = "Action 1", clicked = function()
+						print("hello")
+					end },
+					
+					{ kind = "action", text = "Action 2", clicked = function()
+						print("hello")
+					end },
+					
+					{ kind = "action", text = "Action 3", clicked = function()
+						print("hello")
+					end },
+					
+					{ kind = "action", text = "Action 4", clicked = function()
+						print("hello")
+					end }
+				}
 			}
 		end)
 	}

@@ -4,6 +4,7 @@ local jabby_ui = require(script.Parent.Parent.Parent.Parent.roblox_packages.jabb
 local jabby_util = require(script.Parent.Parent.Parent.Parent.roblox_packages.jabby_util)
 local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
 local net = require(script.Parent.Parent.Parent.net)
+local entity_editor = require(script.Parent.entity_editor)
 
 local source = vide.source
 local effect = vide.effect
@@ -168,7 +169,7 @@ local function ecs_registry(target: jabby_types.Target)
 			flex = { justify = "between", pad = 4 },
 			
 			jabby_ui.textfield {
-				hs = 1, grow = 1, shrink = 1,
+				ws = 1, hs = 1, grow = 1, shrink = 1,
 				placeholder = `include, "two words", !exclude, $id, #tag, (relation, ship)`,
 
 				error = function()
@@ -221,6 +222,28 @@ local function ecs_registry(target: jabby_types.Target)
 							local v = value()
 							return tostring(if v == nil then "" else value())
 						end
+					},
+
+					jabby_ui.context_menu {
+						{ kind = "action" :: "action", text = "Edit Entity", clicked = function()
+							jabby_ui.widget.root {
+								jabby_ui.widget.tabs {
+									entity_editor {
+										target = target,
+										entity = columns()[1]()[row()]
+									}
+								}
+							}
+							
+						end } :: any,
+						
+						{ kind = "action", text = "Edit Component", clicked = function()
+							print("hello")
+						end },
+							
+						{ kind = "action", text = "Track Entity", clicked = function()
+							print("hello")
+						end },
 					}
 				}
 			end,

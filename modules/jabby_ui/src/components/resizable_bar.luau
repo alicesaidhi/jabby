@@ -17,24 +17,24 @@ local AFTER = 1
 
 type Can<T> = T | () -> T
 return component(function(p: {
-    fields: () -> { (idx: number) -> Instance },
-    min_sizes: (() -> { number })?,
-    use_offset: (() -> { number })?,
-    sizes: ({ number }) -> ()?,
-    suggested_sizes: { number }?,
+	fields: () -> { (idx: number) -> Instance },
+	min_sizes: (() -> { number })?,
+	use_offset: (() -> { number })?,
+	sizes: ({ number }) -> ()?,
+	suggested_sizes: { number }?,
 
-    splits: (vide.source<{ number }>)?,
-    base_splits: { number }?
+	splits: (vide.source<{ number }>)?,
+	base_splits: { number }?
 }, _)
 
-    local fields = p.fields
+	local fields = p.fields
 	local sizes = p.sizes or source({}) :: never
 	local min_sizes = p.min_sizes or source({}) :: never
-    local suggested_sizes = p.suggested_sizes or {}
-    local use_offset = p.use_offset or source({}) :: never
+	local suggested_sizes = p.suggested_sizes or {}
+	local use_offset = p.use_offset or source({}) :: never
 
-    local absolute_size = source(Vector2.zero)
-    local absolute_position = source(Vector2.zero)
+	local absolute_size = source(Vector2.zero)
+	local absolute_position = source(Vector2.zero)
 
 	local total = derive(function()
 		return #fields()
@@ -59,7 +59,7 @@ return component(function(p: {
 
 	for i, split in p.base_splits or {} do
 		splits()[i] = split
-        splits(splits())
+		splits(splits())
 	end
 
 	local function get_size(index: number): number
@@ -74,11 +74,11 @@ return component(function(p: {
 		return min_size or 0.2
 	end
 
-    effect(function()
-        for i = 1, total() do
+	effect(function()
+		for i = 1, total() do
 			min_sizes()[i] = min_sizes()[i] or 0.1
-        end
-    end)
+		end
+	end)
 
 	effect(function()
 		local new = setmetatable({} :: { [number]: () -> number }, {
@@ -94,126 +94,126 @@ return component(function(p: {
 		sizes(new :: any)
 	end)
 
-    local function resize(left_to_move: number, key: number)
-        if left_to_move > 0 then
-            for i = math.max(1, key), total() - 1, 1 do
-                local min_size = get_min_size(i + 1)
-                local size = get_size(i + 1)
+	local function resize(left_to_move: number, key: number)
+		if left_to_move > 0 then
+			for i = math.max(1, key), total() - 1, 1 do
+				local min_size = get_min_size(i + 1)
+				local size = get_size(i + 1)
 
-                local new_size = math.max(size - left_to_move, min_size)
-                local difference = size - new_size
+				local new_size = math.max(size - left_to_move, min_size)
+				local difference = size - new_size
 
-                splits()[i] = splits()[i] + difference
-                left_to_move -= difference
+				splits()[i] = splits()[i] + difference
+				left_to_move -= difference
 
-                for i = i - 1, key, -1 do
-                    splits()[i] = splits()[i] + difference
-                end
+				for i = i - 1, key, -1 do
+					splits()[i] = splits()[i] + difference
+				end
 
-                if left_to_move == 0 then break end
-            end
-            splits(splits())
-            return left_to_move
-        else
-            for i = key, 1, -1 do
-                local min_size = get_min_size(i)
+				if left_to_move == 0 then break end
+			end
+			splits(splits())
+			return left_to_move
+		else
+			for i = key, 1, -1 do
+				local min_size = get_min_size(i)
 
-                local size = math.max(get_size(i), min_size) -- this is changing, which it isnt supposed to do
+				local size = math.max(get_size(i), min_size) -- this is changing, which it isnt supposed to do
 
-                local new_size = math.max(size + left_to_move, min_size)
-                local difference = new_size - size
+				local new_size = math.max(size + left_to_move, min_size)
+				local difference = new_size - size
 
-                if splits()[i] == nil then continue end
-                splits()[i] = splits()[i] + difference
-                --assert((new_size + difference) == get_size(i - 1))
-                left_to_move -= difference
+				if splits()[i] == nil then continue end
+				splits()[i] = splits()[i] + difference
+				--assert((new_size + difference) == get_size(i - 1))
+				left_to_move -= difference
 
-                for i = i - 1, key, -1 do
-                    splits()[i] = splits()[i] + difference
-                end
+				for i = i - 1, key, -1 do
+					splits()[i] = splits()[i] + difference
+				end
 
 
-                if left_to_move == 0 then break end
-            end
-            splits(splits())
-            return left_to_move
-        end
-    end
-    
-    effect(function(old: Vector2)
-        if not old then return absolute_size() end
-        local new = absolute_size()
-        if new == old then return new end
-        
-        untrack(function()
-            for idx, min in use_offset() do
-                -- first update the min size
-                min_sizes()[idx] = min / new.X
+				if left_to_move == 0 then break end
+			end
+			splits(splits())
+			return left_to_move
+		end
+	end
+	
+	effect(function(old: Vector2)
+		if not old then return absolute_size() end
+		local new = absolute_size()
+		if new == old then return new end
+		
+		untrack(function()
+			for idx, min in use_offset() do
+				-- first update the min size
+				min_sizes()[idx] = min / new.X
 
-                -- then we update the actual size
-                local old_size = get_size(idx)
-                local old_size_offset = old_size * if old.X == 0 then 1 else old.X
-                local new_expected_size = math.max(min / new.X, old_size_offset / new.X)
-                
-                local left = resize(new_expected_size - old_size, idx)
-                resize(-left, idx)
-            end
-        end)
+				-- then we update the actual size
+				local old_size = get_size(idx)
+				local old_size_offset = old_size * if old.X == 0 then 1 else old.X
+				local new_expected_size = math.max(min / new.X, old_size_offset / new.X)
+				
+				local left = resize(new_expected_size - old_size, idx)
+				resize(-left, idx)
+			end
+		end)
 
-        return absolute_size()
-    end)
+		return absolute_size()
+	end)
 
-    return container {
-        name = "Resizeable",
+	return container {
+		name = "Resizeable",
 
-        container {
-            name = "Fields",
-            ws = 1, hs = 1,
+		container {
+			name = "Fields",
+			ws = 1, hs = 1,
 
-            flex = { direction = "row" },
+			flex = { direction = "row" },
 
-            indexes(fields, function(field: () -> (number) -> Instance, idx: number)
-                return container {
-                    ws = function() return get_size(idx) end, hs = 1,
-                    flex = {},
+			indexes(fields, function(field: () -> (number) -> Instance, idx: number)
+				return container {
+					ws = function() return get_size(idx) end, hs = 1,
+					flex = {},
 
-                    function()
-                        local fn = field()
-                        return untrack(function()
-                            return fn(idx)
-                        end)
-                    end
-                }
-            end :: any) :: any,
-        },
+					function()
+						local fn = field()
+						return untrack(function()
+							return fn(idx)
+						end)
+					end
+				}
+			end :: any) :: any,
+		},
 
-        container {
-            name = "Draggers",
+		container {
+			name = "Draggers",
 
-            ws = 1, hs = 1,
-            z = 100,
+			ws = 1, hs = 1,
+			z = 100,
 
-            changed("AbsoluteSize", absolute_size),
-            changed("AbsolutePosition", absolute_position),
+			changed("AbsoluteSize", absolute_size),
+			changed("AbsolutePosition", absolute_position),
 
-            indexes(splits, function(value: () -> number, key)
-                return container {
-                    xs = value, --todo: increase the width of the dragger based on viewport size
-                    w = 8, hs = 1,
-                    anchor = { 0.5, 0 },
+			indexes(splits, function(value: () -> number, key)
+				return container {
+					xs = value, --todo: increase the width of the dragger based on viewport size
+					w = 8, hs = 1,
+					anchor = { 0.5, 0 },
 
-                    input = function(input: InputObject)
-                        local position = UserInputService:GetMouseLocation()
-                        local relative = position - absolute_position()
-                        local scaled = relative.X / absolute_size().X
+					input = function(input: InputObject)
+						local position = UserInputService:GetMouseLocation()
+						local relative = position - absolute_position()
+						local scaled = relative.X / absolute_size().X
 
-                        local delta = scaled - splits()[key]
+						local delta = scaled - splits()[key]
 
-                        resize(delta, key)
-                    end,
-                }
-            end) :: any
-        }
+						resize(delta, key)
+					end,
+				}
+			end) :: any
+		}
 
-    }
+	}
 end)
