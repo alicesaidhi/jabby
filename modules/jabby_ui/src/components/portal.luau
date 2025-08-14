@@ -1,4 +1,4 @@
-local RunService = game:GetService("RunService")
+local RunService = game:GetService "RunService"
 --[[
 
 portal is used to render a component over other components.
@@ -8,8 +8,8 @@ position properties.
 
 ]]
 
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local create = vide.create
 local source = vide.source
@@ -29,7 +29,6 @@ type portal = {
 local layout = 100_000
 
 return component(function(p: portal, children)
-
 	local inherit_layout = p.inherit_layout
 
 	local nearest_gui_base = source(nil :: GuiBase2d?)
@@ -43,19 +42,26 @@ return component(function(p: portal, children)
 	effect(function()
 		local object = nearest_gui_base()
 		if not object then return end
-		
+
 		local function update()
 			size(UDim2.fromOffset(object.AbsoluteSize.X, object.AbsoluteSize.Y))
-			position(UDim2.fromOffset(object.AbsolutePosition.X, object.AbsolutePosition.Y))
+			position(
+				UDim2.fromOffset(
+					object.AbsolutePosition.X,
+					object.AbsolutePosition.Y
+				)
+			)
 		end
 
 		update()
 		cleanup(object:GetPropertyChangedSignal("AbsoluteSize"):Connect(update))
-		cleanup(object:GetPropertyChangedSignal("AbsolutePosition"):Connect(update))
+		cleanup(
+			object:GetPropertyChangedSignal("AbsolutePosition"):Connect(update)
+		)
 	end)
 
 	-- this is an anchor used to reference what gui base and layer collector to use.
-	return create ("Configuration" :: "Configuration") {
+	return create("Configuration" :: "Configuration") {
 		Name = `PortalAnchor:{layout}`,
 
 		AncestryChanged = function()
@@ -64,43 +70,49 @@ return component(function(p: portal, children)
 				nearest_gui_base(nil)
 				return
 			end
-			nearest_gui_base(reference:FindFirstAncestorWhichIsA("GuiBase2d"))
-			nearest_layer_collector(reference:FindFirstAncestorWhichIsA("ScreenGui"))
+			nearest_gui_base(reference:FindFirstAncestorWhichIsA "GuiBase2d")
+			nearest_layer_collector(
+				reference:FindFirstAncestorWhichIsA "ScreenGui"
+			)
 		end,
 
 		ref(function(instance: Instance)
 			layout += 1
 			reference(instance)
-			nearest_gui_base(instance:FindFirstAncestorWhichIsA("GuiBase2d"))
-			nearest_layer_collector(instance:FindFirstAncestorWhichIsA("ScreenGui"))
+			nearest_gui_base(instance:FindFirstAncestorWhichIsA "GuiBase2d")
+			nearest_layer_collector(
+				instance:FindFirstAncestorWhichIsA "ScreenGui"
+			)
 		end),
 
-		create ("ScreenGui" :: "ScreenGui") {
+		create("ScreenGui" :: "ScreenGui") {
 			DisplayOrder = function()
 				local layer = nearest_layer_collector()
-				return if not layer or RunService:IsStudio() then 1e8 else layer.DisplayOrder + 1
+				return if not layer or RunService:IsStudio()
+					then 1e8
+					else layer.DisplayOrder + 1
 			end,
 
-			create ("Frame" :: "Frame") {
+			create("Frame" :: "Frame") {
 				Name = `Portal:{layout}`,
 				AutoLocalize = false,
 				ZIndex = layout,
 
 				Size = function()
-					return if read(inherit_layout) == true then size()
-					else UDim2.fromScale(1, 1)
+					return if read(inherit_layout) == true
+						then size()
+						else UDim2.fromScale(1, 1)
 				end,
 				Position = function()
-					return if read(inherit_layout) == true then position()
-					else UDim2.fromScale(0, 0)
+					return if read(inherit_layout) == true
+						then position()
+						else UDim2.fromScale(0, 0)
 				end,
 
 				BackgroundTransparency = 1,
 
-				children
-			}
-
-		}
+				children,
+			},
+		},
 	}
-	
 end)

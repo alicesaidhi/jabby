@@ -1,68 +1,61 @@
 --!strict
 local function stream(input: string)
-
 	local pos = 0
 	local line = 1
 	local col = 1
 
-	local function peek(): string
-		return string.sub(input, pos+1, pos+1)
-	end
+	local function peek(): string return string.sub(input, pos + 1, pos + 1) end
 
 	local function next(): string
 		local char = peek()
 		pos += 1
 
-		if char == "\n" then line += 1; col = 1
-		else col += 1 end
+		if char == "\n" then
+			line += 1
+			col = 1
+		else
+			col += 1
+		end
 
 		return char
 	end
 
-	local function eof(): boolean
-		return peek() == ""
-	end
+	local function eof(): boolean return peek() == "" end
 
 	local function position()
 		return {
 			pos = pos,
 			line = line,
-			col = col
+			col = col,
 		}
 	end
 
-	local function croak(msg)
-		error(`{msg} ({line}:{col})`, 0)
-	end
+	local function croak(msg) error(`{msg} ({line}:{col})`, 0) end
 
 	return {
 		peek = peek,
 		next = next,
 		eof = eof,
 		croak = croak,
-		pos = position
+		pos = position,
 	}
-
 end
 
-export type String = {type: "string", s: string}
-export type Number = {type: "number", s: number}
-export type Identifier = {type: "identifier", s: string}
-export type Keyword = {type: "keyword", s: "true" | "false" | "nil"}
-export type Operator = {type: "operator", s: "="}
-export type Symbol = {type: "symbol", s: "." | ":" | "[" | "]" | "{" | "}" | "(" | ")" | "," | ";"}
+export type String = { type: "string", s: string }
+export type Number = { type: "number", s: number }
+export type Identifier = { type: "identifier", s: string }
+export type Keyword = { type: "keyword", s: "true" | "false" | "nil" }
+export type Operator = { type: "operator", s: "=" }
+export type Symbol = {
+	type: "symbol",
+	s: "." | ":" | "[" | "]" | "{" | "}" | "(" | ")" | "," | ";",
+}
 
-export type Token =
-	| String
-	| Number
-	| Identifier
-	| Keyword
-	| Operator
-	| Symbol
+export type Token = | String | Number | Identifier | Keyword | Operator | Symbol
 
-local digits = ("0123456789"):split("")
-local alphabet = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"):split("")
-local symbols = ("[]{}(),;.:"):split("")
+local digits = ("0123456789"):split ""
+local alphabet = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"):split ""
+local symbols = ("[]{}(),;.:"):split ""
 
 local escape_chars = {
 	a = "\a",
@@ -73,13 +66,12 @@ local escape_chars = {
 	t = "\t",
 	v = "\v",
 	["\\"] = "\\",
-	["\""] = "\"",
-	["\'"] = "\'"
+	['"'] = '"',
+	["'"] = "'",
 }
-local keywords = {"true", "false"}
+local keywords = { "true", "false" }
 
 local function lex(source: string)
-
 	local input = stream(source)
 
 	local function is_whitespace(char: string): boolean
@@ -91,16 +83,15 @@ local function lex(source: string)
 	end
 
 	local function is_identifier(char: string): boolean
-		return not not table.find(alphabet, char) or not not table.find(digits, char)
+		return not not table.find(alphabet, char)
+			or not not table.find(digits, char)
 	end
 
 	local function is_start_identifier(char: string): boolean
 		return not not table.find(alphabet, char)
 	end
 
-	local function is_op_char(char: string): boolean
-		return char == "="
-	end
+	local function is_op_char(char: string): boolean return char == "=" end
 
 	local function is_punc(char: string): boolean
 		return not not table.find(symbols, char)
@@ -118,24 +109,24 @@ local function lex(source: string)
 		read_while(function(char) return char ~= "\n" end)
 	end
 
-	local function skip_whitespace()
-		read_while(is_whitespace)
-	end
+	local function skip_whitespace() read_while(is_whitespace) end
 
 	local function read_string(): String
 		local escaped = false
 		local token = ""
 		local eliminator = input.next()
 
-		while input.eof() == false and (input.peek() ~= eliminator or escaped) do
+		while
+			input.eof() == false and (input.peek() ~= eliminator or escaped)
+		do
 			local char = input.next()
-		
-			if char == "\\" then
-				escaped = true
-			end
+
+			if char == "\\" then escaped = true end
 
 			if escaped then
-				token ..= escape_chars[char] or input.croak(`cannot escape {char}`)
+				token ..= escape_chars[char] or input.croak(
+					`cannot escape {char}`
+				)
 				escaped = false
 			else
 				token ..= char
@@ -144,35 +135,36 @@ local function lex(source: string)
 
 		-- print("t", token, eliminator, input.peek())
 
-		if input.peek() ~= eliminator then input.croak("unterminated string") end
+		if input.peek() ~= eliminator then input.croak "unterminated string" end
 		input.next()
-		return {type = "string", s = token}
+		return { type = "string", s = token }
 	end
 
 	local function read_number(): Number
 		local sign = 1
-		if input.peek() == "-" then sign = -1; input.next() end
+		if input.peek() == "-" then
+			sign = -1
+			input.next()
+		end
 
-		local token = read_while(function(char)
-			return is_digit(char) or char == "." or char == "e"
-		end)
+		local token = read_while(
+			function(char) return is_digit(char) or char == "." or char == "e" end
+		)
 
 		local n = tonumber(token)
 
-		if not n then
-			input.croak(`could not read {token} as number`)
-		end
+		if not n then input.croak(`could not read {token} as number`) end
 
-		return {type = "number", s = assert(n) * sign}
+		return { type = "number", s = assert(n) * sign }
 	end
 
 	local function read_identifier(): Identifier | Keyword
 		local token = read_while(is_identifier)
 
 		if table.find(keywords, token) then
-			return {type = "keyword", s = token :: any}
+			return { type = "keyword", s = token :: any }
 		else
-			return {type = "identifier", s = token}
+			return { type = "identifier", s = token }
 		end
 	end
 
@@ -185,19 +177,23 @@ local function lex(source: string)
 			skip_comment()
 			return read_next()
 		end
-		
-		if char == "\"" or char == "'" then return read_string() end
+
+		if char == '"' or char == "'" then return read_string() end
 		if is_digit(char) then return read_number() end
 		if is_start_identifier(char) then return read_identifier() end
-		if is_op_char(char) then return {type = "operator" :: "operator", s = input.next() :: any} end
-		if is_punc(char) then return {type = "symbol" :: "symbol", s = input.next() :: any} end
+		if is_op_char(char) then
+			return { type = "operator" :: "operator", s = input.next() :: any }
+		end
+		if is_punc(char) then
+			return { type = "symbol" :: "symbol", s = input.next() :: any }
+		end
 		if char == "-" then return read_number() end
 
 		input.croak(`cannot lex "{char}" {string.byte(char)}`)
-		error("fail")
+		error "fail"
 	end
 
-	local current: {Token} = {}
+	local current: { Token } = {}
 
 	local function next()
 		local token = table.remove(current, 1)
@@ -220,59 +216,57 @@ local function lex(source: string)
 		next = next,
 		eof = input.eof,
 		croak = input.croak,
-		pos = input.pos
-
+		pos = input.pos,
 	}
-
 end
 
 type NodeNumber = {
 	type: "number",
-	value: number
+	value: number,
 }
 
 type NodeString = {
 	type: "string",
-	value: string
+	value: string,
 }
 
 type NodeBoolean = {
 	type: "boolean",
-	value: boolean
+	value: boolean,
 }
 
 type NodeVariable = {
 	type: "variable",
-	value: string
+	value: string,
 }
 
 type NodeTable = {
 	type: "table",
-	value: {NodeExpression | NodeAssign}
+	value: { NodeExpression | NodeAssign },
 }
 
 type NodeAssign = {
 	type: "assign",
 	key: NodeVariable | NodeExpression,
-	value: NodeExpression
+	value: NodeExpression,
 }
 
 type NodeIndex = {
 	type: "index",
 	value: NodeExpression,
-	key: NodeExpression
+	key: NodeExpression,
 }
 
 type NodeFunctionCall = {
 	type: "functioncall",
 	value: NodeExpression,
-	args: {NodeExpression}
+	args: { NodeExpression },
 }
 
 type NodeMethodCall = {
 	type: "methodcall",
 	value: NodeExpression,
-	args: {NodeExpression}
+	args: { NodeExpression },
 }
 
 type NodeExpression =
@@ -297,21 +291,18 @@ type Node =
 	| NodeVariable
 
 local function parse(source: string)
-
 	local stream = lex(source)
 
 	local node: Node?
 
-	local function set_node(t: Node)
-		node = t
-	end
+	local function set_node(t: Node) node = t end
 
 	local function pop_node(): Node
 		local stored = node
 		node = nil
 		if stored == nil then
-			stream.croak("no available node")
-			error("")
+			stream.croak "no available node"
+			error ""
 		end
 		return stored
 	end
@@ -336,7 +327,7 @@ local function parse(source: string)
 			stream.next()
 		else
 			stream.croak(`expecting symbol: "{ch}" got "{stream.peek(1).s}"`)
-			error("")
+			error ""
 		end
 	end
 
@@ -345,11 +336,16 @@ local function parse(source: string)
 			stream.next()
 		else
 			stream.croak(`expecting op: "{ch}" got "{stream.peek().s}"`)
-			error("")
+			error ""
 		end
 	end
 
-	local function delimited(start, stop, separator: string | () -> (), parser: () -> ())
+	local function delimited(
+		start,
+		stop,
+		separator: string | () -> (),
+		parser: () -> ()
+	)
 		local a = {}
 		local first = true
 		skip_symbol(start)
@@ -379,15 +375,14 @@ local function parse(source: string)
 
 	function parse_table()
 		local values = delimited("{", "}", ",", function()
-			
-			if is_symbol("[") then
-				skip_symbol("[")
+			if is_symbol "[" then
+				skip_symbol "["
 				parse_expression()
-				skip_symbol("]")
+				skip_symbol "]"
 
 				local key = pop_node() :: NodeExpression
-				
-				skip_operator("=")
+
+				skip_operator "="
 				parse_expression()
 
 				local value = pop_node() :: NodeExpression
@@ -395,109 +390,117 @@ local function parse(source: string)
 				set_node({
 					type = "assign",
 					key = key,
-					value = value
+					value = value,
 				} :: NodeAssign)
 			else
-				if stream.peek(2).type == "operator" and stream.peek(2).s == "=" then
+				if
+					stream.peek(2).type == "operator"
+					and stream.peek(2).s == "="
+				then
 					parse_identifier "string"
-					
+
 					local key = pop_node() :: NodeString
 
-					skip_operator("=")
-					
+					skip_operator "="
+
 					parse_expression()
 
 					local value = pop_node() :: NodeExpression
 
-					set_node ({
+					set_node({
 						type = "assign",
 						key = key,
-						value = value
+						value = value,
 					} :: NodeAssign)
-
 				else
 					parse_expression()
 				end
 			end
-
 		end)
 
 		set_node {
 			type = "table",
-			value = values
+			value = values,
 		}
 	end
 
 	function parse_functioncall(is_method: boolean)
 		local value = pop_node()
-		local arguments = delimited("(", ")", ",", function()
-			parse_expression()
-		end)
+		local arguments = delimited(
+			"(",
+			")",
+			",",
+			function() parse_expression() end
+		)
 
-		set_node ({
+		set_node({
 			type = if is_method then "methodcall" else "functioncall",
 			value = value,
-			args = arguments
+			args = arguments,
 		} :: NodeFunctionCall | NodeFunctionCall)
 	end
 
 	function parse_index()
-		if is_symbol(".") then
+		if is_symbol "." then
 			local value = pop_node() :: NodeExpression
 
-			skip_symbol(".")
-			parse_identifier("string")
+			skip_symbol "."
+			parse_identifier "string"
 
 			local key = pop_node() :: NodeString
 
 			set_node {
 				type = "index",
 				value = value,
-				key = key
+				key = key,
 			}
-		elseif is_symbol("[") then
+		elseif is_symbol "[" then
 			local value = pop_node() :: NodeExpression
 
-			skip_symbol("[")
+			skip_symbol "["
 			parse_expression()
-			skip_symbol("]")
+			skip_symbol "]"
 
 			local key = pop_node() :: NodeExpression
 
 			set_node {
 				type = "index",
 				value = value,
-				key = key
+				key = key,
 			}
-		elseif is_symbol(":") then
+		elseif is_symbol ":" then
 			local value = pop_node() :: NodeExpression
 
-			skip_symbol(":")
-			parse_identifier("string")
+			skip_symbol ":"
+			parse_identifier "string"
 
 			local key = pop_node() :: NodeString
 
 			set_node {
 				type = "index",
 				value = value,
-				key = key
+				key = key,
 			}
 
 			parse_functioncall(true)
 		else
-			stream.croak(`expected index or function call, got {stream.peek().s}`)
+			stream.croak(
+				`expected index or function call, got {stream.peek().s}`
+			)
 		end
 	end
 
 	function parse_identifier(as: "string" | "variable")
 		local token = stream.next()
 		if token == nil then
-			stream.croak("expected identifier, got eof")
-			error("")
+			stream.croak "expected identifier, got eof"
+			error ""
 		end
 
 		if token.type == "identifier" then
-			set_node({type = as, value = token.s} :: NodeVariable | NodeString)
+			set_node(
+				{ type = as, value = token.s } :: NodeVariable | NodeString
+			)
 		else
 			stream.croak(`expected identifier, got {token.type}`)
 		end
@@ -510,15 +513,16 @@ local function parse(source: string)
 			parse_identifier "variable"
 
 			while
-				stream.eof() == false and
-				(
-					is_symbol(".") or
-					is_symbol("[") or
-					is_symbol("(") or is_symbol(":")
+				stream.eof() == false
+				and (
+					is_symbol "."
+					or is_symbol "["
+					or is_symbol "("
+					or is_symbol ":"
 				)
 			do
 				if stream.eof() then break end
-				if is_symbol("(") then
+				if is_symbol "(" then
 					parse_functioncall(false)
 				else
 					parse_index()
@@ -526,27 +530,31 @@ local function parse(source: string)
 				if stream.eof() then break end
 			end
 		elseif token.type == "string" then
-			set_node {type = "string", value = assert(stream.next()).s :: string}
+			set_node {
+				type = "string",
+				value = assert(stream.next()).s :: string,
+			}
 		elseif token.type == "number" then
-			set_node {type = "number", value = assert(stream.next()).s :: number}
-		elseif is_keyword("true") then
-			set_node {type = "boolean", value = true}
+			set_node {
+				type = "number",
+				value = assert(stream.next()).s :: number,
+			}
+		elseif is_keyword "true" then
+			set_node { type = "boolean", value = true }
 			stream.next()
-		elseif is_keyword("false") then
-			set_node {type = "boolean", value = false}
+		elseif is_keyword "false" then
+			set_node { type = "boolean", value = false }
 			stream.next()
-		elseif is_symbol("{") then
+		elseif is_symbol "{" then
 			parse_table()
 		else
 			stream.croak(`expected expression, got {token.type}" "{token.s}"`)
 		end
-
 	end
 
 	parse_expression()
 
 	return pop_node()
-
 end
 
 local tuple = {}
@@ -586,12 +594,10 @@ local lon_vars = {
 	end,
 
 	game = game,
-	workspace = workspace
-
+	workspace = workspace,
 }
 
 local function compile(node: Node): any
-
 	if node.type == "number" then
 		return node.value
 	elseif node.type == "string" then
@@ -621,13 +627,14 @@ local function compile(node: Node): any
 			if value.type == "assign" then
 				t[compile(value.key)] = compile(value.value)
 			else
-				t[i + 1] = compile(value); i += 1
+				t[i + 1] = compile(value)
+				i += 1
 			end
 		end
 
 		return t
 	elseif node.type == "assign" then
-		error("bad ast, you cannot generate this")
+		error "bad ast, you cannot generate this"
 	end
 
 	return nil
@@ -642,7 +649,7 @@ do
 	local tbs = 0
 	local enable_newlines = true
 	local line_length = 0
-	
+
 	local temp_input = buffer.create(1024)
 
 	local cyclic_buffer = {}
@@ -687,9 +694,7 @@ do
 		line_length += #s
 	end
 
-	local function char(c: string): number
-		return (string.byte(c))
-	end
+	local function char(c: string): number return (string.byte(c)) end
 
 	local function write_char(char: number)
 		local old_size = buffer.len(buf)
@@ -710,7 +715,7 @@ do
 		pos += 1
 	end
 
-	export type Displayable = unknown-- number | string | boolean | { [Displayable]: Displayable }
+	export type Displayable = unknown -- number | string | boolean | { [Displayable]: Displayable }
 
 	local function display_string(value: string)
 		local f = string.format("%q", value)
@@ -720,10 +725,10 @@ do
 
 	local function write_line()
 		if enable_newlines then
-			write_char(char("\n"))
+			write_char(char "\n")
 			write_str(string.rep("\t", tbs))
 		else
-			write_char(char(" "))
+			write_char(char " ")
 		end
 	end
 
@@ -795,135 +800,138 @@ do
 			display_string(value)
 		elseif type(value) == "boolean" then
 			if value == true then
-				write_str("true")
+				write_str "true"
 			else
-				write_str("false")
+				write_str "false"
 			end
 		elseif type(value) == "table" and not cyclic_buffer[value] then
 			cyclic_buffer[value] = true
 			tbs += 1
-			write_char(char("{"))
-			for index, value in value :: {[any]: any} do
+			write_char(char "{")
+			for index, value in value :: { [any]: any } do
 				write_line()
 
-				if type(index) == "string" and string.match(index, "^[a-zA-Z_][a-zA-Z0-9_]*$") then
+				if
+					type(index) == "string"
+					and string.match(index, "^[a-zA-Z_][a-zA-Z0-9_]*$")
+				then
 					write_str(index)
 				else
-					write_char(char("["))
+					write_char(char "[")
 					local original = fatal_if_bad
 					fatal_if_bad = true
 					display(index)
 					fatal_if_bad = original
-					write_char(char("]"))
+					write_char(char "]")
 				end
 
-				write_char(char(" "))
-				write_char(char("="))
-				write_char(char(" "))
-				
+				write_char(char " ")
+				write_char(char "=")
+				write_char(char " ")
+
 				display(value, index, ...)
-				write_char(char(","))
+				write_char(char ",")
 			end
 
 			tbs -= 1
 			write_line()
-			write_char(char("}"))
+			write_char(char "}")
 		elseif type(value) == "table" and cyclic_buffer[value] then
-			if fatal_if_bad then 
-				write_str("*cannot display table due to cyclic dependency*")
+			if fatal_if_bad then
+				write_str "*cannot display table due to cyclic dependency*"
 			else
 				write_str(to_path(true, ...))
 			end
 		elseif type(value) == "nil" then
-			write_str("nil")
+			write_str "nil"
 		-- ROBLOX DEVIATION START
 		elseif typeof(value) == "BrickColor" then
-			write_str("BrickColor.new(")
+			write_str "BrickColor.new("
 			write_str(value.Name)
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "CFrame" then
 			if value.Rotation == CFrame.new() then
-				write_str("CFrame.new(")
+				write_str "CFrame.new("
 				display(value.X)
-				write_str(", ")
+				write_str ", "
 				display(value.Y)
-				write_str(", ")
+				write_str ", "
 				display(value.Z)
-				write_char(char(")"))
+				write_char(char ")")
 			else
-				write_str("CFrame.fromMatrix(")
+				write_str "CFrame.fromMatrix("
 				display(value.Position)
-				write_str(",\n")
+				write_str ",\n"
 				display(value.XVector)
-				write_str(",\n")
+				write_str ",\n"
 				display(value.YVector)
-				write_str(",\n")
+				write_str ",\n"
 				display(value.ZVector)
-				write_str(",\n")
+				write_str ",\n"
 			end
 		elseif typeof(value) == "EnumItem" then
 			write_str(tostring(value))
 		elseif typeof(value) == "Enum" then
-			write_str("Enum.")
+			write_str "Enum."
 			write_str(tostring(value))
 		elseif typeof(value) == "Enums" then
-			write_str("Enum")
+			write_str "Enum"
 		elseif typeof(value) == "Color3" then
-			write_str("Color3.fromHex(")
+			write_str "Color3.fromHex("
 			display_string(value:ToHex())
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "Vector3" then
-			write_str("Vector3.new(")
+			write_str "Vector3.new("
 			write_str(tostring(value))
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "Vector2" then
-			write_str("Vector2.new(")
+			write_str "Vector2.new("
 			write_str(tostring(value))
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "NumberSequence" then
-			write_str("NumberSequence.new(")
+			write_str "NumberSequence.new("
 			if #value.Keypoints == 2 then
 				write_low_prec_float(value.Keypoints[1].Value)
-				write_str(", ")
+				write_str ", "
 				write_low_prec_float(value.Keypoints[2].Value)
 			else
 				display(value.Keypoints)
 			end
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "NumberSequenceKeypoint" then
-			write_str("NumberSequenceKeypoint.new(")
+			write_str "NumberSequenceKeypoint.new("
 			write_low_prec_float(value.Time)
-			write_str(", ")
+			write_str ", "
 			write_low_prec_float(value.Value)
 			if value.Envelope > 0 then
-				write_str(", ")
+				write_str ", "
 				write_low_prec_float(value.Envelope)
 			end
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "NumberRange" then
-			write_str("NumberRange.new(")
+			write_str "NumberRange.new("
 			write_low_prec_float(value.Min)
 			if value.Min ~= value.Max then
-				write_str(", ")
+				write_str ", "
 				write_low_prec_float(value.Max)
 			end
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "ColorSequence" then
-			write_str("ColorSequence.new(")
+			write_str "ColorSequence.new("
 			if #value.Keypoints == 2 then
 				display(value.Keypoints[1].Value)
-				write_str(", ")
+				write_str ", "
 				display(value.Keypoints[2].Value)
 			else
 				display(value.Keypoints)
 			end
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "ColorSequenceKeypoint" then
-			write_str("ColorSequenceKeypoint.new(")
+			write_str "ColorSequenceKeypoint.new("
 			write_low_prec_float(value.Time)
-			write_str(", ")
+			write_str ", "
 			display(value.Value)
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "RaycastResult" then
 			--note: since a RaycastResult can't be created, we convert it into a table
 			display {
@@ -931,44 +939,44 @@ do
 				Material = value.Material,
 				Normal = value.Normal,
 				Position = value.Position,
-				Distance = value.Distance
+				Distance = value.Distance,
 			}
 		elseif typeof(value) == "Region3" then
 			local pos, size = value.CFrame.Position, value.Size
 			local min = pos - size / 2
 			local max = pos + size / 2
-			write_str("Region3.new(")
+			write_str "Region3.new("
 			display(min)
-			write_str(", ")
+			write_str ", "
 			display(max)
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "Rect" then
-			write_str("Rect.new(")
+			write_str "Rect.new("
 			write_low_prec_float(value.Min.X)
-			write_str(", ")
+			write_str ", "
 			write_low_prec_float(value.Min.Y)
-			write_str(", ")
+			write_str ", "
 			write_low_prec_float(value.Max.X)
-			write_str(", ")
+			write_str ", "
 			write_low_prec_float(value.Max.Y)
-			write_char(char(")"))
+			write_char(char ")")
 		elseif typeof(value) == "OverlapParams" then
-			write_str("OverlapParams(")
-			display({
+			write_str "OverlapParams("
+			display {
 				CollisionGroup = value.CollisionGroup,
 				FilterType = value.FilterType,
 				MaxParts = value.MaxParts,
 				RespectCanCollide = value.RespectCanCollide,
-			})
-			write_char(char(")"))
+			}
+			write_char(char ")")
 		elseif typeof(value) == "RaycastParams" then
-			write_str("RaycastParams(")
-			display({
+			write_str "RaycastParams("
+			display {
 				CollisionGroup = value.CollisionGroup,
 				FilterType = value.FilterType,
 				RespectCanCollide = value.RespectCanCollide,
-			})
-			write_char(char(")"))
+			}
+			write_char(char ")")
 		elseif typeof(value) == "Instance" and not fatal_if_bad then
 			write_str(to_path(false, ...))
 		elseif typeof(value) == "Instance" and fatal_if_bad then
@@ -996,8 +1004,8 @@ end
 return {
 
 	parse = parse,
-	compile = function(node: Node, variables: {[string]: any})
-		setmetatable(lon_vars, {__index = variables or nil})
+	compile = function(node: Node, variables: { [string]: any })
+		setmetatable(lon_vars, { __index = variables or nil })
 		local mt = { symbol = "new" }
 		local should_recurse = false
 
@@ -1033,12 +1041,9 @@ return {
 			end
 		end
 
-		if should_recurse and typeof(nodes) == "table" then
-			recurse(nodes)
-		end
+		if should_recurse and typeof(nodes) == "table" then recurse(nodes) end
 
 		return nodes
 	end,
-	output = output
-
+	output = output,
 }

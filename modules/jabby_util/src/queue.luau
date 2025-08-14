@@ -25,25 +25,35 @@ SOFTWARE.
 ]]
 
 type Array<T> = { T }
-export type Queue<T...> = typeof(setmetatable({} :: {
-	add: (self: Queue<T...>, T...) -> (),
-	clear: (self: Queue<T...>) -> (),
-	iter: (self: Queue<T...>) -> () -> (T...),
-	transform: <U...>(self: Queue<T...>, transform: (T...) -> U...) -> () -> U...
-}, {} :: {
-	__len: (self: Queue<T...>) -> number,
-	__iter: (self: Queue<T...>) -> () -> (T...)
-}))
+export type Queue<T...> = typeof(setmetatable(
+	{} :: {
+		add: (self: Queue<T...>, T...) -> (),
+		clear: (self: Queue<T...>) -> (),
+		iter: (self: Queue<T...>) -> () -> T...,
+		transform: <U...>(
+			self: Queue<T...>,
+			transform: (T...) -> U...
+		) -> () -> U...,
+	},
+	{} :: {
+		__len: (self: Queue<T...>) -> number,
+		__iter: (self: Queue<T...>) -> () -> T...,
+	}
+))
 
-local Queue = {} do
+local Queue = {}
+do
 	Queue.__index = Queue
 
 	type _Queue = Queue<...any> & {
 		size: number,
-		columns: Array<Array<unknown>>
+		columns: Array<Array<unknown>>,
 	}
 
-	function Queue.transform<T..., U...>(queue: Queue<T...>, transform: (T...) -> U...): () -> U...
+	function Queue.transform<T..., U...>(
+		queue: Queue<T...>,
+		transform: (T...) -> U...
+	): () -> U...
 		local self: _Queue = queue :: any
 		local columns = self.columns
 		local n = self.size
@@ -78,14 +88,14 @@ local Queue = {} do
 	function Queue.new<T...>(): Queue<T...>
 		local self: _Queue = setmetatable({
 			size = 0,
-			columns = {}
+			columns = {},
 		}, Queue) :: any
 
 		setmetatable(self.columns, {
 			__index = function(columns: Array<Array<unknown>>, idx: number)
 				columns[idx] = {}
 				return columns[idx]
-			end
+			end,
 		})
 
 		return self :: Queue<T...>
@@ -140,9 +150,7 @@ local Queue = {} do
 	Queue.iter = function(self) return iter(self) end
 	Queue.__iter = function(self) return iter(self) end
 
-	function Queue.__len(self: _Queue)
-		return self.size
-	end
+	function Queue.__len(self: _Queue) return self.size end
 end
 
 return Queue.new

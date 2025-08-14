@@ -1,21 +1,20 @@
-
-local function convert_scale(unit: string, value: number): (string)
+local function convert_scale(unit: string, value: number): string
 	local s = math.sign(value)
 	value = math.abs(value)
 	local prefixes = {
 		[4] = "T",
-		[3] ="G",
-		[2] ="M",
+		[3] = "G",
+		[2] = "M",
 		[1] = "k",
 		[0] = "",
 		[-1] = "m",
 		[-2] = "μ",
 		[-3] = "n",
-		[-4] = "p"
+		[-4] = "p",
 	}
 
 	local order = 0
-	
+
 	while value >= 1000 do
 		order += 1
 		value /= 1000
@@ -38,7 +37,9 @@ local function convert_scale(unit: string, value: number): (string)
 		value = math.floor(value * 1e2) / 1e2
 	end
 
-	return string.format(format, value * s) .. prefixes[math.clamp(order, -4, 4)] .. unit
+	return string.format(format, value * s)
+		.. prefixes[math.clamp(order, -4, 4)]
+		.. unit
 end
 
 return convert_scale

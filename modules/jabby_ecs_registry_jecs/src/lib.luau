@@ -3,16 +3,14 @@ local jecs = require(script.Parent.Parent.roblox_packages.jecs)
 local lib = require(script.Parent.server.lib)
 
 local interface: jabby_types.JabbyAppletInterface<{
-	world: jecs.World
+	world: jecs.World,
 }> = {
 	name = "Jabby JECS Registry",
 	description = "JECS Registry",
 
-	registered = function(self)
-		lib(self)
-	end,
+	registered = function(self) lib(self) end,
 
-	client = script.Parent.Parent.roblox_packages.jabby_ecs_registry
+	client = script.Parent.Parent.roblox_packages.jabby_ecs_registry,
 }
 
 return interface

@@ -1,5 +1,5 @@
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local reduced_motion = require(script.Parent.reduced_motion)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local spring = vide.spring
 

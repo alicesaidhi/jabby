@@ -2,6 +2,7 @@
 	"luau-lsp.sourcemap.rojoProjectFile": "default.project.json",
 	"luau-lsp.completion.imports.requireStyle": "alwaysRelative",
 	"luau-lsp.fflags.enableNewSolver": true,
+	"editor.formatOnSave": true,
 	"files.exclude": {
 		"**/.git": true,
 		"**/.svn": true,

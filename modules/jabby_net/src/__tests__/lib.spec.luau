@@ -1,8 +1,10 @@
 --!nonstrict
 
 local gt = require(script.Parent.Parent.Parent.roblox_packages.gt)
-local jabby_util = require(script.Parent.Parent.Parent.roblox_packages.jabby_util)
-local jest_globals = require(script.Parent.Parent.Parent.roblox_packages.jest_globals)
+local jabby_util =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_util)
+local jest_globals =
+	require(script.Parent.Parent.Parent.roblox_packages.jest_globals)
 local lib = require(script.Parent.Parent.lib)
 
 local beforeEach = jest_globals.beforeEach
@@ -10,12 +12,10 @@ local describe = jest_globals.describe
 local it = jest_globals.it
 local expect = jest_globals.expect
 
-local ANY = gt.any({allowNil = true})
+local ANY = gt.any { allowNil = true }
 
 beforeEach(function()
-	lib.set_auth_callback(function()
-		return true
-	end)
+	lib.set_auth_callback(function() return true end)
 end)
 
 describe("event", function()
@@ -52,7 +52,8 @@ describe("event", function()
 	end)
 
 	it.failing("should fail with incorrect types", function()
-		local event_channel = lib.event_create("testing", "event_3.5", gt.number())
+		local event_channel =
+			lib.event_create("testing", "event_3.5", gt.number())
 		local connected = event_channel:connect(1)
 
 		event_channel:fire({ to = "server", id = 1 }, false)
@@ -67,20 +68,20 @@ describe("event", function()
 		local allow = false
 
 		type TestAction = {
-			allow: boolean
+			allow: boolean,
 		}
 
-		connection:set_permission_data(function(sender, data)
-			return {
-				user = sender.to,
-				action = "meow",
-				allow = allow
-			}
-		end)
+		connection:set_permission_data(
+			function(sender, data)
+				return {
+					user = sender.to,
+					action = "meow",
+					allow = allow,
+				}
+			end
+		)
 
-		lib.set_auth_callback(function(data: TestAction)
-			return data.allow
-		end)
+		lib.set_auth_callback(function(data: TestAction) return data.allow end)
 
 		allow = false
 		event_channel:fire({ to = "server", id = 1 }, 1)
@@ -100,7 +101,6 @@ describe("event", function()
 			expect(value).toBe(idx)
 			idx += 1
 		end
-
 	end)
 
 	it("should not fire for different ids", function()
@@ -145,15 +145,16 @@ describe("event", function()
 end)
 
 describe("function", function()
-
 	it("should create function channel", function()
-		local function_channel = lib.function_create("function", "func", gt.number(), gt.number())
-		
+		local function_channel =
+			lib.function_create("function", "func", gt.number(), gt.number())
+
 		expect(function_channel).toBeDefined(nil)
 	end)
 
 	it("should invoke and receive", function()
-		local channel = lib.function_create("function", "event_2", gt.number(), gt.number())
+		local channel =
+			lib.function_create("function", "event_2", gt.number(), gt.number())
 		local connection = channel:connect(1)
 		local n = math.random()
 
@@ -171,7 +172,8 @@ describe("function", function()
 	end, 100)
 
 	it("should iterate", function(_, done)
-		local channel = lib.function_create("function", "event_3", gt.number(), gt.number())
+		local channel =
+			lib.function_create("function", "event_3", gt.number(), gt.number())
 		local connection = channel:connect(1)
 
 		channel:invoke({ to = "server", id = 1 }, 1):after(function(result)
@@ -189,32 +191,33 @@ describe("function", function()
 	end, 500)
 
 	it("should block requests", function()
-		local channel = lib.function_create("function", "event_4", gt.number(), gt.number())
+		local channel =
+			lib.function_create("function", "event_4", gt.number(), gt.number())
 		local connection = channel:connect(1)
 		local allow = false
 
 		type TestAction = {
-			allow: boolean
+			allow: boolean,
 		}
 
-		connection:set_permission_data(function(sender, data)
-			return {
-				user = sender.to,
-				action = "meow",
-				allow = allow
-			}
-		end)
+		connection:set_permission_data(
+			function(sender, data)
+				return {
+					user = sender.to,
+					action = "meow",
+					allow = allow,
+				}
+			end
+		)
 
-		lib.set_auth_callback(function(data: TestAction)
-			return data.allow
-		end)
+		lib.set_auth_callback(function(data: TestAction) return data.allow end)
 
 		local n = 0
 		local function expect_false(value: jabby_util.Result)
 			n += 1
 			expect(value.ok).toBe(false)
 		end
-		
+
 		local function expect_true(idx: number)
 			return function(value: jabby_util.Result)
 				n += 1
@@ -253,7 +256,8 @@ describe("function", function()
 	end, 500)
 
 	it("should not invoke for different ids", function()
-		local channel = lib.function_create("function", "event_5", gt.number(), gt.number())
+		local channel =
+			lib.function_create("function", "event_5", gt.number(), gt.number())
 		local connection = channel:connect(1)
 
 		channel:invoke({ to = "server", id = 2 }, 1)
@@ -261,7 +265,7 @@ describe("function", function()
 		task.wait()
 
 		for sender, resolve, value in connection:iter() do
-			error("false")
+			error "false"
 		end
 
 		local r = channel:invoke({ to = "server", id = 1 }, 2)
@@ -277,40 +281,38 @@ describe("function", function()
 end)
 
 describe("socket", function()
-
 	it("should create socket channel", function()
 		local function_channel = lib.socket_create("testing", "test1")
-		
+
 		expect(function_channel).toBeDefined(nil)
 	end)
 
 	it("create and accept socket", function()
 		local channel = lib.socket_create("testing", "test2", gt.number())
-		local socket0, id = channel:open_socket("server")
+		local socket0, id = channel:open_socket "server"
 
-		expect(socket0:status()).toBe("waiting")
+		expect(socket0:status()).toBe "waiting"
 
 		local socket1 = channel:accept_socket("server", id)
-		expect(socket1:status()).toBe("waiting")
+		expect(socket1:status()).toBe "waiting"
 		task.wait()
 
-		expect(socket0:status()).toBe("open")
-		expect(socket1:status()).toBe("open")
-
+		expect(socket0:status()).toBe "open"
+		expect(socket1:status()).toBe "open"
 	end)
 
 	it("send events to eachother", function()
 		local channel = lib.socket_create("testing", "test2", gt.number())
-		local socket0, id = channel:open_socket("server")
+		local socket0, id = channel:open_socket "server"
 
-		expect(socket0:status()).toBe("waiting")
+		expect(socket0:status()).toBe "waiting"
 
 		local socket1 = channel:accept_socket("server", id)
-		expect(socket1:status()).toBe("waiting")
+		expect(socket1:status()).toBe "waiting"
 		task.wait()
 
-		expect(socket0:status()).toBe("open")
-		expect(socket1:status()).toBe("open")
+		expect(socket0:status()).toBe "open"
+		expect(socket1:status()).toBe "open"
 
 		socket0:send(0)
 		socket1:send(1)
@@ -323,25 +325,25 @@ describe("socket", function()
 			expect(value).toBe(1)
 		end
 	end)
-	
+
 	it("closed socket does not receive", function()
 		local channel = lib.socket_create("testing", "test2", gt.number())
-		local socket0, id = channel:open_socket("server")
+		local socket0, id = channel:open_socket "server"
 
-		expect(socket0:status()).toBe("waiting")
+		expect(socket0:status()).toBe "waiting"
 
 		local socket1 = channel:accept_socket("server", id)
-		expect(socket1:status()).toBe("waiting")
+		expect(socket1:status()).toBe "waiting"
 		task.wait()
 
-		expect(socket0:status()).toBe("open")
-		expect(socket1:status()).toBe("open")
+		expect(socket0:status()).toBe "open"
+		expect(socket1:status()).toBe "open"
 
 		socket0:close()
 
-		expect(socket0:status()).toBe("closed")
+		expect(socket0:status()).toBe "closed"
 		task.wait()
-		expect(socket1:status()).toBe("closed")
+		expect(socket1:status()).toBe "closed"
 
 		socket0:send(0)
 		socket1:send(1)

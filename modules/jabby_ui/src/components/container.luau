@@ -1,48 +1,50 @@
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
 local guistate = require(script.Parent.Parent.util.guistate)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local create = vide.create
 local read = vide.read
 
 type Can<T> = T | () -> T
 
-return component(function(p: {
-	-- frame properties
-	color: Can<Color3>?,
-	transparency: Can<number>?,
-	
-	-- stroke properties
-	stroke: Can<Color3>?,
-	stroke_transparency: Can<number>?,
-	thickness: Can<number>?,
+return component(function(
+	p: {
+		-- frame properties
+		color: Can<Color3>?,
+		transparency: Can<number>?,
 
-	-- corner properties
-	corner: Can<number>?,
+		-- stroke properties
+		stroke: Can<Color3>?,
+		stroke_transparency: Can<number>?,
+		thickness: Can<number>?,
 
-	-- image properties
-	image: Can<Content | string>?,
-	scale_type: Can<Enum.ScaleType>?,
-	rect_offset: Can<Vector2>?,
-	rect_size: Can<Vector2>?,
-	pixelated: Can<boolean>?,
-	slice_center: Can<Rect>?,
-	slice_scale: Can<number>?,
-	tile_size: Can<UDim2>?,
+		-- corner properties
+		corner: Can<number>?,
 
-	-- general properties
-	clips: Can<boolean>?,
+		-- image properties
+		image: Can<Content | string>?,
+		scale_type: Can<Enum.ScaleType>?,
+		rect_offset: Can<Vector2>?,
+		rect_size: Can<Vector2>?,
+		pixelated: Can<boolean>?,
+		slice_center: Can<Rect>?,
+		slice_scale: Can<number>?,
+		tile_size: Can<UDim2>?,
 
-	-- input properties
-	sink: Can<boolean>?,
-	enabled: (() -> boolean)?,
-	hover: ((boolean) -> ())?,
-	hold: ((boolean) -> ())?,
-	input: ((InputObject) -> ())?,
-	clicked: ((InputObject) -> ())?,
-	rightclick: ((InputObject) -> ())?,
-}, _)
-	
+		-- general properties
+		clips: Can<boolean>?,
+
+		-- input properties
+		sink: Can<boolean>?,
+		enabled: (() -> boolean)?,
+		hover: ((boolean) -> ())?,
+		hold: ((boolean) -> ())?,
+		input: ((InputObject) -> ())?,
+		clicked: ((InputObject) -> ())?,
+		rightclick: ((InputObject) -> ())?,
+	},
+	_
+)
 	local properties: any = {}
 
 	if p.image then
@@ -68,37 +70,42 @@ return component(function(p: {
 		}
 	end
 
-	if p.sink ~= nil then
-		properties.Active = p.sink
-	end
+	if p.sink ~= nil then properties.Active = p.sink end
 
 	if not (p.ws or p.hs or p.wr or p.hr) then
 		properties.AnchorPoint = Vector2.new(0.5, 0.5)
 	end
 
-	local interactable = p.clicked or p.hold or p.hover or p.input or p.rightclick
+	local interactable = p.clicked
+		or p.hold
+		or p.hover
+		or p.input
+		or p.rightclick
 
-	if interactable then
-		table.insert(properties, guistate(p))
-	end
+	if interactable then table.insert(properties, guistate(p)) end
 
 	if p.stroke then
-		table.insert(properties, create ("UIStroke" :: "UIStroke") {
-			Color = p.stroke,
-			Transparency = p.stroke_transparency,
-			Thickness = p.thickness or 1
-		})
+		table.insert(
+			properties,
+			create("UIStroke" :: "UIStroke") {
+				Color = p.stroke,
+				Transparency = p.stroke_transparency,
+				Thickness = p.thickness or 1,
+			}
+		)
 	end
 
 	if p.corner then
-		table.insert(properties, create ("UICorner" :: "UICorner") {
-			CornerRadius = function()
-				return UDim.new(0, read(p.corner))
-			end
-		})
+		table.insert(
+			properties,
+			create("UICorner" :: "UICorner") {
+				CornerRadius = function() return UDim.new(0, read(p.corner)) end,
+			}
+		)
 	end
 
-	local element = if read(p.image) and interactable then "ImageButton"
+	local element = if read(p.image) and interactable
+		then "ImageButton"
 		elseif read(p.image) and not interactable then "ImageLabel"
 		elseif interactable then "ImageButton"
 		else "Frame"

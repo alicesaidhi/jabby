@@ -3,10 +3,7 @@ local widget = require(script.Parent.components.widget)
 
 return {
 
-	open_client = function(target: jabby_types.Target)
-		widget(target)
-	end,
+	open_client = function(target: jabby_types.Target) widget(target) end,
 
-	net = require(script.Parent.net)
-
+	net = require(script.Parent.net),
 }

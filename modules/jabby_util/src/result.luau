@@ -8,8 +8,10 @@ export type Result<T, E = string> = {
 
 local mt = {
 	__tostring = function(self)
-		return if self.ok then `Result<{tostring(self.value)}>` else tostring(self.why)
-	end
+		return if self.ok
+			then `Result<{tostring(self.value)}>`
+			else tostring(self.why)
+	end,
 }
 
 local function safe<T, U...>(fn: (U...) -> T, ...: U...): Result<T>
@@ -29,19 +31,19 @@ end
 local function ok<T>(value: T): Result<T, any>
 	return {
 		ok = true :: true,
-		value = value
+		value = value,
 	}
 end
 
 local function fail<T>(why: T): Result<any, T>
 	return setmetatable({
 		ok = false :: false,
-		why = why
+		why = why,
 	}, mt)
 end
 
 return {
 	safe = safe,
 	fail = fail,
-	ok = ok
+	ok = ok,
 }

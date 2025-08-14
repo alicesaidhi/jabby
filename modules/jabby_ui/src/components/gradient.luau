@@ -8,14 +8,14 @@ export type Gradient = {
 	color: Can<ColorSequence>?,
 	transparency: Can<NumberSequence>?,
 	rotation: Can<number>?,
-	offset: Can<Vector2>?
+	offset: Can<Vector2>?,
 }
 
 return function(p: Gradient)
-	return create ("UIGradient" :: "UIGradient") {
+	return create("UIGradient" :: "UIGradient") {
 		Color = p.color,
 		Transparency = p.transparency,
 		Rotation = p.rotation,
-		Offset = p.offset
+		Offset = p.offset,
 	}
 end

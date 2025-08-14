@@ -1,10 +1,8 @@
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local render = require(script.render)
 local state = require(script.state)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
-local function mount_to(where)
-	return vide.mount(render, where)
-end
+local function mount_to(where) return vide.mount(render, where) end
 
 return {
 	mount_to = mount_to,
@@ -16,5 +14,5 @@ return {
 	root = state.root,
 
 	close = state.close_tab,
-	enable_ui = state.enable_ui
+	enable_ui = state.enable_ui,
 }
