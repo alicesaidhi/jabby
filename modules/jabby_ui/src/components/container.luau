@@ -72,10 +72,6 @@ return component(function(
 
 	if p.sink ~= nil then properties.Active = p.sink end
 
-	if not (p.ws or p.hs or p.wr or p.hr) then
-		properties.AnchorPoint = Vector2.new(0.5, 0.5)
-	end
-
 	local interactable = p.clicked
 		or p.hold
 		or p.hover

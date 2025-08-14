@@ -26,6 +26,12 @@ roblox = "modules/jabby_net"
 [workspace."alicesaidhi/jabby_query_parser"]
 roblox = "modules/jabby_query_parser"
 
+[workspace."alicesaidhi/jabby_scheduler"]
+roblox = "modules/jabby_scheduler"
+
+[workspace."alicesaidhi/jabby_scheduler_basic"]
+roblox = "modules/jabby_scheduler_basic"
+
 [workspace."alicesaidhi/jabby_types"]
 roblox = "modules/jabby_types"
 

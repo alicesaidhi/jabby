@@ -1,0 +1,20 @@
+name = "alicesaidhi/jabby_scheduler_basic"
+version = "0.1.0"
+includes = ["src/*", "pesde.toml"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "src/lib.luau"
+build_files = ["src"]
+
+[wally_indices]
+default = "https://github.com/UpliftGames/wally-index"
+
+[indices]
+default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]
+jabby_core = { workspace = "alicesaidhi/jabby_core" }
+jabby_scheduler = { workspace = "alicesaidhi/jabby_scheduler" }
+jabby_types = { workspace = "alicesaidhi/jabby_types" }

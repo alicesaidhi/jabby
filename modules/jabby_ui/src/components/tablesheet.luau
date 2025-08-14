@@ -32,6 +32,7 @@ return component(function<T>(
 		set_sort_column: ((number) -> ())?,
 		sort_direction: (() -> "ascending" | "descending")?,
 		set_sort_direction: (("ascending" | "descending") -> ())?,
+		get_value: (() -> unknown)?,
 
 		header: (value: () -> T, column: number, row: number) -> Instance,
 		field: (value: () -> T, column: number, row: () -> number) -> Instance,
@@ -73,7 +74,26 @@ return component(function<T>(
 				entries[i - 1] = i
 			end
 
-			if sort_direction() == "ascending" then
+			if p.get_value then
+				local get = p.get_value
+				if sort_direction() == "ascending" then
+					table.sort(
+						entries,
+						function(a, b): boolean
+							return get(sort_by_column[a])
+								> get(sort_by_column[b])
+						end
+					)
+				else
+					table.sort(
+						entries,
+						function(a, b): boolean
+							return get(sort_by_column[a])
+								< get(sort_by_column[b])
+						end
+					)
+				end
+			elseif sort_direction() == "ascending" then
 				table.sort(
 					entries,
 					function(a, b): boolean
