@@ -5,11 +5,9 @@ local interface: jabby_types.JabbyAppletInterface<nil> = {
 	name = "Jabby Home",
 	description = "Primary widget for jabby.",
 
-	registered = function(self)
-		lib(self)
-	end,
+	registered = function(self) lib(self) end,
 
-	client = script.Parent.client.lib
+	client = script.Parent.client.lib,
 }
 
 return interface

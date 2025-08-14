@@ -1,20 +1,26 @@
-local RunService = game:GetService("RunService")
+local RunService = game:GetService "RunService"
 
 local ecr = require(script.Parent.Parent.Parent.roblox_packages.ecr)
-local jabby_ecs_registry = require(script.Parent.Parent.Parent.roblox_packages.jabby_ecs_registry)
-local jabby_query_parser = require(script.Parent.Parent.Parent.roblox_packages.jabby_query_parser)
-local jabby_types = require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
-local jabby_util = require(script.Parent.Parent.Parent.roblox_packages.jabby_util)
-local lua_object_notation = require(script.Parent.Parent.Parent.roblox_packages.lua_object_notation)
-local lua_preview_notation = require(script.Parent.Parent.Parent.roblox_packages.lua_preview_notation)
+local jabby_ecs_registry =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_ecs_registry)
+local jabby_query_parser =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_query_parser)
+local jabby_types =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
+local jabby_util =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_util)
+local lua_object_notation =
+	require(script.Parent.Parent.Parent.roblox_packages.lua_object_notation)
+local lua_preview_notation =
+	require(script.Parent.Parent.Parent.roblox_packages.lua_preview_notation)
 
 local net = jabby_ecs_registry.net
 
 type QueryData = {
-	update_settings: typeof(net.update_settings:open_socket("server")),
-	update_query_data: typeof(net.update_query_data:open_socket("server")),
-	update_value: typeof(net.update_value:open_socket("server")),
-	
+	update_settings: typeof(net.update_settings:open_socket "server"),
+	update_query_data: typeof(net.update_query_data:open_socket "server"),
+	update_value: typeof(net.update_value:open_socket "server"),
+
 	view: { unknown },
 	include: { unknown },
 	exclude: { unknown },
@@ -24,18 +30,19 @@ type QueryData = {
 
 	from: number,
 	upto: number,
-	live_update: boolean
+	live_update: boolean,
 }
-type EntityInfo = {
-	update_entity_components: typeof(net.update_entity_components:open_socket("server")),
-	update_tracking_settings: typeof(net.update_tracking_settings:open_socket("server")),
-	live_updates: boolean,
-	entity: ecr.entity,
+type EntityInfo =
+	{
+		update_entity_components: typeof(net.update_entity_components:open_socket "server"),
+		update_tracking_settings: typeof(net.update_tracking_settings:open_socket "server"),
+		live_updates: boolean,
+		entity: ecr.entity,
 
-	components: { [unknown]: string },
-}
+		components: { [unknown]: string },
+	}
 
-local function find_swap_pop<T>(list: {T}, value: T)
+local function find_swap_pop<T>(list: { T }, value: T)
 	local idx = table.find(list, value)
 	if not idx then return end
 	list[idx] = list[#list]
@@ -44,7 +51,7 @@ end
 
 return function(applet: jabby_types.JabbyApplet<{
 	world: ecr.Registry,
-	components: { [string]: unknown }
+	components: { [string]: unknown },
 }>)
 	local id = applet.unique_id
 	local query_world = net.query_world:connect(id)
@@ -61,21 +68,22 @@ return function(applet: jabby_types.JabbyApplet<{
 		return applet.configuration.components[value] ~= nil
 	end
 
-	local function is_component_id(entity: number)
-		return true
-	end
+	local function is_component_id(entity: number) return true end
 
 	local function get_component_name_from_id(id: number)
-		return jabby_query_parser.into_string({
-			get_name = function()
-				for name, component in applet.configuration.components do
-					if component == id then return name end
-				end
-				return nil :: any
-			end,
-		} :: any, id)
+		return jabby_query_parser.into_string(
+			{
+				get_name = function()
+					for name, component in applet.configuration.components do
+						if component == id then return name end
+					end
+					return nil :: any
+				end,
+			} :: any,
+			id
+		)
 	end
-	
+
 	local function get_component_from_name(name: string)
 		return applet.configuration.components[name]
 	end
@@ -95,7 +103,8 @@ return function(applet: jabby_types.JabbyApplet<{
 				assert(component.token, "no component text available")
 				local text = component.token.text
 
-				components[idx] = applet.configuration.components[text] :: unknown
+				components[idx] =
+					applet.configuration.components[text] :: unknown
 				component_names[idx] = text
 			end
 		end
@@ -115,64 +124,71 @@ return function(applet: jabby_types.JabbyApplet<{
 
 	local function report_capabilities()
 		for sender, resolve in get_capabilities:iter() do
-			resolve({
+			resolve {
 				entities_as_components = false,
 				has_relationships = false,
 				has_wildcard_relationships = false,
 				has_exclude = true,
-				exclude_only = true
-			})
+				exclude_only = true,
+			}
 		end
 	end
 
 	local function check_if_valid()
 		for sender, resolve, query_input in check_valid:iter() do
-			local _, result = pcall(function()
-				return jabby_query_parser.values(query_input, {
-					is_component = is_component,
-					is_id = is_component_id,
-					features = {
-						enable_excludes = true,
-						enable_relationships = false,
-						enable_wildcard = false,
-						enable_only_excludes = true
-					},
-				})
-			end)
-			
+			local _, result = pcall(
+				function()
+					return jabby_query_parser.values(query_input, {
+						is_component = is_component,
+						is_id = is_component_id,
+						features = {
+							enable_excludes = true,
+							enable_relationships = false,
+							enable_wildcard = false,
+							enable_only_excludes = true,
+						},
+					})
+				end
+			)
+
 			resolve(result.issues)
 		end
 	end
 
 	local function handle_world_query_request()
 		for sender, resolve, query_input in query_world:iter() do
-			local ok, result = pcall(function()
-				return jabby_query_parser.values(query_input, {
-					is_component = is_component,
-					is_id = is_component_id,
-					features = {
-						enable_excludes = true,
-						enable_relationships = false,
-						enable_wildcard = false,
-						enable_only_excludes = true
-					},
-				})
-			end)
+			local ok, result = pcall(
+				function()
+					return jabby_query_parser.values(query_input, {
+						is_component = is_component,
+						is_id = is_component_id,
+						features = {
+							enable_excludes = true,
+							enable_relationships = false,
+							enable_wildcard = false,
+							enable_only_excludes = true,
+						},
+					})
+				end
+			)
 
 			if not ok then
-				resolve({
+				resolve {
 					ok = false :: false,
-					issues = result.issues
-				})
+					issues = result.issues,
+				}
 			else
 				assert(result.values)
 				local view, view_names = get_component_info(result.values.view)
 				local exclude = get_component_info(result.values.exclude)
 				local include = get_component_info(result.values.include)
 
-				local update_settings, update_settings_id = net.update_settings:open_socket(sender)
-				local update_query_data, update_query_data_id = net.update_query_data:open_socket(sender)
-				local update_value, update_value_id = net.update_value:open_socket(sender)
+				local update_settings, update_settings_id =
+					net.update_settings:open_socket(sender)
+				local update_query_data, update_query_data_id =
+					net.update_query_data:open_socket(sender)
+				local update_value, update_value_id =
+					net.update_value:open_socket(sender)
 
 				local values_a = {}
 				local values_b = {}
@@ -196,21 +212,21 @@ return function(applet: jabby_types.JabbyApplet<{
 
 					from = 1,
 					upto = 20,
-					live_update = true
+					live_update = true,
 				}
 
 				i += 1
 				active_queries[i] = query_data
 
-				resolve({
+				resolve {
 					ok = true :: true,
 					update_settings = update_settings_id,
 					update_query_data = update_query_data_id,
 					update_value = update_value_id,
 
 					components = view_names,
-					can_be_inspected = false
-				})
+					can_be_inspected = false,
+				}
 			end
 		end
 	end
@@ -220,7 +236,7 @@ return function(applet: jabby_types.JabbyApplet<{
 			query.upto = packet.upto
 			query.from = packet.from
 			query.live_update = packet.live
-			
+
 			for _, column in query.values_b do
 				table.clear(column)
 			end
@@ -241,9 +257,16 @@ return function(applet: jabby_types.JabbyApplet<{
 
 		local start = os.clock()
 
-		if #components_to_query == 0 then components_to_query = { ecr.entity } end
+		if #components_to_query == 0 then
+			components_to_query = { ecr.entity }
+		end
 
-		for id in applet.configuration.world:view(unpack(components_to_query)):exclude(unpack(query.exclude)):iter() do
+		for id in
+			applet.configuration.world
+				:view(unpack(components_to_query))
+				:exclude(unpack(query.exclude))
+				:iter()
+		do
 			n += 1
 
 			if query.from > n then continue end
@@ -251,39 +274,38 @@ return function(applet: jabby_types.JabbyApplet<{
 			idx += 1
 
 			query.values_a[1][idx] = tostring(id)
-			
+
 			for column, component in query.view do
 				local value = applet.configuration.world:try_get(id, component)
 				local input = lua_preview_notation(value, 700)
 				query.values_a[column + 1][idx] = input
 			end
 		end
-		
+
 		for column_idx, column in query.values_a do
 			for row_idx, new_value in column do
 				local old_value = query.values_b[column_idx][row_idx]
 				if old_value == new_value then continue end
-				query.update_value:send({
+				query.update_value:send {
 					column = column_idx,
 					row = row_idx,
-					value = new_value
-				})
+					value = new_value,
+				}
 			end
 		end
 		local finish = os.clock()
 
 		query.values_b, query.values_a = query.values_a, query.values_b
-		query.update_query_data:send({
+		query.update_query_data:send {
 			entities = n,
 			time_taken = finish - start,
-			valid = true
-		})
+			valid = true,
+		}
 	end
 
 	local function update_query_requests()
 		for idx, query in active_queries do
-			local is_closed =
-				query.update_query_data:status() == "closed" 
+			local is_closed = query.update_query_data:status() == "closed"
 				or query.update_settings:status() == "closed"
 				or query.update_value:status() == "closed"
 
@@ -302,15 +324,20 @@ return function(applet: jabby_types.JabbyApplet<{
 
 	local open: { EntityInfo } = {}
 
-	local function get_new_update_entity(target: "server" | Player, id: unknown): (EntityInfo?)
+	local function get_new_update_entity(
+		target: "server" | Player,
+		id: unknown
+	): EntityInfo?
 		-- check if the entity can be converted into something usable
 		if not tonumber(id) then return nil end
-		
+
 		local entity = tonumber(id)
 		assert(entity)
 
-		local update_entity_components = net.update_entity_components:open_socket(target)
-		local update_tracking_settings = net.update_tracking_settings:open_socket(target)
+		local update_entity_components =
+			net.update_entity_components:open_socket(target)
+		local update_tracking_settings =
+			net.update_tracking_settings:open_socket(target)
 
 		local entity_info: EntityInfo = {
 			update_entity_components = update_entity_components,
@@ -318,7 +345,7 @@ return function(applet: jabby_types.JabbyApplet<{
 			live_updates = true,
 			entity = entity,
 
-			components = {}
+			components = {},
 		}
 		table.insert(open, entity_info)
 		return entity_info
@@ -341,11 +368,11 @@ return function(applet: jabby_types.JabbyApplet<{
 			if not applet.configuration.world:has(data.entity, component) then
 				local name = get_component_name_from_id(component)
 				data.components[component] = nil
-				data.update_entity_components:send({
+				data.update_entity_components:send {
 					component = name,
 					tag = false,
-					value = nil
-				})
+					value = nil,
+				}
 			end
 		end
 
@@ -356,16 +383,18 @@ return function(applet: jabby_types.JabbyApplet<{
 			local new_value = lua_object_notation.output(value, true, true)
 			local new_value_size = #new_value
 			new_value = string.sub(new_value, 1, 160)
-			
-			if new_value_size > 160 then new_value ..= "..." end
+
+			if new_value_size > 160 then
+				new_value ..= "..."
+			end
 			if new_value ~= previous_value then
 				local tag = ecr.is_tag(component)
 				data.components[component] = new_value
-				data.update_entity_components:send({
+				data.update_entity_components:send {
 					component = name,
 					tag = tag,
-					value = if tag then nil else new_value
-				})
+					value = if tag then nil else new_value,
+				}
 			end
 		end
 	end
@@ -387,14 +416,14 @@ return function(applet: jabby_types.JabbyApplet<{
 			local entity_info = get_new_update_entity(sender, value.entity)
 
 			if entity_info then
-				resolve({
+				resolve {
 					is_valid = true,
 					allow_entity_editing = true,
 					update_entity_components = entity_info.update_entity_components.socket_id,
-					update_tracking_settings = entity_info.update_tracking_settings.socket_id
-				})
+					update_tracking_settings = entity_info.update_tracking_settings.socket_id,
+				}
 			else
-				resolve({ is_valid = false })
+				resolve { is_valid = false }
 			end
 		end
 	end
@@ -425,7 +454,7 @@ return function(applet: jabby_types.JabbyApplet<{
 					exists = false :: false,
 					is_valid = true,
 					is_tag = ecr.is_tag(component),
-					name = get_component_name_from_id(id)
+					name = get_component_name_from_id(id),
 				}
 				continue
 			end
@@ -436,15 +465,19 @@ return function(applet: jabby_types.JabbyApplet<{
 					exists = true :: true,
 					component = nil,
 					is_tag = true :: true,
-					name = get_component_name_from_id(id)
+					name = get_component_name_from_id(id),
 				}
 				continue
 			else
 				resolve {
 					exists = true,
-					component = lua_object_notation.output(component_value, true, false),
+					component = lua_object_notation.output(
+						component_value,
+						true,
+						false
+					),
 					is_tag = false,
-					name = get_component_name_from_id(id)
+					name = get_component_name_from_id(id),
 				}
 				continue
 			end
@@ -469,7 +502,7 @@ return function(applet: jabby_types.JabbyApplet<{
 					continue
 				end
 
-				print("CONTINUE")
+				print "CONTINUE"
 
 				if not applet.configuration.world:contains(e) then
 					is_ok = false
@@ -494,7 +527,8 @@ return function(applet: jabby_types.JabbyApplet<{
 					continue
 				end
 
-				local new = lua_object_notation.compile(result, { old = old_value })
+				local new =
+					lua_object_notation.compile(result, { old = old_value })
 
 				if ecr.is_tag(ctype) then
 					is_ok = false

@@ -14,7 +14,7 @@ export type Pad = {
 	x: Can<number>?,
 	y: Can<number>?,
 
-	p: Can<number>?
+	p: Can<number>?,
 }
 
 return function(props: Pad)
@@ -27,7 +27,7 @@ return function(props: Pad)
 	local b = props.b or y
 	local r = props.r or x
 
-	return create ("UIPadding" :: "UIPadding") {
+	return create("UIPadding" :: "UIPadding") {
 		PaddingLeft = function() return UDim.new(0, read(l)) end,
 		PaddingRight = function() return UDim.new(0, read(r)) end,
 		PaddingTop = function() return UDim.new(0, read(t)) end,

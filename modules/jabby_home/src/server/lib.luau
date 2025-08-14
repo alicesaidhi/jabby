@@ -1,9 +1,11 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
+local Players = game:GetService "Players"
+local RunService = game:GetService "RunService"
+local Stats = game:GetService "Stats"
 
-local jabby_core = require(script.Parent.Parent.Parent.roblox_packages.jabby_core)
-local jabby_types = require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
+local jabby_core =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_core)
+local jabby_types =
+	require(script.Parent.Parent.Parent.roblox_packages.jabby_types)
 local net = require(script.Parent.Parent.net)
 
 local registered_applets = jabby_core.active_applets
@@ -21,10 +23,10 @@ return function(applet: jabby_types.JabbyApplet<any>)
 				name = applet.name,
 				description = applet.description,
 				id = applet.unique_id,
-				client = applet.client
+				client = applet.client,
 			}
 		end
-		
+
 		return applets
 	end)
 
@@ -62,8 +64,12 @@ return function(applet: jabby_types.JabbyApplet<any>)
 				buffer.writef32(b, 0, average_heartbeat / counter)
 				buffer.writef32(b, 4, render_gpu_frame_time / counter)
 				buffer.writef32(b, 8, render_cpu_frame_time / counter)
-				buffer.writef32(b, 12, Stats:GetTotalMemoryUsageMb() * 1000 * 1000)
-				
+				buffer.writef32(
+					b,
+					12,
+					Stats:GetTotalMemoryUsageMb() * 1000 * 1000
+				)
+
 				socket:send(b)
 			end
 
@@ -78,5 +84,4 @@ return function(applet: jabby_types.JabbyApplet<any>)
 	if RunService:IsClient() then
 		jabby_core.open_client(applet, { id = 0, to = Players.LocalPlayer })
 	end
-
 end

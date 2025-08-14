@@ -1,8 +1,8 @@
-local UserInputService = game:GetService("UserInputService")
+local UserInputService = game:GetService "UserInputService"
 
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
 local container = require(script.Parent.container)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local source = vide.source
 local effect = vide.effect
@@ -16,41 +16,45 @@ local BEFORE = 0
 local AFTER = 1
 
 type Can<T> = T | () -> T
-return component(function(p: {
-	fields: () -> { (idx: number) -> Instance },
-	min_sizes: (() -> { number })?,
-	use_offset: (() -> { number })?,
-	sizes: ({ number }) -> ()?,
-	suggested_sizes: { number }?,
+return component(function(
+	p: {
+		fields: () -> { (idx: number) -> Instance },
+		min_sizes: (() -> { number })?,
+		use_offset: (() -> { number })?,
+		sizes: ({ number }) -> ()?,
+		suggested_sizes: { number }?,
 
-	splits: (vide.source<{ number }>)?,
-	base_splits: { number }?
-}, _)
-
+		splits: vide.source<{ number }>?,
+		base_splits: { number }?,
+	},
+	_
+)
 	local fields = p.fields
-	local sizes = p.sizes or source({}) :: never
-	local min_sizes = p.min_sizes or source({}) :: never
+	local sizes = p.sizes or source {} :: never
+	local min_sizes = p.min_sizes or source {} :: never
 	local suggested_sizes = p.suggested_sizes or {}
-	local use_offset = p.use_offset or source({}) :: never
+	local use_offset = p.use_offset or source {} :: never
 
 	local absolute_size = source(Vector2.zero)
 	local absolute_position = source(Vector2.zero)
 
-	local total = derive(function()
-		return #fields()
-	end)
+	local total = derive(function() return #fields() end)
 
 	local splits = p.splits :: never or source({} :: { number })
-	local total_columns = derive(function()
-		return #fields()
-	end)
+	local total_columns = derive(function() return #fields() end)
 
 	effect(function(previous: { () -> number })
 		local new: { number } = {}
 
 		for i = 1, total_columns() - 1 do
-			local old_split: number? = read(if previous then previous[i] else nil)
-			new[i] = math.min(if old_split and old_split ~= 1 then old_split else suggested_sizes[i] or 1, i / total_columns())
+			local old_split: number? =
+				read(if previous then previous[i] else nil)
+			new[i] = math.min(
+				if old_split and old_split ~= 1
+					then old_split
+					else suggested_sizes[i] or 1,
+				i / total_columns()
+			)
 		end
 
 		splits(new)
@@ -69,7 +73,7 @@ return component(function(p: {
 		return split_after - split_before
 	end
 
-	local function get_min_size(i: number)  
+	local function get_min_size(i: number)
 		local min_size = min_sizes()[i]
 		return min_size or 0.2
 	end
@@ -82,9 +86,7 @@ return component(function(p: {
 
 	effect(function()
 		local new = setmetatable({} :: { [number]: () -> number }, {
-			__index = function()
-				return 0
-			end,
+			__index = function() return 0 end,
 		})
 
 		for i = 1, total() do
@@ -132,19 +134,18 @@ return component(function(p: {
 					splits()[i] = splits()[i] + difference
 				end
 
-
 				if left_to_move == 0 then break end
 			end
 			splits(splits())
 			return left_to_move
 		end
 	end
-	
+
 	effect(function(old: Vector2)
 		if not old then return absolute_size() end
 		local new = absolute_size()
 		if new == old then return new end
-		
+
 		untrack(function()
 			for idx, min in use_offset() do
 				-- first update the min size
@@ -152,9 +153,11 @@ return component(function(p: {
 
 				-- then we update the actual size
 				local old_size = get_size(idx)
-				local old_size_offset = old_size * if old.X == 0 then 1 else old.X
-				local new_expected_size = math.max(min / new.X, old_size_offset / new.X)
-				
+				local old_size_offset = old_size
+					* if old.X == 0 then 1 else old.X
+				local new_expected_size =
+					math.max(min / new.X, old_size_offset / new.X)
+
 				local left = resize(new_expected_size - old_size, idx)
 				resize(-left, idx)
 			end
@@ -168,29 +171,33 @@ return component(function(p: {
 
 		container {
 			name = "Fields",
-			ws = 1, hs = 1,
+			ws = 1,
+			hs = 1,
 
 			flex = { direction = "row" },
 
-			indexes(fields, function(field: () -> (number) -> Instance, idx: number)
-				return container {
-					ws = function() return get_size(idx) end, hs = 1,
-					flex = {},
+			indexes(
+				fields,
+				function(field: () -> (number) -> Instance, idx: number)
+					return container {
+						ws = function() return get_size(idx) end,
+						hs = 1,
+						flex = {},
 
-					function()
-						local fn = field()
-						return untrack(function()
-							return fn(idx)
-						end)
-					end
-				}
-			end :: any) :: any,
+						function()
+							local fn = field()
+							return untrack(function() return fn(idx) end)
+						end,
+					}
+				end :: any
+			) :: any,
 		},
 
 		container {
 			name = "Draggers",
 
-			ws = 1, hs = 1,
+			ws = 1,
+			hs = 1,
 			z = 100,
 
 			changed("AbsoluteSize", absolute_size),
@@ -199,7 +206,8 @@ return component(function(p: {
 			indexes(splits, function(value: () -> number, key)
 				return container {
 					xs = value, --todo: increase the width of the dragger based on viewport size
-					w = 8, hs = 1,
+					w = 8,
+					hs = 1,
 					anchor = { 0.5, 0 },
 
 					input = function(input: InputObject)
@@ -212,8 +220,7 @@ return component(function(p: {
 						resize(delta, key)
 					end,
 				}
-			end) :: any
-		}
-
+			end) :: any,
+		},
 	}
 end)

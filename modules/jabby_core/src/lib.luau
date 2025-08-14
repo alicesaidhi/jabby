@@ -1,4 +1,3 @@
-
 local jabby_types = require(script.Parent.Parent.roblox_packages.jabby_types)
 local vm_counter = require(script.Parent.vm_counter)
 local vm_id = require(script.Parent.vm_id)
@@ -7,7 +6,7 @@ export type Host = jabby_types.Host
 export type JabbyApplet<T> = jabby_types.JabbyApplet<T>
 export type JabbyAppletInterface<T> = jabby_types.JabbyAppletInterface<T>
 export type JabbyCore = {
-	applet: <T>( applet: JabbyAppletInterface<T>, config: T ) -> ()
+	applet: <T>(applet: JabbyAppletInterface<T>, config: T) -> (),
 }
 
 --- @class jabby_core
@@ -31,7 +30,7 @@ local function register_applet<T>(applet: JabbyAppletInterface<T>, config: T)
 		description = applet.description,
 		configuration = config,
 		unique_id = vm_counter(),
-		client = applet.client
+		client = applet.client,
 	}
 
 	active_applets[applet_data.unique_id] = applet_data
@@ -49,11 +48,15 @@ Opens a new client for a specific target
 @param target Target
 @return JabbyApplet
 ]=]
-local function open_client(applet: JabbyAppletInterface<any> | JabbyApplet<any>, target: jabby_types.Target)
-	local client: jabby_types.JabbyClientAppletInterface = (require :: any)(applet.client)
+local function open_client(
+	applet: JabbyAppletInterface<any> | JabbyApplet<any>,
+	target: jabby_types.Target
+)
+	local client: jabby_types.JabbyClientAppletInterface = (require :: any)(
+		applet.client
+	)
 	return client.open_client(target)
 end
-
 
 --[=[
 @within jabby_core
@@ -67,5 +70,5 @@ return {
 	vm_id = vm_id,
 
 	register_applet = register_applet,
-	open_client = open_client
+	open_client = open_client,
 }

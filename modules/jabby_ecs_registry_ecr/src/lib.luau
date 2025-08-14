@@ -5,17 +5,16 @@ local lib = require(script.Parent.server.lib)
 local interface: jabby_types.JabbyAppletInterface<{
 	world: ecr.Registry,
 	components: {
-		[string]: unknown
+		[string]: unknown,
+	},
+}> =
+	{
+		name = "Jabby ECR Registry",
+		description = "ECR Registry",
+
+		registered = function(self) lib(self) end,
+
+		client = script.Parent.Parent.roblox_packages.jabby_ecs_registry,
 	}
-}> = {
-	name = "Jabby ECR Registry",
-	description = "ECR Registry",
-
-	registered = function(self)
-		lib(self)
-	end,
-
-	client = script.Parent.Parent.roblox_packages.jabby_ecs_registry
-}
 
 return interface

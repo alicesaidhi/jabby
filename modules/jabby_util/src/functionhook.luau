@@ -1,5 +1,8 @@
-local function i_hook_onto(hook_onto: {[any]: any}, key: string, hooks: {(...any) -> ()})
-
+local function i_hook_onto(
+	hook_onto: { [any]: any },
+	key: string,
+	hooks: { (...any) -> () }
+)
 	local method: any = hook_onto[key]
 
 	assert(typeof(method) == "function", "can only hook onto functions")
@@ -15,16 +18,14 @@ local function i_hook_onto(hook_onto: {[any]: any}, key: string, hooks: {(...any
 	-- print(debug.info(world[key], "s"))
 	hook_onto[key] = run_hook
 
-	local function unhook()
-		hook_onto[key] = method
-	end
-	
+	local function unhook() hook_onto[key] = method end
+
 	return unhook
 end
 
 local hooks = {}
 
-local function find_swap_pop<T>(list: {T}, value: T)
+local function find_swap_pop<T>(list: { T }, value: T)
 	local idx = table.find(list, value)
 	if not idx then return end
 	list[idx] = list[#list]
@@ -36,14 +37,13 @@ Hooks a method on the given table, replacing it for it's own. Any calls to this
 method will first call the hook, before calling the method.
 ]]
 local function hook_onto(t: any, key: string, hook: (...any) -> ())
-
 	local hash = `{t}:{key}`
 	if hooks[hash] == nil then
 		local callbacks = {}
 		local cleanup = i_hook_onto(t, key, callbacks)
 		hooks[hash] = {
 			cleanup = cleanup,
-			callbacks = callbacks
+			callbacks = callbacks,
 		}
 	end
 
@@ -55,7 +55,7 @@ local function hook_onto(t: any, key: string, hook: (...any) -> ())
 		if dead then return end
 		dead = true
 		find_swap_pop(hook_info.callbacks, hook)
-		
+
 		if hook_info.callbacks[1] == nil then
 			hook_info.cleanup()
 			hooks[hash] = nil
@@ -66,5 +66,5 @@ local function hook_onto(t: any, key: string, hook: (...any) -> ())
 end
 
 return {
-	hook_onto = hook_onto
+	hook_onto = hook_onto,
 }

@@ -43,16 +43,16 @@ A term specifies a
 export type QueryFilterPredicate = {
 	include: { Term },
 	exclude: { Term },
-	read: { Term }
+	read: { Term },
 }
 
 export type ValueFilterPredicate = {
-	conditional: (unknown) -> boolean
+	conditional: (unknown) -> boolean,
 }
 
 export type ReadPredicate = {
 	term: Term,
-	predicate: ValueFilterPredicate?
+	predicate: ValueFilterPredicate?,
 }
 
 -- Parser
@@ -93,34 +93,30 @@ export type Token<T = TokenKind> = {
 export type Term_Named = {
 	read kind: "named",
 	read token: Token<"string" | "identifier">,
-	read span: Span
+	read span: Span,
 }
 
 export type Term_Id = {
 	read kind: "id",
 	read prefix: Token<"$">,
 	read token: Token<"number">?,
-	read span: Span
+	read span: Span,
 }
 
 export type Term_Wildcard = {
 	read kind: "wildcard",
 	read token: Token<"*">,
-	read span: Span
+	read span: Span,
 }
 
 export type Term_Relationship = {
 	read kind: "relationship",
-	read tokens: Surrounded<
-		{
-			read left: TermPrimitive | Term_Wildcard?,
-			read separator: Token<",">?,
-			read right: TermPrimitive | Term_Wildcard?,
-		},
-		"(",
-		")"
-	>,
-	read span: vector
+	read tokens: Surrounded<{
+		read left: TermPrimitive | Term_Wildcard?,
+		read separator: Token<",">?,
+		read right: TermPrimitive | Term_Wildcard?,
+	}, "(", ")">,
+	read span: vector,
 }
 
 -- type Predicate_FunctionCall = {
@@ -148,60 +144,52 @@ export type Term_Relationship = {
 -- 	read prefix: Token<"@">,
 -- 	read filter: Token<"identifier">,
 -- 	read arguments: Surrounded<{
--- 		read value: 
+-- 		read value:
 -- 		read separator: Token<",">,
 -- 		read span: Span
 -- 	}, "(", ")">,
 
 -- }
 
-export type TermPrimitive =
-	| Term_Named
-	| Term_Id
+export type TermPrimitive = | Term_Named | Term_Id
 
-export type Term =
-	| TermPrimitive
-	| Term_Relationship
+export type Term = | TermPrimitive | Term_Relationship
 
 export type ExcludeTerm = {
 	read kind: "exclude",
 	read prefix: Token<"!">,
 	read term: Term?,
-	read span: Span
+	read span: Span,
 }
 
 export type ViewTerm = {
 	read kind: "view",
 	read term: Term,
-	read span: Span
+	read span: Span,
 }
 
 export type TagTerm = {
 	read kind: "tag",
 	read prefix: Token<"#">,
 	read term: Term?,
-	read span: Span
+	read span: Span,
 }
 
-export type QueryTerm =
-	| ExcludeTerm
-	| ViewTerm
-	| TagTerm
+export type QueryTerm = | ExcludeTerm | ViewTerm | TagTerm
 
 export type QueryResult = {
-	read terms: Separated<QueryTerm>
+	read terms: Separated<QueryTerm>,
 }
 
 export type Issue = {
 	why: string,
-	span: vector
+	span: vector,
 }
 export type ParseResult = { result: QueryResult?, issues: { Issue } }
 
 local function char(c: string): number return string.byte(c) :: number end
 
 local function parse(input: buffer): ParseResult
-
 	local pos = 0
 	local line = 0
 	local len = buffer.len(input)
@@ -228,7 +216,7 @@ local function parse(input: buffer): ParseResult
 			table.insert(issues, { why = msg, span = vector.create(pos, pos) })
 			error({
 				result = nil,
-				issues = issues
+				issues = issues,
 			}, 0)
 		end
 		return false
@@ -484,12 +472,12 @@ local function parse(input: buffer): ParseResult
 		}
 
 		table.insert(issues, report)
-		return error({
+		return error {
 			result = nil,
-			issues = issues
-		})
+			issues = issues,
+		}
 	end
-	
+
 	local function nonfatal(message: string, span: vector?): false
 		local report = {
 			why = message,
@@ -500,19 +488,15 @@ local function parse(input: buffer): ParseResult
 		return false
 	end
 
-	local function expect_fatal(
-		kind: TokenKindText | TokenKindRest
-	): never
+	local function expect_fatal(kind: TokenKindText | TokenKindRest): never
 		return fatal(
 			`expected {display({ kind = kind } :: any)}, but got {display(
 				current_token
 			)} of {current_kind} instead`
 		)
 	end
-	
-	local function expect_nonfatal(
-		kind: TokenKindText | TokenKindRest
-	): false
+
+	local function expect_nonfatal(kind: TokenKindText | TokenKindRest): false
 		nonfatal(
 			`expected {display({ kind = kind } :: any)}, but got {display(
 				current_token
@@ -522,7 +506,9 @@ local function parse(input: buffer): ParseResult
 		return false
 	end
 
-	local function expect<T>(kind: T & (TokenKindText | TokenKindRest)): Token<T> | false
+	local function expect<T>(
+		kind: T & (TokenKindText | TokenKindRest)
+	): Token<T> | false
 		if current_is(kind) then
 			return consume() :: any
 		else
@@ -546,13 +532,21 @@ local function parse(input: buffer): ParseResult
 		local term_a = parse_term_prim_or_wildcard()
 		local separator = expect("," :: ",")
 		local term_b = parse_term_prim_or_wildcard()
-		
+
 		local right = expect(")" :: ")")
 
 		local last_term = right or term_b or separator or term_a or left
 
-		if term_a and term_a.kind == "wildcard" and term_b and term_b.kind == "wildcard" then
-			nonfatal("both relationship terms are wildcards", vector.create(left.span.x, last_term.span.y))
+		if
+			term_a
+			and term_a.kind == "wildcard"
+			and term_b
+			and term_b.kind == "wildcard"
+		then
+			nonfatal(
+				"both relationship terms are wildcards",
+				vector.create(left.span.x, last_term.span.y)
+			)
 		end
 
 		return {
@@ -566,26 +560,28 @@ local function parse(input: buffer): ParseResult
 					left = term_a,
 					separator = separator or nil,
 					right = term_b,
-				}
-			}
+				},
+			},
 		}
 	end
 
 	function parse_term_prim(): TermPrimitive?
-		if current_is("string") or current_is("identifier") then
-			local token =
-				if current_is("string") then expect("string" :: "string")
+		if current_is "string" or current_is "identifier" then
+			local token = if current_is "string"
+				then expect("string" :: "string")
 				else expect("identifier" :: "identifier")
-			if not token then return expect_fatal("string or identifier" :: any) end
+			if not token then
+				return expect_fatal("string or identifier" :: any)
+			end
 
 			return {
 				kind = "named",
 				token = token :: Token<"string" | "identifier">,
-				span = token.span
+				span = token.span,
 			}
-		elseif current_is("$") then
+		elseif current_is "$" then
 			local prefix = expect("$" :: "$")
-			if not prefix then return expect_fatal("$") end
+			if not prefix then return expect_fatal "$" end
 
 			local id = expect("number" :: "number")
 			local last = id or prefix
@@ -594,7 +590,7 @@ local function parse(input: buffer): ParseResult
 				kind = "id",
 				prefix = prefix,
 				token = id or nil,
-				span = vector.create(prefix.span.x, last.span.y)
+				span = vector.create(prefix.span.x, last.span.y),
 			}
 		else
 			expect_nonfatal("term" :: any)
@@ -603,14 +599,14 @@ local function parse(input: buffer): ParseResult
 	end
 
 	function parse_term_prim_or_wildcard(): (TermPrimitive | Term_Wildcard)?
-		if current_is("*") then
+		if current_is "*" then
 			local token = expect("*" :: "*")
-			if not token then return expect_fatal("*") end
+			if not token then return expect_fatal "*" end
 
 			local wildcard: Term_Wildcard = {
 				kind = "wildcard",
 				token = token,
-				span = token.span
+				span = token.span,
 			}
 
 			return wildcard
@@ -620,7 +616,7 @@ local function parse(input: buffer): ParseResult
 	end
 
 	function parse_term(): Term?
-		if current_is("(") then
+		if current_is "(" then
 			return parse_relationship()
 		else
 			return parse_term_prim()
@@ -634,13 +630,13 @@ local function parse(input: buffer): ParseResult
 		return {
 			kind = "view",
 			term = term,
-			span = term.span
+			span = term.span,
 		}
 	end
-	
+
 	function parse_exclude_term(): ExcludeTerm
 		local prefix = expect("!" :: "!")
-		if not prefix then return expect_fatal("!") end
+		if not prefix then return expect_fatal "!" end
 		local term = parse_term()
 
 		local last = term or prefix
@@ -648,13 +644,13 @@ local function parse(input: buffer): ParseResult
 			kind = "exclude",
 			prefix = prefix,
 			term = term,
-			span = vector.create(prefix.span.x, last.span.y)
+			span = vector.create(prefix.span.x, last.span.y),
 		}
 	end
 
 	function parse_tag_term(): TagTerm
 		local prefix = expect("#" :: "#")
-		if not prefix then return expect_fatal("#") end
+		if not prefix then return expect_fatal "#" end
 		local term = parse_term()
 
 		local last = term or prefix
@@ -662,43 +658,47 @@ local function parse(input: buffer): ParseResult
 			kind = "tag",
 			prefix = prefix,
 			term = term,
-			span = vector.create(prefix.span.x, last.span.y)
+			span = vector.create(prefix.span.x, last.span.y),
 		}
 	end
 
 	function parse_terms(): QueryResult
 		local terms = {}
 
-		while current_is("eof") == false do
-			if current_is("#") then
+		while current_is "eof" == false do
+			if current_is "#" then
 				table.insert(terms, parse_tag_term())
-			elseif current_is("!") then
+			elseif current_is "!" then
 				table.insert(terms, parse_exclude_term())
 			else
 				table.insert(terms, parse_view_term())
 			end
 
-			if not current_is(",") then break else consume() end
+			if not current_is "," then
+				break
+			else
+				consume()
+			end
 		end
 
-		if not current_is("eof") then expect_nonfatal("eof") end
-		
+		if not current_is "eof" then expect_nonfatal "eof" end
+
 		return {
-			terms = terms
+			terms = terms,
 		}
 	end
 
 	local result = parse_terms()
 
 	if #issues > 0 then
-		error({
+		error {
 			result = result,
-			issues = issues
-		})
+			issues = issues,
+		}
 	else
 		return {
 			result = result,
-			issues = issues
+			issues = issues,
 		}
 	end
 end
@@ -717,19 +717,21 @@ export type FeatureOptions = {
 	disable_merge_include_view: boolean?,
 }
 
-
 type Result = {
 	result: QueryResult?,
 	values: { include: { Term }, exclude: { Term }, view: { Term } }?,
-	issues: { Issue }
+	issues: { Issue },
 }
 
-local function process(input: string, options: {
-	is_component: ((string) -> boolean)?,
-	is_id: ((number) -> boolean)?,
-	
-	features: FeatureOptions
-}): Result
+local function process(
+	input: string,
+	options: {
+		is_component: ((string) -> boolean)?,
+		is_id: ((number) -> boolean)?,
+
+		features: FeatureOptions,
+	}
+): Result
 	local b = buffer.fromstring(input)
 	local result = parse(b)
 	assert(result.result)
@@ -759,7 +761,9 @@ local function process(input: string, options: {
 		if not token then return end
 
 		local n = tonumber(token.text)
-		if not n then return throw(`{token.text} is not a valid number`, token.span) end
+		if not n then
+			return throw(`{token.text} is not a valid number`, token.span)
+		end
 		if options.is_id(n) then return end
 		throw(`{token.text} is not a valid id`, token.span)
 	end
@@ -772,15 +776,19 @@ local function process(input: string, options: {
 		end
 	end
 
-	local function check_primitive_or_wildcard(term: TermPrimitive | Term_Wildcard)
+	local function check_primitive_or_wildcard(
+		term: TermPrimitive | Term_Wildcard
+	)
 		if term.kind == "wildcard" then
-			if not options.features.enable_wildcard then throw("wildcards are not enabled", term.span) end
+			if not options.features.enable_wildcard then
+				throw("wildcards are not enabled", term.span)
+			end
 			return
 		else
 			check_primitive(term)
 		end
 	end
-	
+
 	local function check_relationship(term: Term_Relationship)
 		if not options.features.enable_relationships then
 			return throw(`relationships are not enabled`, term.span)
@@ -821,7 +829,7 @@ local function process(input: string, options: {
 			table.insert(include, term.term)
 		elseif term.kind == "view" then
 			check_term(term.term)
-			
+
 			table.insert(view, term.term)
 			if not options.features.disable_merge_include_view then
 				table.insert(include, term.term)
@@ -831,7 +839,10 @@ local function process(input: string, options: {
 
 	if options.features.enable_only_excludes ~= true then
 		if #include == 0 and #exclude ~= 0 then
-			throw("cannot exclude without including compoennts", vector.create(1, #input))
+			throw(
+				"cannot exclude without including compoennts",
+				vector.create(1, #input)
+			)
 		end
 	end
 
@@ -841,8 +852,8 @@ local function process(input: string, options: {
 		values = {
 			include = include,
 			exclude = exclude,
-			view = view
-		}
+			view = view,
+		},
 	}
 
 	if #result.issues > 0 then
@@ -852,12 +863,14 @@ local function process(input: string, options: {
 	end
 end
 
-local function into_string<T>(options: {
-	get_relationship: ((T) -> (T?, T?))?,
-	is_exclude: ((T) -> boolean)?,
-	get_name: ((T) -> string?)?
-}, ...: T)
-
+local function into_string<T>(
+	options: {
+		get_relationship: ((T) -> (T?, T?))?,
+		is_exclude: ((T) -> boolean)?,
+		get_name: ((T) -> string?)?,
+	},
+	...: T
+)
 	local get_relationship = options.get_relationship
 	local is_exclude = options.is_exclude
 	local get_name = options.get_name
@@ -865,11 +878,11 @@ local function into_string<T>(options: {
 
 	local function to_named(input: T): string
 		local left, right
-		
+
 		if get_relationship then
 			left, right = get_relationship(input)
 		end
-		
+
 		if left and right then
 			local pair = `({to_named(left)}, {to_named(right)})`
 			return if is_exclude and is_exclude(input) then `!{pair}` else pair
@@ -890,5 +903,5 @@ end
 return {
 	parse = parse,
 	values = process,
-	into_string = into_string
+	into_string = into_string,
 }

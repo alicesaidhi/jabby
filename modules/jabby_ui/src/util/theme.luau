@@ -12,9 +12,9 @@ NOTES FOR STYLING:
 
 ]]
 
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local conditional = require(script.Parent.conditional)
 local theme_generator = require(script.Parent.theme_generator)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local source = vide.source
 
@@ -37,7 +37,7 @@ return {
 	success = success,
 	warn = warn,
 	error = error,
-	
+
 	bg_fg_low = theme_generator.compute_sequence(background, CONTRAST_LOW),
 	bg_fg_high = theme_generator.compute_sequence(background, CONTRAST_HIGH),
 	acc_fg_low = theme_generator.compute_sequence(accent, CONTRAST_LOW),
@@ -45,14 +45,14 @@ return {
 
 	bg = theme_generator.compute_sequence(background, 0),
 	acc = theme_generator.compute_sequence(accent, 0),
-	
+
 	suc = theme_generator.compute_sequence(success, 0),
 	wrn = theme_generator.compute_sequence(warn, 0),
 	err = theme_generator.compute_sequence(error, 0),
 
-	body = source(Font.fromName("BuilderSans")),
-	alt_font = source(Font.fromName("SourceSansPro")),
-	header = source(Font.fromName("Montserrat")),
+	body = source(Font.fromName "BuilderSans"),
+	alt_font = source(Font.fromName "SourceSansPro"),
+	header = source(Font.fromName "Montserrat"),
 	mono = source(Font.fromId(16658246179)),
 
 	base_button_padding = conditional(COMPACT, 6, 9),
@@ -71,6 +71,4 @@ return {
 	body_size = conditional(COMPACT, 16, 18),
 	header_size = conditional(COMPACT, 20, 20),
 	input_size = conditional(COMPACT, 16, 18),
-	
-	
 }

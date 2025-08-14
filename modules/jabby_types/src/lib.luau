@@ -48,7 +48,7 @@ export type JabbyApplet<Configuration> = {
 	read description: string,
 	read configuration: Configuration,
 	read unique_id: number,
-	read client: ModuleScript
+	read client: ModuleScript,
 }
 
 --[=[
@@ -93,7 +93,7 @@ export type JabbyAppletInterface<Configuration> = {
 	-- which will be run on the server (note that this is not the actual roblox server)
 	read registered: (self: JabbyApplet<Configuration>) -> (),
 
-	read client: ModuleScript
+	read client: ModuleScript,
 }
 
 export type Target = {
@@ -116,19 +116,17 @@ This is called by the client when an applet needs to be opened. It receives the
 target that it has to communicate with.
 ]=]
 export type JabbyClientAppletInterface = {
-	
+
 	read open_client: (target: Target) -> {
-		destroy: () -> ()
-	}
-
+		destroy: () -> (),
+	},
 }
-
 
 -- The host of an applet.
 export type Host = "server" | Player
 
 -- JABBY NETWORKING
 
--- 
+--
 
 return nil

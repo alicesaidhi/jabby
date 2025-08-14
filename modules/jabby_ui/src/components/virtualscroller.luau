@@ -1,7 +1,7 @@
-local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 local component = require(script.Parent.Parent.util.component)
 local container = require(script.Parent.container)
 local scroll_container = require(script.Parent.scroll_container)
+local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local effect = vide.effect
 local source = vide.source
@@ -12,23 +12,25 @@ local untrack = vide.untrack
 local read = vide.read
 
 type Can<T> = T | () -> T
-return component(function(p: {
-	color: Can<Color3>?,
-	transparency: Can<number>?,
+return component(function(
+	p: {
+		color: Can<Color3>?,
+		transparency: Can<number>?,
 
-	--- streams in items. when index is -1, should expect to be unused
-	item: (index: () -> number) -> Instance,
-	--- streams in separators. when index is -1, should expect to be unused
-	separator: ((index: () -> number) -> Instance)?,
+		--- streams in items. when index is -1, should expect to be unused
+		item: (index: () -> number) -> Instance,
+		--- streams in separators. when index is -1, should expect to be unused
+		separator: ((index: () -> number) -> Instance)?,
 
-	item_size: Can<number>,
-	separator_size: Can<number>?,
+		item_size: Can<number>,
+		separator_size: Can<number>?,
 
-	min_index: (() -> number)?,
-	max_items: (() -> number)?,
-}, _)
-
-	local items = source({} :: {vide.Source<number>})
+		min_index: (() -> number)?,
+		max_items: (() -> number)?,
+	},
+	_
+)
+	local items = source({} :: { vide.Source<number> })
 
 	local absolute_size = source(Vector2.zero)
 	local canvas_position = source(Vector2.zero)
@@ -45,22 +47,23 @@ return component(function(p: {
 		local absolute_size = absolute_size()
 		local actual_canvas_position = canvas_position()
 		local canvas_position = actual_canvas_position
-		local canvas_velocity = actual_canvas_position - (previous_position or actual_canvas_position)
+		local canvas_velocity = actual_canvas_position
+			- (previous_position or actual_canvas_position)
 		local item_size = read(p.item_size)
 		local separator_size = read(p.separator_size or 0)
 		canvas_position = canvas_position + canvas_velocity
 
 		local child_size = item_size + separator_size
-		local total_required = math.ceil(absolute_size.Y / child_size) + OVERFLOW
+		local total_required = math.ceil(absolute_size.Y / child_size)
+			+ OVERFLOW
 		local sources = untrack(items)
 
 		local min_index = math.floor(canvas_position.Y / child_size)
-		local max_index = math.ceil((canvas_position.Y + absolute_size.Y) / child_size)
+		local max_index =
+			math.ceil((canvas_position.Y + absolute_size.Y) / child_size)
 
 		local max_items = math.huge
-		if p.max_items then
-			max_items = p.max_items()
-		end
+		if p.max_items then max_items = p.max_items() end
 
 		total_required = math.min(total_required, max_items)
 
@@ -75,7 +78,9 @@ return component(function(p: {
 					if
 						index >= math.max(min_index, 1)
 						and index <= math.min(max_index, max_items)
-					then continue end
+					then
+						continue
+					end
 					unused[i] = true
 					s(-1)
 				end
@@ -95,7 +100,6 @@ return component(function(p: {
 				for i = math.max(min_index, 1), math.min(max_index, max_items) do
 					did_not_render[i] = true
 				end
-				
 
 				for _, s in sources do
 					did_not_render[s()] = nil
@@ -113,15 +117,12 @@ return component(function(p: {
 				-- remove unnecessary sources
 				if #sources > total_required then
 					for i = #sources, 1, -1 do
-						if unused[i] then
-							table.remove(sources, i)
-						end
+						if unused[i] then table.remove(sources, i) end
 						unused[i] = nil
 						if #sources < total_required then break end
 					end
 					items(sources)
 				end
-
 			end)
 		end)
 
@@ -143,20 +144,23 @@ return component(function(p: {
 				local absolute_size = absolute_size()
 				local canvas_position = canvas_position()
 				local child_size = item_size + separator_size
-				local max_index = math.ceil((canvas_position.Y + absolute_size.Y) / child_size) + OVERFLOW
+				local max_index = math.ceil(
+					(canvas_position.Y + absolute_size.Y) / child_size
+				) + OVERFLOW
 				return max_index * child_size
 			end
 		end,
 
 		values(items, function(index: () -> number)
 			return container {
-				ws = 1, h = function()
+				ws = 1,
+				h = function()
 					return read(item_size) + read(separator_size or 0)
 				end,
 
 				y = function()
 					if index() == -1 then return -1000 end
-					
+
 					local item_size = read(p.item_size)
 					local separator_size = read(p.separator_size or 0)
 					return (item_size + separator_size) * (index() - 1)
@@ -164,24 +168,25 @@ return component(function(p: {
 
 				container {
 					name = "Item",
-					ws = 1, hs = 1,
+					ws = 1,
+					hs = 1,
 
-					item(index)
+					item(index),
 				},
 
-				if separator then container {
-					name = "Separator",
-					ws = 1, hs = 1,
+				if separator
+					then container {
+						name = "Separator",
+						ws = 1,
+						hs = 1,
 
-					separator(index)
-				} else nil
+						separator(index),
+					}
+					else nil,
 			}
-
 		end),
 
 		changed("AbsoluteSize", absolute_size),
 		changed("CanvasPosition", canvas_position),
-
 	}
-
 end)
