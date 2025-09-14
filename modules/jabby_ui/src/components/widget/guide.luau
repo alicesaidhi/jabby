@@ -109,6 +109,7 @@ return function(widget: state.TabsWidget)
 				ys = 0.5,
 				x = 0,
 				y = 0,
+				anchor = { 0.5, 0.5 },
 
 				stroke = theme.bg(-1),
 				color = theme.acc(3),
@@ -124,6 +125,7 @@ return function(widget: state.TabsWidget)
 				ys = 0.5,
 				x = -48,
 				y = 0,
+				anchor = { 0.5, 0.5 },
 
 				stroke = theme.bg(-1),
 				color = theme.acc(3),
@@ -139,6 +141,7 @@ return function(widget: state.TabsWidget)
 				ys = 0.5,
 				x = 48,
 				y = 0,
+				anchor = { 0.5, 0.5 },
 
 				stroke = theme.bg(-1),
 				color = theme.acc(3),
@@ -154,6 +157,7 @@ return function(widget: state.TabsWidget)
 				ys = 0.5,
 				x = 0,
 				y = 48,
+				anchor = { 0.5, 0.5 },
 
 				stroke = theme.bg(-1),
 				color = theme.acc(3),
@@ -169,6 +173,7 @@ return function(widget: state.TabsWidget)
 				ys = 0.5,
 				x = 0,
 				y = -48,
+				anchor = { 0.5, 0.5 },
 
 				stroke = theme.bg(-1),
 				color = theme.acc(3),

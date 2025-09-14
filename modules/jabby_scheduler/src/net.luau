@@ -49,6 +49,15 @@ local NETWORK_LAYER = {
 		--
 		gt.buffer()
 	),
+
+	pause = jabby_net.event_create(
+		NAMESPACE,
+		"pause",
+		gt.table {
+			id = gt.number(),
+			pause = gt.bool(),
+		}
+	),
 }
 
 return NETWORK_LAYER

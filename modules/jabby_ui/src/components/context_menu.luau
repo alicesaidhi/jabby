@@ -1,7 +1,6 @@
 local UserInputService = game:GetService "UserInputService"
 
 local anim = require(script.Parent.Parent.util.anim)
-local button = require(script.Parent.button)
 local container = require(script.Parent.container)
 local ignore = require(script.Parent.ignore)
 local map = require(script.Parent.Parent.util.map)
@@ -38,7 +37,6 @@ local function action(p: Action)
 		h = 18,
 		auto = "",
 		flex = { direction = "row", justify = "left" },
-		padding = 0,
 		stroke = false,
 
 		text = p.text,
@@ -106,7 +104,9 @@ local function group(p: Group)
 		},
 	}
 end
-return function(p: { Action | Group } | () -> { Action | Group })
+return function(
+	p: { primary: boolean?, [number]: Action | Group } | () -> { Action | Group }
+)
 	local enabled = source(false :: false | Vector3)
 	local hovering = source(false)
 
@@ -116,6 +116,10 @@ return function(p: { Action | Group } | () -> { Action | Group })
 			container {
 				ws = 1,
 				hs = 1,
+
+				clicked = if type(p) == "table" and p.primary
+					then function(input: InputObject) enabled(input.Position) end
+					else nil,
 
 				rightclick = function(input: InputObject)
 					enabled(input.Position)
@@ -168,7 +172,9 @@ return function(p: { Action | Group } | () -> { Action | Group })
 						hover = hovering :: (boolean) -> (),
 
 						indexes(
-							function() return read(p) end,
+							function()
+								return { unpack(read(p)) } :: { Action | Group }
+							end,
 							function(value: () -> Action | Group)
 								return switch(
 									function() return value().kind end

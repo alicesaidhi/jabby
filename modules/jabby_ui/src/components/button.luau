@@ -7,6 +7,7 @@ local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
 local source = vide.source
 local spring = vide.spring
+local read = vide.read
 
 type Can<T> = T | () -> T
 return component(function(
@@ -15,6 +16,7 @@ return component(function(
 		pad: pad.Pad?,
 		stroke: boolean?,
 
+		color_offset: Can<number>?,
 		acc: boolean?,
 
 		text: Can<string>?,
@@ -32,20 +34,22 @@ return component(function(
 	local hold = source(false)
 	local enabled = p.enabled
 
+	local offset = p.color_offset or 0
+
 	local function depth_bg()
 		return if enabled and not enabled()
-			then -2
-			elseif hold() then 1
-			elseif hover() then 4
-			else 2
+			then -2 + read(offset)
+			elseif hold() then 1 + read(offset)
+			elseif hover() then 4 + read(offset)
+			else 2 + read(offset)
 	end
 
 	local function depth_acc()
 		return if enabled and not enabled()
-			then -5
-			elseif hold() then -8
-			elseif hover() then 3
-			else 0
+			then -5 + read(offset)
+			elseif hold() then -8 + read(offset)
+			elseif hover() then 3 + read(offset)
+			else 0 + read(offset)
 	end
 
 	return container {
@@ -61,7 +65,9 @@ return component(function(
 			0.1
 		),
 		stroke = if p.stroke ~= false
-			then if p.acc then theme.acc(-7) else theme.bg(-1)
+			then if p.acc
+				then theme.acc(-7 + read(offset))
+				else theme.bg(-1 + read(offset))
 			else nil,
 		thickness = theme.base_button_thickness,
 
@@ -81,8 +87,8 @@ return component(function(
 				color = function()
 					return if enabled and not enabled()
 						then if p.acc
-							then theme.acc_fg_low(3)()
-							else theme.bg_fg_low(3)()
+							then theme.acc_fg_low(3 + read(offset))()
+							else theme.bg_fg_low(3 + read(offset))()
 						else if p.acc
 							then theme.acc_fg_high(depth_acc)()
 							else theme.bg_fg_high(depth_bg)()

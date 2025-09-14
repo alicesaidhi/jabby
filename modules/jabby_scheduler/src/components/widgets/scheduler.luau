@@ -1,5 +1,8 @@
 local RunService = game:GetService "RunService"
 
+local container = require(
+	script.Parent.Parent.Parent.Parent.Parent.jabby_ui.src.components.container
+)
 local jabby_types =
 	require(script.Parent.Parent.Parent.Parent.roblox_packages.jabby_types)
 local jabby_ui =
@@ -7,6 +10,8 @@ local jabby_ui =
 local jabby_util =
 	require(script.Parent.Parent.Parent.Parent.roblox_packages.jabby_util)
 local net = require(script.Parent.Parent.Parent.net)
+local theme =
+	require(script.Parent.Parent.Parent.Parent.Parent.jabby_ui.src.util.theme)
 local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
 
 local source = vide.source
@@ -175,156 +180,267 @@ local function ecs_scheduler(target: jabby_types.Target, title: (string) -> ())
 		return max
 	end)
 
-	return jabby_ui.tablesheet {
+	return jabby_ui.container {
 		ws = 1,
 		hs = 1,
+		flex = { align = "between" },
 
-		disable_top_corners = true,
+		jabby_ui.container {
+			ws = 1,
+			h = 20,
+			flex = { direction = "row", justify = "left" },
 
-		columns = source {
-			derive(function()
-				local names = { "Name" }
+			color = theme.bg(3),
 
-				for _, system in systems() do
-					table.insert(names, system.name)
-				end
+			jabby_ui.button {
+				h = 16,
+				flex = {},
+				corner = 0,
+				stroke = false,
 
-				return names
-			end),
-			derive(function()
-				local times = { "Time" }
+				color_offset = 1,
 
-				for _, system in systems() do
-					table.insert(times, system.time)
-				end
+				text = "Pause",
+				size = 14,
 
-				return times
-			end),
-			derive(function()
-				local presssure = { "Allocations" }
+				jabby_ui.context_menu {
+					primary = true,
 
-				for _, system in systems() do
-					table.insert(presssure, system.memory_pressure)
-				end
+					{
+						kind = "action",
+						text = "Pause All",
+						clicked = function()
+							for row, system in systems() do
+								net.pause:fire(
+									target,
+									{ id = row, pause = true }
+								)
+							end
+						end,
+					},
 
-				return presssure
-			end),
+					{
+						kind = "action",
+						text = "Resume All",
+						clicked = function()
+							for row, system in systems() do
+								net.pause:fire(
+									target,
+									{ id = row, pause = false }
+								)
+							end
+						end,
+					},
+				},
+			},
 		},
 
-		enable_sort_key = true,
-		auto_sort = true,
-		get_value = function(value)
-			local v = value()
-			return if typeof(v) == "table"
-				then median(v, MAX_FRAMES_STORED)
-				else v
-		end,
+		jabby_ui.tablesheet {
+			ws = 1,
+			grow = 1,
+			shrink = 1,
 
-		field = function(value: () -> any, column: number, row: () -> number)
-			return jabby_ui.container {
-				ws = 1,
-				hs = 1,
-				clips = true,
-				auto = "",
-				flex = {
-					direction = "row",
-					align = "center",
-					justify = "between",
-					pad = 6,
-				},
-				pad = { x = 8 },
+			disable_top_corners = true,
+			use_offset = source { 32, 100 },
 
-				switch(source(column)) {
-					[1] = function()
-						return jabby_ui.text {
-							ws = 1,
-							auto = "",
+			columns = source {
+				derive(function()
+					local paused = { "Paused" }
 
-							xalign = "left",
-							text = function() return value()() end,
-						}
-					end,
+					for _, system in systems() do
+						table.insert(paused, system.paused)
+					end
 
-					[2] = function()
-						return {
-							jabby_ui.text {
-								w = 60,
-								auto = "xy",
+					return paused
+				end),
+				derive(function()
+					local names = { "Name" }
 
-								font = jabby_ui.theme.mono,
-								xalign = "left",
-								text = function()
-									return jabby_util.convert_scale(
-										"s",
-										average(value()(), MAX_FRAMES_STORED)
-									)
+					for _, system in systems() do
+						table.insert(names, system.name)
+					end
+
+					return names
+				end),
+				derive(function()
+					local times = { "Time" }
+
+					for _, system in systems() do
+						table.insert(times, system.time)
+					end
+
+					return times
+				end),
+				derive(function()
+					local presssure = { "Allocations" }
+
+					for _, system in systems() do
+						table.insert(presssure, system.memory_pressure)
+					end
+
+					return presssure
+				end),
+			},
+
+			enable_sort_key = true,
+			auto_sort = true,
+			get_value = function(value)
+				local v = value()
+				return if typeof(v) == "table"
+					then median(v, MAX_FRAMES_STORED)
+					else v
+			end,
+
+			field = function(
+				value: () -> any,
+				column: number,
+				row: () -> number
+			)
+				return jabby_ui.container {
+					ws = 1,
+					hs = 1,
+					clips = true,
+					auto = "",
+					pad = { x = 4 },
+					flex = {
+						direction = "row",
+						align = "center",
+						justify = "between",
+						pad = 6,
+					},
+
+					switch(source(column)) {
+						[1] = function()
+							return jabby_ui.button {
+								ws = 1,
+								hs = 1,
+								color_offset = function()
+									return if row() % 2 == 0 then -2 else -3
 								end,
-							},
+								stroke = false,
 
-							jabby_ui.container {
-								h = 8,
-								grow = 1,
-								shrink = 1,
+								corner = 0,
+								pad = {},
 
-								jabby_ui.container {
-									ws = interval(
-										UPDATE_BARS,
-										function()
-											return average(
-												value()(),
-												MAX_FRAMES_STORED
-											) / highest_time()
-										end
-									),
+								container {
+									ws = 1,
 									hs = 1,
 
-									color = jabby_ui.theme.bg_fg_low(-3),
+									scale_type = Enum.ScaleType.Fit,
+									image = jabby_ui.assets.pause,
+									rect_size = Vector2.new(64, 64),
+									rect_offset = function()
+										return if value()
+											then Vector2.new(0, 0)
+											else Vector2.new(64, 0)
+									end,
 								},
-							},
-						}
-					end,
 
-					[3] = function()
-						return {
-							jabby_ui.text {
-								w = 60,
-								auto = "xy",
-
-								font = jabby_ui.theme.mono,
-								xalign = "left",
-								text = function()
-									return jabby_util.convert_scale(
-										"B",
-										median(value()())
-									)
+								clicked = function()
+									local system = systems()[row() - 1]
+									net.pause:fire(target, {
+										id = row() - 1,
+										pause = system.paused(),
+									})
 								end,
-							},
+							}
+						end,
 
-							jabby_ui.container {
-								h = 8,
-								grow = 1,
-								shrink = 1,
+						[2] = function()
+							return jabby_ui.text {
+								ws = 1,
+								auto = "",
+								pad = { x = 8 },
 
-								jabby_ui.container {
-									ws = interval(
-										UPDATE_BARS,
-										function()
-											return average(
+								xalign = "left",
+								text = function() return value()() end,
+							}
+						end,
+
+						[3] = function()
+							return {
+								jabby_ui.text {
+									w = 60,
+									auto = "xy",
+
+									font = jabby_ui.theme.mono,
+									xalign = "left",
+									text = function()
+										return jabby_util.convert_scale(
+											"s",
+											average(
 												value()(),
 												MAX_FRAMES_STORED
-											) / highest_pressure()
-										end
-									),
-									hs = 1,
-
-									color = jabby_ui.theme.bg_fg_low(-3),
+											)
+										)
+									end,
 								},
-							},
-						}
-					end,
-				},
-			}
-		end,
+
+								jabby_ui.container {
+									h = 8,
+									grow = 1,
+									shrink = 1,
+
+									jabby_ui.container {
+										ws = interval(
+											UPDATE_BARS,
+											function()
+												return average(
+													value()(),
+													MAX_FRAMES_STORED
+												) / highest_time()
+											end
+										),
+										hs = 1,
+
+										color = jabby_ui.theme.bg_fg_low(-3),
+									},
+								},
+							}
+						end,
+
+						[4] = function()
+							return {
+								jabby_ui.text {
+									w = 60,
+									auto = "xy",
+
+									font = jabby_ui.theme.mono,
+									xalign = "left",
+									text = function()
+										return jabby_util.convert_scale(
+											"B",
+											median(value()())
+										)
+									end,
+								},
+
+								jabby_ui.container {
+									h = 8,
+									grow = 1,
+									shrink = 1,
+
+									jabby_ui.container {
+										ws = interval(
+											UPDATE_BARS,
+											function()
+												return average(
+													value()(),
+													MAX_FRAMES_STORED
+												) / highest_pressure()
+											end
+										),
+										hs = 1,
+
+										color = jabby_ui.theme.bg_fg_low(-3),
+									},
+								},
+							}
+						end,
+					},
+				}
+			end,
+		},
 	}
 end
 
