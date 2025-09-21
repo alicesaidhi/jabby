@@ -6,27 +6,27 @@ local types = require(script.Parent.Parent.modules.types)
 local destroy_fn = {}
 
 local function unmount_all()
-	for destroy in destroy_fn do
+	for _, destroy in destroy_fn do
 		destroy()
 	end
 end
 
 local function spawn_app<T>(app: types.Application<T>, props: T): () -> ()
 	return vide.root(function(destroy)
-
-		local destroy = function()
+        
+		local cleanup = function()
 			destroy_fn[destroy] = nil
 			destroy()
 		end
 
-		local application = app.mount(props, destroy)
+		local application = app.mount(props, cleanup)
 		application.Parent = Players.LocalPlayer.PlayerGui
 
 		vide.cleanup(application)
-		
-		destroy_fn[destroy] = true
-		
-		return destroy
+
+		destroy_fn[destroy] = cleanup
+
+		return cleanup
 	end)
 end
 
