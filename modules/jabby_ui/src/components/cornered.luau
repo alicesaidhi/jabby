@@ -56,6 +56,7 @@ return component(function(
 		hold: ((boolean) -> ())?,
 		input: ((InputObject) -> ())?,
 		clicked: ((InputObject) -> ())?,
+		rightclick: ((InputObject) -> ())?,
 	},
 	children
 )
@@ -71,6 +72,7 @@ return component(function(
 		hold = p.hold,
 		input = p.input,
 		clicked = p.clicked,
+		rightclick = p.rightclick,
 
 		corner {
 			name = "topleft",

@@ -1,11 +1,12 @@
+local GuiService = game:GetService "GuiService"
 local UserInputService = game:GetService "UserInputService"
 
 local anim = require(script.Parent.Parent.util.anim)
+local button = require(script.Parent.button)
 local container = require(script.Parent.container)
 local ignore = require(script.Parent.ignore)
 local map = require(script.Parent.Parent.util.map)
 local portal = require(script.Parent.portal)
-local shadow = require(script.Parent.shadow)
 local theme = require(script.Parent.Parent.util.theme)
 local vide = require(script.Parent.Parent.Parent.roblox_packages.vide)
 
@@ -13,6 +14,7 @@ local source = vide.source
 local show = vide.show
 local indexes = vide.indexes
 local switch = vide.switch
+local effect = vide.effect
 local read = vide.read
 
 type Can<T> = T | () -> T
@@ -48,7 +50,7 @@ local function action(p: Action)
 			if enabled_global then enabled_global(false) end
 			p.clicked(input)
 		end,
-		transparency = transparency,
+		-- transparen = transparency,
 
 		container {
 			w = 16,
@@ -104,11 +106,23 @@ local function group(p: Group)
 		},
 	}
 end
-return function(
-	p: { primary: boolean?, [number]: Action | Group } | () -> { Action | Group }
-)
-	local enabled = source(false :: false | Vector3)
+return function(p: {
+	show_default: boolean?,
+	shown: ((boolean) -> ())?,
+	primary: boolean?,
+	[number]: Action | Group,
+})
+	local enabled = source(
+		p.show_default
+				and UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+			or false :: false | Vector3
+	)
 	local hovering = source(false)
+
+	effect(function()
+		if not p.shown then return end
+		task.defer(p.shown, enabled())
+	end)
 
 	return {
 
