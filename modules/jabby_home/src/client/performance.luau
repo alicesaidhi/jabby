@@ -154,7 +154,7 @@ local function performance()
 			end,
 			field = function(
 				value: () -> any,
-				column: number,
+				column: () -> number,
 				row: () -> number
 			)
 				return jabby_ui.container {
@@ -169,13 +169,17 @@ local function performance()
 						ws = 1,
 						auto = "",
 
-						font = if column == 1 then nil else jabby_ui.theme.mono,
+						font = function()
+							return if column() == 1
+								then jabby_ui.theme.body()
+								else jabby_ui.theme.mono()
+						end,
 						xalign = "left",
 						text = function(): string
-							return if column == 1
+							return if column() == 1
 								then value() or ""
 								elseif
-									column == 2
+									column() == 2
 								then jabby_util.convert_scale(
 									"B",
 									value() or 0

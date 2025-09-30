@@ -293,7 +293,7 @@ local function ecs_scheduler(target: jabby_types.Target, title: (string) -> ())
 
 			field = function(
 				value: () -> any,
-				column: number,
+				column: () -> number,
 				row: () -> number
 			)
 				return jabby_ui.container {
@@ -309,7 +309,7 @@ local function ecs_scheduler(target: jabby_types.Target, title: (string) -> ())
 						pad = 6,
 					},
 
-					switch(source(column)) {
+					switch(column) {
 						[1] = function()
 							return jabby_ui.button {
 								ws = 1,

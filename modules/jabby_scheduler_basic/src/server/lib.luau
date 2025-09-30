@@ -37,6 +37,48 @@ return function(applet: jabby_types.JabbyApplet<{}>)
 					phase = "runservice",
 					paused = false,
 				}
+				update_system_state:send {
+					id = 3,
+
+					name = "sines",
+					phase = "runservice",
+					paused = false,
+				}
+				update_system_state:send {
+					id = 6,
+
+					name = "heartbeat",
+					phase = "runservice",
+					paused = false,
+				}
+				update_system_state:send {
+					id = 4,
+
+					name = "heartbeat",
+					phase = "runservice",
+					paused = false,
+				}
+				update_system_state:send {
+					id = 8,
+
+					name = "bleh",
+					phase = "runservice",
+					paused = false,
+				}
+				update_system_state:send {
+					id = 5,
+
+					name = "sines",
+					phase = "runservice",
+					paused = false,
+				}
+				update_system_state:send {
+					id = 7,
+
+					name = "bleh",
+					phase = "runservice",
+					paused = false,
+				}
 			end
 
 			local s = os.clock()

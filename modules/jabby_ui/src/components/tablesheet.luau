@@ -36,8 +36,12 @@ return component(function<T>(
 		sort_direction: (() -> "ascending" | "descending")?,
 		set_sort_direction: (("ascending" | "descending") -> ())?,
 		get_value: (() -> unknown)?,
-		shown: () -> { number },
-		set_shown: ({ number }) -> (),
+
+		shown: (() -> { number })?,
+		set_shown: (({ number }) -> ())?,
+
+		grouped_by: () -> number?,
+		set_grouped_by: (number?) -> (),
 
 		header: (value: () -> T, column: number, row: number) -> Instance,
 		field: (
@@ -59,12 +63,45 @@ return component(function<T>(
 	local set_shown: ({ number }) -> () = p.set_shown or shown
 	local column_count = derive(function() return #p.columns() end)
 
-	effect(function()
-		local t = untrack(shown)
-		for idx = 1, column_count() do
-			t[idx] = idx
+	local grouped_by: () -> number? = p.grouped_by or source(nil)
+	local set_grouped_by: (number?) -> () = p.set_grouped_by or grouped_by
+
+	local categories = derive(function(): { [T]: { number } }
+		local column_idx = grouped_by()
+		if column_idx == nil then
+			local entries = {}
+
+			local column = p.columns()[1]()
+
+			for i = 2, #column do
+				table.insert(entries, i)
+			end
+
+			return { entries }
 		end
-		set_shown(t)
+
+		local key_column = p.columns()[column_idx]()
+		local categories: { [T]: { number } } = {}
+
+		for idx, value in key_column do
+			if idx == 1 then continue end
+			if typeof(value) == "function" then value = value() end
+
+			if categories[value] == nil then categories[value] = {} end
+
+			table.insert(categories[value], idx)
+		end
+
+		return categories
+	end)
+	local total_categories = derive(function()
+		local n = 0
+
+		for _ in categories() do
+			n += 1
+		end
+
+		return n
 	end)
 
 	local displayed = derive(function()
@@ -79,6 +116,14 @@ return component(function<T>(
 	end)
 	local display_count = derive(function() return #displayed() end)
 
+	effect(function()
+		local t = untrack(shown)
+		for idx = 1, column_count() do
+			t[idx] = idx
+		end
+		set_shown(t)
+	end)
+
 	local sizes = source({} :: { number })
 	local splits = source({} :: { number })
 
@@ -88,57 +133,64 @@ return component(function<T>(
 			or p.enable_sort_key ~= true
 			or sort_column() == 0
 		then
-			local columns = p.columns()
-			local sort_by_column = columns[1]()
-			local entries = table.create(#columns, 1)
+			local categories = categories()
+			local entries = table.create(#categories)
 
-			for i = 1, #sort_by_column do
-				entries[i] = i
+			for i, category in categories do
+				for _, idx in category do
+					table.insert(entries, idx)
+				end
 			end
 
 			return entries
 		else
 			local columns = p.columns()
 			local sort_by_column = columns[sort_column()]()
+			local categories = categories()
 			local entries = {}
 
-			for i = 2, #sort_by_column do
-				entries[i - 1] = i
-			end
-
-			if p.get_value then
-				local get = p.get_value
-				if sort_direction() == "ascending" then
+			for _, category in categories do
+				-- we should be ok on sorting category, because the order it appears in does not really matter.
+				if p.get_value then
+					local get = p.get_value
+					if sort_direction() == "ascending" then
+						table.sort(
+							category,
+							function(a, b): boolean
+								return get(sort_by_column[a])
+									> get(sort_by_column[b])
+							end
+						)
+					else
+						table.sort(
+							category,
+							function(a, b): boolean
+								return get(sort_by_column[a])
+									< get(sort_by_column[b])
+							end
+						)
+					end
+				elseif sort_direction() == "ascending" then
 					table.sort(
-						entries,
+						category,
 						function(a, b): boolean
-							return get(sort_by_column[a])
-								> get(sort_by_column[b])
+							return sort_by_column[a] > sort_by_column[b]
 						end
 					)
 				else
 					table.sort(
-						entries,
+						category,
 						function(a, b): boolean
-							return get(sort_by_column[a])
-								< get(sort_by_column[b])
+							return sort_by_column[a] < sort_by_column[b]
 						end
 					)
 				end
-			elseif sort_direction() == "ascending" then
-				table.sort(
-					entries,
-					function(a, b): boolean
-						return sort_by_column[a] > sort_by_column[b]
-					end
-				)
-			else
-				table.sort(
-					entries,
-					function(a, b): boolean
-						return sort_by_column[a] < sort_by_column[b]
-					end
-				)
+			end
+
+			for _, category in categories do
+				for _, idx in category do
+					table.insert(entries, idx)
+				end
 			end
 
 			return entries
@@ -211,13 +263,11 @@ return component(function<T>(
 			rightclick = function() show_context(true) end,
 
 			show(show_context, function()
-				local actions = {
-					show_default = true,
-					shown = show_context,
-				}
+				local view = { kind = "group" }
+				local group_by = { kind = "group" }
 
 				for idx, column in p.columns() do
-					table.insert(actions, {
+					table.insert(view, {
 						kind = "action",
 						text = column()[1],
 						image = if table.find(shown(), idx)
@@ -242,7 +292,30 @@ return component(function<T>(
 					})
 				end
 
-				return context_menu(actions)
+				for idx, column in p.columns() do
+					table.insert(group_by, {
+						kind = "action",
+						text = `Group By {column()[1]}`,
+						image = if grouped_by() == idx
+							then assets.checked
+							else nil,
+						clicked = function()
+							if grouped_by() == idx then
+								set_grouped_by(nil)
+							else
+								set_grouped_by(idx)
+							end
+						end,
+					})
+				end
+
+				return context_menu {
+					show_default = true,
+					shown = show_context,
+
+					view,
+					group_by,
+				}
 			end),
 
 			show(
@@ -356,19 +429,9 @@ return component(function<T>(
 			item = function(row: () -> number)
 				local function is_even() return row() % 2 == 1 end
 
-				local row_one = function() return row() + 1 end
-
 				local function actual_row()
-					if
-						p.auto_sort ~= true
-						or p.enable_sort_key ~= true
-						or sort_column() == 0
-					then
-						return row_one()
-					else
-						local row = columns()[row()]
-						return row
-					end
+					local row = columns()[row()]
+					return row or 1
 				end
 
 				return container {
