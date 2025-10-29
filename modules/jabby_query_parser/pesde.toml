@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_query_parser"
-version = "0.1.0-test.1"
+version = "0.1.0-test.2"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 

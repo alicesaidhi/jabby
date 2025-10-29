@@ -2,20 +2,20 @@
 # It is not intended for manual editing.
 format = 2
 name = "alicesaidhi/jabby_net"
-version = "0.1.0-test.1"
+version = "0.1.0-test.2"
 target = "roblox"
 
-[graph."alicesaidhi/jabby_types@0.1.0-test.1 roblox"]
+[graph."alicesaidhi/jabby_types@0.1.0-test.2 roblox"]
 direct = ["jabby_types", { workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
 
-[graph."alicesaidhi/jabby_types@0.1.0-test.1 roblox".pkg_ref]
+[graph."alicesaidhi/jabby_types@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_types"
 
-[graph."alicesaidhi/jabby_util@0.1.0-test.1 roblox"]
+[graph."alicesaidhi/jabby_util@0.1.0-test.2 roblox"]
 direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
 
-[graph."alicesaidhi/jabby_util@0.1.0-test.1 roblox".pkg_ref]
+[graph."alicesaidhi/jabby_util@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_util"
 

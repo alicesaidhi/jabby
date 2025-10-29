@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 format = 2
 name = "alicesaidhi/jabby_query_parser"
-version = "0.1.0-test.1"
+version = "0.1.0-test.2"
 target = "roblox"
 
 [graph."wally#corecii/greentea@0.4.11 roblox"]
