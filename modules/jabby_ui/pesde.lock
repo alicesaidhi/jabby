@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 format = 2
 name = "alicesaidhi/jabby_ui"
-version = "0.1.0-test.0"
+version = "0.1.0-test.1"
 target = "roblox"
 
 [graph."wally#centau/vide@0.3.1 roblox"]
