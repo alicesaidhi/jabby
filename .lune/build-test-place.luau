@@ -159,13 +159,13 @@ for _, child in fs.readDir("modules") do
 			end
 
 			local file = fs.readFile(`modules/{child}/roblox_packages/{roblox_package}`)
-			local pesde_name = string.match(file, `script.Parent%["%.pesde"%]%[".-%+(.-)"`)
+			local pesde_name = string.match(file, `script.Parent:FindFirstChild%("%.pesde"%):FindFirstChild%(".-%+(.-)"`)
 			-- local wally_name = string.match(file, `script.Parent%["%.pesde"%]%[".-_(.-)@`)
 
 			if map_pesde[pesde_name] then
 				local new = string.gsub(
 					file,
-					`script.Parent%[".pesde"%]%["alicesaidhi%+(.-)"%]%[.-%]`,
+					`script.Parent:FindFirstChild%(".pesde"%):FindFirstChild%("alicesaidhi%+(.-)"%):FindFirstChild%(.-%)`,
 					function(match: string, pattern: string)
 						return `script.Parent.Parent.Parent`
 					end
@@ -176,8 +176,8 @@ for _, child in fs.readDir("modules") do
 			else
 				local new = string.gsub(
 					file,
-					`script.Parent%[".pesde"%]%["`,
-					`script.Parent.Parent.Parent["_foreign_`
+					`script.Parent:FindFirstChild%(".pesde"%):FindFirstChild%("`,
+					`script.Parent.Parent.Parent:FindFirstChild("_foreign_`
 				)
 				fs.removeFile(`modules/{child}/roblox_packages/{roblox_package}`)
 				fs.writeFile(`modules/{child}/roblox_packages/{roblox_package}`, new)

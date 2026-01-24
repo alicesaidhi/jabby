@@ -1,11 +1,11 @@
 name = "alicesaidhi/lua_object_notation"
-version = "0.1.0"
+version = "0.1.0-test.2"
 includes = ["src/*", "pesde.toml"]
 license = "MIT"
 
 [target]
 environment = "roblox"
-lib = "lib.luau"
+lib = "src/lib.luau"
 build_files = ["src"]
 
 [indices]

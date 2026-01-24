@@ -1,5 +1,5 @@
 name = "alicesaidhi/jabby_ui"
-version = "0.1.0"
+version = "0.1.0-test.2"
 includes = ["src/*", "pesde.toml", "!src/stories"]
 license = "MIT"
 
@@ -15,7 +15,7 @@ default = "https://github.com/upliftgames/wally-index"
 default = "https://github.com/daimond113/pesde-index"
 
 [dependencies]
-vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
+vide = { wally = "centau/vide", version = "0.4.0" }
 
 [dev_dependencies]
 ui_labs = { wally = "pepeeltoro41/ui-labs", version = "^2.3.8" }
