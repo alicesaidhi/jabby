@@ -15,7 +15,7 @@ default = "https://github.com/upliftgames/wally-index"
 default = "https://github.com/daimond113/pesde-index"
 
 [dependencies]
-vide = { wally = "centau/vide", version = "0.3.1" }
+vide = { wally = "centau/vide", version = "0.4.0" }
 
 [dev_dependencies]
 ui_labs = { wally = "pepeeltoro41/ui-labs", version = "^2.3.8" }

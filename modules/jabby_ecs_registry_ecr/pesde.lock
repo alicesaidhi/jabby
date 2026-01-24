@@ -29,7 +29,7 @@ jabby_query_parser = ["alicesaidhi/jabby_query_parser@0.1.0-test.2 roblox", "sta
 jabby_types = ["alicesaidhi/jabby_types@0.1.0-test.2 roblox", "standard"]
 jabby_ui = ["alicesaidhi/jabby_ui@0.1.0-test.2 roblox", "standard"]
 jabby_util = ["alicesaidhi/jabby_util@0.1.0-test.2 roblox", "standard"]
-vide = ["wally#centau/vide@0.3.1 roblox", "standard"]
+vide = ["wally#centau/vide@0.4.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ecs_registry@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
@@ -43,7 +43,7 @@ jabby_query_parser = [{ workspace = "alicesaidhi/jabby_query_parser", version = 
 jabby_types = [{ workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
 jabby_ui = [{ workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
 jabby_util = [{ workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
-vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
+vide = [{ wally = "wally#centau/vide", version = "^0.4.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 
 [graph."alicesaidhi/jabby_home@0.1.0-test.2 roblox"]
 direct = ["jabby_home", { workspace = "alicesaidhi/jabby_home", version = "^" }, "standard"]
@@ -55,7 +55,7 @@ jabby_net = ["alicesaidhi/jabby_net@0.1.0-test.2 roblox", "standard"]
 jabby_types = ["alicesaidhi/jabby_types@0.1.0-test.2 roblox", "standard"]
 jabby_ui = ["alicesaidhi/jabby_ui@0.1.0-test.2 roblox", "standard"]
 jabby_util = ["alicesaidhi/jabby_util@0.1.0-test.2 roblox", "standard"]
-vide = ["wally#centau/vide@0.3.1 roblox", "standard"]
+vide = ["wally#centau/vide@0.4.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_home@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
@@ -68,7 +68,7 @@ jabby_net = [{ workspace = "alicesaidhi/jabby_net", version = "^" }, "standard"]
 jabby_types = [{ workspace = "alicesaidhi/jabby_types", version = "^" }, "standard"]
 jabby_ui = [{ workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
 jabby_util = [{ workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
-vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
+vide = [{ wally = "wally#centau/vide", version = "^0.4.0", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 
 [graph."alicesaidhi/jabby_net@0.1.0-test.2 roblox".dependencies]
 gt = ["wally#corecii/greentea@0.4.11 roblox", "standard"]
@@ -110,7 +110,7 @@ path = "modules/jabby_types"
 direct = ["jabby_ui", { workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".dependencies]
-vide = ["wally#centau/vide@0.3.1 roblox", "standard"]
+vide = ["wally#centau/vide@0.4.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
@@ -118,7 +118,7 @@ path = "modules/jabby_ui"
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".pkg_ref.dependencies]
 ui_labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = "^2.3.8", index = "https://github.com/upliftgames/wally-index" }, "dev"]
-vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://github.com/upliftgames/wally-index" }, "standard"]
+vide = [{ wally = "wally#centau/vide", version = "^0.4.0", index = "https://github.com/upliftgames/wally-index" }, "standard"]
 
 [graph."alicesaidhi/jabby_util@0.1.0-test.2 roblox"]
 direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
@@ -148,10 +148,10 @@ direct = ["ecr", { wally = "wally#centau/ecr", version = "^0.9.0", index = "defa
 ref_ty = "wally"
 index_url = "https://github.com/UpliftGames/wally-index"
 
-[graph."wally#centau/vide@0.3.1 roblox"]
+[graph."wally#centau/vide@0.4.0 roblox"]
 direct = ["vide", { wally = "wally#centau/vide", version = "^0.3.1", index = "default" }, "standard"]
 
-[graph."wally#centau/vide@0.3.1 roblox".pkg_ref]
+[graph."wally#centau/vide@0.4.0 roblox".pkg_ref]
 ref_ty = "wally"
 index_url = "https://github.com/UpliftGames/wally-index"
 

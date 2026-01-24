@@ -5,10 +5,10 @@ name = "alicesaidhi/jabby_ui"
 version = "0.1.0-test.2"
 target = "roblox"
 
-[graph."wally#centau/vide@0.3.1 roblox"]
-direct = ["vide", { wally = "wally#centau/vide", version = "^0.3.1", index = "default" }, "standard"]
+[graph."wally#centau/vide@0.4.0 roblox"]
+direct = ["vide", { wally = "wally#centau/vide", version = "^0.4.0", index = "default" }, "standard"]
 
-[graph."wally#centau/vide@0.3.1 roblox".pkg_ref]
+[graph."wally#centau/vide@0.4.0 roblox".pkg_ref]
 ref_ty = "wally"
 index_url = "https://github.com/upliftgames/wally-index"
 

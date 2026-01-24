@@ -49,7 +49,7 @@ path = "modules/jabby_types"
 direct = ["jabby_ui", { workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".dependencies]
-vide = ["wally#centau/vide@0.3.1 roblox", "standard"]
+vide = ["wally#centau/vide@0.4.0 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
@@ -57,7 +57,7 @@ path = "modules/jabby_ui"
 
 [graph."alicesaidhi/jabby_ui@0.1.0-test.2 roblox".pkg_ref.dependencies]
 ui_labs = [{ wally = "wally#pepeeltoro41/ui-labs", version = "^2.3.8", index = "https://github.com/upliftgames/wally-index" }, "dev"]
-vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://github.com/upliftgames/wally-index" }, "standard"]
+vide = [{ wally = "wally#centau/vide", version = "^0.4.0", index = "https://github.com/upliftgames/wally-index" }, "standard"]
 
 [graph."alicesaidhi/jabby_util@0.1.0-test.2 roblox"]
 direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
@@ -66,10 +66,10 @@ direct = ["jabby_util", { workspace = "alicesaidhi/jabby_util", version = "^" },
 ref_ty = "workspace"
 path = "modules/jabby_util"
 
-[graph."wally#centau/vide@0.3.1 roblox"]
-direct = ["vide", { wally = "wally#centau/vide", version = "^0.3.1", index = "default" }, "standard"]
+[graph."wally#centau/vide@0.4.0 roblox"]
+direct = ["vide", { wally = "wally#centau/vide", version = "^0.4.0", index = "default" }, "standard"]
 
-[graph."wally#centau/vide@0.3.1 roblox".pkg_ref]
+[graph."wally#centau/vide@0.4.0 roblox".pkg_ref]
 ref_ty = "wally"
 index_url = "https://github.com/UpliftGames/wally-index"
 

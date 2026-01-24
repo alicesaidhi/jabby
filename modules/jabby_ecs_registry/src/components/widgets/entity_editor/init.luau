@@ -4,9 +4,6 @@ local jabby_types =
 local jabby_ui =
 	require(script.Parent.Parent.Parent.Parent.roblox_packages.jabby_ui)
 local net = require(script.Parent.Parent.Parent.net)
-local source = require(
-	script.Parent.Parent.Parent.Parent.Parent["_foreign_alicesaidhi+vide"]["0.4.1-testing.4"].vide.src.source
-)
 local vide = require(script.Parent.Parent.Parent.Parent.roblox_packages.vide)
 
 local source = vide.source

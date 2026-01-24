@@ -20,6 +20,6 @@ jabby_core = { workspace = "alicesaidhi/jabby_core" }
 jabby_ui = { workspace = "alicesaidhi/jabby_ui" }
 jabby_net = { workspace = "alicesaidhi/jabby_net" }
 jabby_query_parser = { workspace = "alicesaidhi/jabby_query_parser" }
-vide = { wally = "centau/vide", version = "0.3.1" }
+vide = { wally = "centau/vide", version = "0.4.0" }
 gt = { wally = "corecii/greentea", version = "^0.4.11" }
 jabby_util = { workspace = "alicesaidhi/jabby_util" }
