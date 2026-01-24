@@ -46,7 +46,7 @@ vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://gith
 direct = ["jabby_ecs_registry_jecs", { workspace = "alicesaidhi/jabby_ecs_registry_jecs", version = "^" }, "standard"]
 
 [graph."alicesaidhi/jabby_ecs_registry_jecs@0.1.0-test.2 roblox".dependencies]
-gt = ["corecii/greentea@0.4.11 roblox", "standard"]
+gt = ["wally#corecii/greentea@0.4.11 roblox", "standard"]
 jabby_core = ["alicesaidhi/jabby_core@0.1.0-test.2 roblox", "standard"]
 jabby_ecs_registry = ["alicesaidhi/jabby_ecs_registry@0.1.0-test.2 roblox", "standard"]
 jabby_home = ["alicesaidhi/jabby_home@0.1.0-test.2 roblox", "standard"]
@@ -56,14 +56,14 @@ jabby_ui = ["alicesaidhi/jabby_ui@0.1.0-test.2 roblox", "standard"]
 jabby_util = ["alicesaidhi/jabby_util@0.1.0-test.2 roblox", "standard"]
 jecs = ["wally#ukendio/jecs@0.9.0 roblox", "standard"]
 lua_preview_notation = ["alicesaidhi/lua_preview_notation@0.1.0-test.2 roblox", "standard"]
-vide = ["alicesaidhi/vide@0.4.1-testing.4 roblox", "standard"]
+vide = ["wally#centau/vide@0.3.1 roblox", "standard"]
 
 [graph."alicesaidhi/jabby_ecs_registry_jecs@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/jabby_ecs_registry_jecs"
 
 [graph."alicesaidhi/jabby_ecs_registry_jecs@0.1.0-test.2 roblox".pkg_ref.dependencies]
-gt = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+gt = [{ wally = "wally#corecii/greentea", version = "^0.4.11", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 jabby_core = [{ workspace = "alicesaidhi/jabby_core", version = "^" }, "standard"]
 jabby_ecs_registry = [{ workspace = "alicesaidhi/jabby_ecs_registry", version = "^" }, "standard"]
 jabby_home = [{ workspace = "alicesaidhi/jabby_home", version = "^" }, "standard"]
@@ -73,7 +73,7 @@ jabby_ui = [{ workspace = "alicesaidhi/jabby_ui", version = "^" }, "standard"]
 jabby_util = [{ workspace = "alicesaidhi/jabby_util", version = "^" }, "standard"]
 jecs = [{ wally = "wally#ukendio/jecs", version = "^0.9.0-rc.10", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 lua_preview_notation = [{ workspace = "alicesaidhi/lua_preview_notation", version = "^" }, "standard"]
-vide = [{ name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+vide = [{ wally = "wally#centau/vide", version = "^0.3.1", index = "https://github.com/UpliftGames/wally-index" }, "standard"]
 
 [graph."alicesaidhi/jabby_home@0.1.0-test.2 roblox"]
 direct = ["jabby_home", { workspace = "alicesaidhi/jabby_home", version = "^" }, "standard"]
@@ -151,14 +151,6 @@ path = "modules/jabby_util"
 [graph."alicesaidhi/lua_preview_notation@0.1.0-test.2 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "modules/lua_preview_notation"
-
-[graph."alicesaidhi/vide@0.4.1-testing.4 roblox".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/daimond113/pesde-index"
-
-[graph."corecii/greentea@0.4.11 roblox".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/daimond113/pesde-index"
 
 [graph."wally#centau/vide@0.3.1 roblox".pkg_ref]
 ref_ty = "wally"

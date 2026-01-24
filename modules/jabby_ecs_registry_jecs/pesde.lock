@@ -134,23 +134,15 @@ direct = ["lua_preview_notation", { workspace = "alicesaidhi/lua_preview_notatio
 ref_ty = "workspace"
 path = "modules/lua_preview_notation"
 
-[graph."alicesaidhi/vide@0.4.1-testing.4 roblox"]
-direct = ["vide", { name = "alicesaidhi/vide", version = "^0.4.1-test.4", index = "default" }, "standard"]
-
-[graph."alicesaidhi/vide@0.4.1-testing.4 roblox".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/daimond113/pesde-index"
-
-[graph."corecii/greentea@0.4.11 roblox"]
-direct = ["gt", { name = "corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
-
-[graph."corecii/greentea@0.4.11 roblox".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/daimond113/pesde-index"
+[graph."wally#centau/vide@0.3.1 roblox"]
+direct = ["vide", { wally = "wally#centau/vide", version = "^0.3.1", index = "default" }, "standard"]
 
 [graph."wally#centau/vide@0.3.1 roblox".pkg_ref]
 ref_ty = "wally"
-index_url = "https://github.com/upliftgames/wally-index"
+index_url = "https://github.com/UpliftGames/wally-index"
+
+[graph."wally#corecii/greentea@0.4.11 roblox"]
+direct = ["gt", { wally = "wally#corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
 
 [graph."wally#corecii/greentea@0.4.11 roblox".pkg_ref]
 ref_ty = "wally"

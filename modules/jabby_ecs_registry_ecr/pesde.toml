@@ -24,6 +24,6 @@ jabby_query_parser = { workspace = "alicesaidhi/jabby_query_parser" }
 jabby_util = { workspace = "alicesaidhi/jabby_util" }
 lua_preview_notation = { workspace = "alicesaidhi/lua_preview_notation" }
 lua_object_notation = { workspace = "alicesaidhi/lua_object_notation" }
-vide = { name = "alicesaidhi/vide", version = "^0.4.1-test.4" }
-gt = { name = "corecii/greentea", version = "^0.4.11" }
+vide = { wally = "centau/vide", version = "^0.3.1" }
+gt = { wally = "corecii/greentea", version = "^0.4.11" }
 ecr = { wally = "centau/ecr", version = "^0.9.0" }
